@@ -19,6 +19,14 @@ export function usePostBookmarkMutations({ postId }: { postId: number }) {
           }
         : oldPost,
     );
+  const invalidateBookmarkData = async () => {
+    await queryClient.invalidateQueries({ queryKey });
+    if (session?.user?.id) {
+      await queryClient.invalidateQueries({
+        queryKey: ['users', session.user.id, 'posts', { type: 'bookmarks' }],
+      });
+    }
+  };
 
   const bookmarkMutation = useMutation({
     mutationFn: async () => {
@@ -36,6 +44,7 @@ export function usePostBookmarkMutations({ postId }: { postId: number }) {
       return { previousPost };
     },
     onError: (_error, _variables, context) => queryClient.setQueryData(queryKey, context?.previousPost),
+    onSettled: invalidateBookmarkData,
   });
 
   const removeBookmarkMutation = useMutation({
@@ -50,6 +59,7 @@ export function usePostBookmarkMutations({ postId }: { postId: number }) {
       return { previousPost };
     },
     onError: (_error, _variables, context) => queryClient.setQueryData(queryKey, context?.previousPost),
+    onSettled: invalidateBookmarkData,
   });
 
   return { bookmarkMutation, removeBookmarkMutation };

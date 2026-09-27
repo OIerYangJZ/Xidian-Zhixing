@@ -112,7 +112,13 @@ export const Comment = memo(
           />
 
           <div className="flex gap-2">
-            <ToggleStepper isSelected={isLiked} onChange={handleLikeToggle} Icon={SvgHeart} quantity={numberOfLikes} />
+            <ToggleStepper
+              isSelected={isLiked}
+              aria-label={isLiked ? t('取消评论点赞', 'Unlike reply') : t('点赞评论', 'Like reply')}
+              onChange={handleLikeToggle}
+              Icon={SvgHeart}
+              quantity={numberOfLikes}
+            />
             <Button
               onPress={handleCreateReply}
               Icon={SvgArrowReply}

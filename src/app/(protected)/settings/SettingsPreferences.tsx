@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -21,6 +22,7 @@ type SettingsData = {
 export function SettingsPreferences({ section }: { section: 'privacy' | 'notifications' }) {
   const { t } = useLanguage();
   const qc = useQueryClient();
+  const [saveError, setSaveError] = useState('');
   const { data, isPending } = useQuery<SettingsData>({
     queryKey: ['settings'],
     queryFn: async () => {
@@ -30,18 +32,24 @@ export function SettingsPreferences({ section }: { section: 'privacy' | 'notific
     },
   });
   const toggle = async (group: 'privacy' | 'notifications', key: string, checked: boolean) => {
-    await fetch('/api/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ [group]: { [key]: checked } }),
-    });
-    await qc.invalidateQueries({ queryKey: ['settings'] });
+    setSaveError('');
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [group]: { [key]: checked } }),
+      });
+      if (!response.ok) throw new Error('Settings could not be saved.');
+      await qc.invalidateQueries({ queryKey: ['settings'] });
+    } catch {
+      setSaveError(t('设置保存失败，请重试。', 'Settings could not be saved. Please try again.'));
+    }
   };
 
   const privacyItems = [
     {
       key: 'allowStrangerDm',
-      title: t('允許陌生同學私信', 'Allow direct messages from people you do not follow'),
+      title: t('允许陌生同学私信', 'Allow direct messages from people you do not follow'),
       detail: t('关闭后，只有你关注的同学可以发起私信。', 'When off, only people you follow can start a conversation.'),
     },
     {
@@ -75,27 +83,38 @@ export function SettingsPreferences({ section }: { section: 'privacy' | 'notific
       </p>
       {isPending ? (
         <p className="px-4 py-6 text-sm text-muted-foreground">{t('正在加载设置…', 'Loading settings…')}</p>
+      ) : data ? (
+        <>
+          {saveError && (
+            <p role="alert" className="px-4 py-3 text-sm text-destructive-foreground">
+              {saveError}
+            </p>
+          )}
+          <div className="divide-y divide-border">
+            {items.map((item) => (
+              <label
+                key={item.key}
+                className="flex cursor-pointer items-start justify-between gap-4 px-4 py-4 hover:bg-secondary/40">
+                <span>
+                  <span className="block text-sm font-medium">{item.title}</span>
+                  {'detail' in item && <span className="mt-1 block text-sm text-muted-foreground">{item.detail}</span>}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={Boolean(values?.[item.key])}
+                  onChange={(event) => {
+                    toggle(section, item.key, event.target.checked);
+                  }}
+                  className="mt-0.5 h-5 w-5 accent-primary"
+                />
+              </label>
+            ))}
+          </div>
+        </>
       ) : (
-        <div className="divide-y divide-border">
-          {items.map((item) => (
-            <label
-              key={item.key}
-              className="flex cursor-pointer items-start justify-between gap-4 px-4 py-4 hover:bg-secondary/40">
-              <span>
-                <span className="block text-sm font-medium">{item.title}</span>
-                {'detail' in item && <span className="mt-1 block text-sm text-muted-foreground">{item.detail}</span>}
-              </span>
-              <input
-                type="checkbox"
-                checked={Boolean(values?.[item.key])}
-                onChange={(event) => {
-                  toggle(section, item.key, event.target.checked);
-                }}
-                className="mt-0.5 h-5 w-5 accent-primary"
-              />
-            </label>
-          ))}
-        </div>
+        <p role="alert" className="px-4 py-6 text-sm text-destructive-foreground">
+          {t('设置加载失败，请刷新页面重试。', 'Settings could not be loaded. Refresh and try again.')}
+        </p>
       )}
     </div>
   );

@@ -17,6 +17,7 @@ import SvgBookmark from '@/svg_components/Bookmark';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePostLikesMutations } from '@/hooks/mutations/usePostLikesMutations';
 import { usePostBookmarkMutations } from '@/hooks/mutations/usePostBookmarkMutations';
+import { useToast } from '@/hooks/useToast';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { ToggleStepper } from './ui/ToggleStepper';
@@ -75,6 +76,7 @@ export const Post = memo(
     toggleComments: (postId: number) => void;
   }) => {
     const { t, language } = useLanguage();
+    const { showToast } = useToast();
     const { likeMutation, unLikeMutation } = usePostLikesMutations({ postId });
     const { bookmarkMutation, removeBookmarkMutation } = usePostBookmarkMutations({ postId });
     const qc = useQueryClient();
@@ -130,6 +132,28 @@ export const Post = memo(
     const handleCommentsToggle = useCallback(() => {
       toggleComments(postId);
     }, [postId, toggleComments]);
+    const sharePost = async () => {
+      const url = `${window.location.origin}/posts/${postId}`;
+      try {
+        if (navigator.share) {
+          await navigator.share({ url });
+          return;
+        }
+        await navigator.clipboard.writeText(url);
+        showToast({
+          title: t('链接已复制', 'Link copied'),
+          message: t('可以把帖子链接分享给同学。', 'You can share the post link with classmates.'),
+          type: 'success',
+        });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        showToast({
+          title: t('分享失败', 'Could not share'),
+          message: t('请稍后重试。', 'Please try again.'),
+          type: 'error',
+        });
+      }
+    };
     const variants = useMemo(
       () => ({
         animate: {
@@ -233,24 +257,27 @@ export const Post = memo(
           <div className="-ml-2 flex items-center justify-between pt-1 text-muted-foreground">
             <ToggleStepper
               isSelected={commentsShown || false}
+              aria-label={t('显示评论', 'Show replies')}
               onChange={handleCommentsToggle}
               Icon={SvgComment}
               quantity={postCounts.comments}
-              color="blue"
+              color="accent"
             />
             <ToggleStepper
               isSelected={isReposted}
+              aria-label={isReposted ? t('取消转发', 'Undo repost') : t('转发', 'Repost')}
               onChange={(nextIsReposted) => repostMutation.mutate(nextIsReposted)}
               Icon={RepostIcon}
               quantity={postCounts.reposts}
-              color="blue"
+              color="accent"
             />
             <ToggleStepper
               isSelected={isLiked}
+              aria-label={isLiked ? t('取消点赞', 'Unlike post') : t('点赞', 'Like post')}
               onChange={handleLikeToggle}
               Icon={SvgHeart}
               quantity={numberOfLikes}
-              color="red"
+              color="accent"
             />
             <Link
               href={`/posts/${postId}`}
@@ -272,7 +299,7 @@ export const Post = memo(
             <button
               type="button"
               aria-label={t('分享帖子', 'Share post')}
-              onClick={() => navigator.share?.({ url: `${window.location.origin}/posts/${postId}` })}
+              onClick={sharePost}
               className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
               <ShareIcon className="h-5 w-5" />
             </button>

@@ -69,7 +69,13 @@ export const CommentReply = memo(
           />
 
           <div className="flex origin-left">
-            <ToggleStepper isSelected={isLiked} onPress={handleLikeClick} Icon={SvgHeart} quantity={numberOfLikes} />
+            <ToggleStepper
+              isSelected={isLiked}
+              aria-label={isLiked ? t('取消回复点赞', 'Unlike reply') : t('点赞回复', 'Like reply')}
+              onPress={handleLikeClick}
+              Icon={SvgHeart}
+              quantity={numberOfLikes}
+            />
             {isOwnReply && (
               <DropdownMenuButton
                 key={`replies-${commentId}-options`}
