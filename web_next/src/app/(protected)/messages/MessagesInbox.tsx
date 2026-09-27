@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
 import { ApiError } from '@/lib/backend/client';
-import { avatarSrc } from '@/lib/backend/image';
+import { Avatar } from '@/components/ui/Avatar';
 import {
   deleteConversation,
   listConversations,
@@ -19,14 +19,10 @@ import {
 import type { ApiConversation, ApiDirectMessage } from '@/lib/backend/types';
 import type { GetUser } from '@/types/definitions';
 
-function Avatar({ name, url, className }: { name: string; url: string; className?: string }) {
+function ChatAvatar({ name, url, className }: { name: string; url: string; className?: string }) {
   return (
-    <span
-      className={cn(
-        'grid shrink-0 place-items-center overflow-hidden rounded-full bg-secondary text-sm font-semibold',
-        className,
-      )}>
-      {url ? <img src={avatarSrc(url)} alt="" className="h-full w-full object-cover" /> : (name || '知').slice(0, 1)}
+    <span className={cn('block shrink-0', className)}>
+      <Avatar name={name || '知'} photoUrl={url} />
     </span>
   );
 }
@@ -229,7 +225,7 @@ export function MessagesInbox() {
                     type="button"
                     onClick={() => startConversation(user)}
                     className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-secondary/70">
-                    <Avatar name={user.name} url={user.profilePhoto || ''} className="h-8 w-8" />
+                    <ChatAvatar name={user.name} url={user.profilePhoto || ''} className="h-8 w-8" />
                     <span className="min-w-0 flex-1 truncate">{user.name}</span>
                     {!user.canDirectMessage && (
                       <span className="text-xs text-muted-foreground">{t('未开放私信', 'Closed')}</span>
@@ -248,7 +244,7 @@ export function MessagesInbox() {
                 className={`flex min-w-40 flex-1 items-center gap-3 rounded-lg p-3 text-left transition md:min-w-0 ${
                   activeId === conversation.id ? 'bg-primary/10' : 'hover:bg-secondary/70'
                 }`}>
-                <Avatar name={conversation.name} url={conversation.avatarUrl} className="h-10 w-10" />
+                <ChatAvatar name={conversation.name} url={conversation.avatarUrl} className="h-10 w-10" />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2 text-sm font-semibold">
                     <span className="truncate">{conversation.name}</span>
@@ -284,7 +280,7 @@ export function MessagesInbox() {
                 ‹
               </button>
             )}
-            {active && <Avatar name={active.name} url={active.avatarUrl} className="h-9 w-9" />}
+            {active && <ChatAvatar name={active.name} url={active.avatarUrl} className="h-9 w-9" />}
             <div className="min-w-0">
               <h2 className="truncate text-sm font-semibold">
                 {active?.name || t('选择一段对话', 'Select a conversation')}

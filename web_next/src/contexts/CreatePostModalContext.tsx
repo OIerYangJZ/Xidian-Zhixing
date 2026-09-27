@@ -5,6 +5,7 @@ import { useOverlayTriggerState } from 'react-stately';
 import { AnimatePresence } from 'framer-motion';
 import { Modal } from '@/components/Modal';
 import { CreatePostDialog } from '@/components/CreatePostDialog';
+import type { GetPost } from '@/types/definitions';
 
 // Separate the `data` and `api` part of the context to prevent
 // re-rendering of the `api` consumers when the `data` changes
@@ -16,21 +17,26 @@ const CreatePostModalContextData = createContext<{
 
 const CreatePostModalContextApi = createContext<{
   setShown: (isOpen: boolean) => void;
+  /** The post being edited, or null when the dialog creates a new one. */
+  setEditingPost: Dispatch<SetStateAction<GetPost | null>>;
   setShouldOpenFileInputOnMount: Dispatch<SetStateAction<boolean>>;
 }>({
   setShown: () => {},
+  setEditingPost: () => {},
   setShouldOpenFileInputOnMount: () => {},
 });
 
 export function CreatePostModalContextProvider({ children }: { children: React.ReactNode }) {
   const state = useOverlayTriggerState({});
   const [shouldOpenFileInputOnMount, setShouldOpenFileInputOnMount] = useState(false);
+  const [editingPost, setEditingPost] = useState<GetPost | null>(null);
 
   // Memoize to prevent re-rendering of consumers when the states change
   const dataValue = useMemo(() => ({ shouldOpenFileInputOnMount }), [shouldOpenFileInputOnMount]);
   const apiValue = useMemo(
     () => ({
       setShown: state.setOpen,
+      setEditingPost,
       setShouldOpenFileInputOnMount,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -45,7 +51,11 @@ export function CreatePostModalContextProvider({ children }: { children: React.R
           {state.isOpen && (
             // Set `isKeyboardDismissDisabled`, clicking the `Escape` key must be handled by <CreatePostDialog> instead.
             <Modal state={state} isKeyboardDismissDisabled>
-              <CreatePostDialog shouldOpenFileInputOnMount={shouldOpenFileInputOnMount} setShown={state.setOpen} />
+              <CreatePostDialog
+                editingPost={editingPost}
+                shouldOpenFileInputOnMount={shouldOpenFileInputOnMount}
+                setShown={state.setOpen}
+              />
             </Modal>
           )}
         </AnimatePresence>

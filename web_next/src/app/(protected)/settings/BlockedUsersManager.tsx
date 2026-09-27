@@ -12,6 +12,7 @@ import {
   searchUsers as findUsers,
   unblockUser as unblockAccount,
 } from '@/lib/backend/endpoints';
+import { Avatar } from '@/components/ui/Avatar';
 
 type UserSummary = { id: string; username: string; name: string; profilePhoto: string | null };
 type BlockedUser = UserSummary & { createdAt: string };
@@ -138,10 +139,8 @@ export function BlockedUsersManager() {
           <ul className="mt-3 divide-y divide-border rounded-md border border-border">
             {results.map((candidate) => (
               <li key={candidate.id} className="flex items-center gap-3 px-3 py-3">
-                <span
-                  aria-hidden="true"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-sm">
-                  {candidate.name.slice(0, 1)}
+                <span aria-hidden="true" className="block h-10 w-10 shrink-0">
+                  <Avatar name={candidate.name} photoUrl={candidate.profilePhoto} />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">{candidate.name}</span>
@@ -190,13 +189,8 @@ export function BlockedUsersManager() {
                 <Link
                   href={profileHref(blocked.username)!}
                   aria-label={blocked.name}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary text-sm">
-                  {blocked.profilePhoto ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={blocked.profilePhoto} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    blocked.name.slice(0, 1)
-                  )}
+                  className="block h-10 w-10 shrink-0">
+                  <Avatar name={blocked.name} photoUrl={blocked.profilePhoto} />
                 </Link>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">{blocked.name}</span>

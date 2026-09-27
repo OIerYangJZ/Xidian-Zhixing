@@ -18,16 +18,17 @@ import { AriaTextFieldProps, mergeProps, useKeyboard, useTextField } from 'react
 import { useOverlayTriggerState } from 'react-stately';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { searchUsers } from '@/lib/backend/endpoints';
+import { rememberMention } from '@/lib/mentions';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Popover } from './ui/Popover';
 import { TextAreaMentionItem } from './TextAreaMentionItem';
 import { HighlightedMentionsAndHashTags } from './HighlightedMentionsAndHashTags';
 
 /**
- * @-mention autocomplete.  Off: the backend neither resolves nor notifies
- * mentions, so picking a user would only insert text.
+ * What may follow "@" while the mention list is open: any letter or digit
+ * (Chinese nicknames included) and the - · _ that nicknames use.
  */
-const MENTIONS_ENABLED = false;
+const MENTION_QUERY = /^[\p{L}\p{N}_\-·]+$/u;
 
 interface TextAreaWithMentionsAndHashTagsProps extends AriaTextFieldProps {
   content: string;
@@ -62,7 +63,7 @@ export function TextAreaWithMentionsAndHashTags({
   // This query will refetch every time the `searchKeyword` state changess
   const { data, isPending, isError } = useQuery({
     queryKey: ['mentions', 'search', { keyword: searchKeyword }],
-    queryFn: async () => searchUsers(searchKeyword),
+    queryFn: async () => (await searchUsers(searchKeyword)).filter((user) => !user.isOwnProfile),
     staleTime: 60000 * 10,
     enabled: !!searchKeyword,
   });
@@ -84,14 +85,19 @@ export function TextAreaWithMentionsAndHashTags({
   // when the user clicks outside, but we can handle it manually
   const [popoverRef] = useClickOutside(closeMentions);
 
-  const handleSelectUserToMention = (username: string) => {
+  // Items are keyed by account id; the text gets the nickname, and the
+  // pairing is remembered so the submit can send the account as a mention.
+  const handleSelectUserToMention = (userId: string) => {
+    const nickname = data?.find((user) => user.id === userId)?.name;
+    if (!nickname) return;
+    rememberMention(nickname, userId);
     setContent(
-      replaceWordAtCursor(content, posOfActiveAt.current, `@${username} `),
+      replaceWordAtCursor(content, posOfActiveAt.current, `@${nickname} `),
       //                                                               ^ add one space character
     );
 
     // The cursor position must be right after the inserted string
-    const newCursorPos = posOfActiveAt.current + username.length + 2;
+    const newCursorPos = posOfActiveAt.current + nickname.length + 2;
 
     // Wait for the `setContent()` to finish before resizing the textarea
     setTimeout(() => {
@@ -103,11 +109,6 @@ export function TextAreaWithMentionsAndHashTags({
     }, 100);
 
     closeMentions();
-  };
-
-  const handleTextareaChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
-    const { target } = event;
-    setContent(target.value);
   };
 
   const handleToggleMentions = () => {
@@ -122,13 +123,12 @@ export function TextAreaWithMentionsAndHashTags({
     const currentWord = wordsBeforeCursor[wordsBeforeCursor.length - 1];
 
     /**
-     * If the `currentWord` starts with '@' and the word after it satisfies the
-     * username validation i.e. alphanumeric and underscore characters only, then
-     * show the mentions section, otherwise hide it
+     * If the `currentWord` starts with '@' and the rest could be part of a
+     * nickname (MENTION_QUERY), show the mention list, otherwise hide it
      */
-    if (MENTIONS_ENABLED && currentWord.startsWith('@')) {
+    if (currentWord.startsWith('@')) {
       const keyword = currentWord.slice(1);
-      if (/^\w+$/.test(keyword)) {
+      if (MENTION_QUERY.test(keyword)) {
         setSearchKeyword(keyword);
         setMentionsShown(true);
 
@@ -153,6 +153,15 @@ export function TextAreaWithMentionsAndHashTags({
     const start = textareaRef.current?.value.length || 0;
     textareaRef.current?.setSelectionRange(start, start);
   }, [shouldFocusOnMount]);
+
+  // Re-check the word at the cursor on every change, not only on keyup: text
+  // committed by a Chinese IME (and pasted text) arrives without a keyup, so
+  // the mention list would otherwise keep searching the half-typed name.
+  const handleTextareaChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
+    const { target } = event;
+    setContent(target.value);
+    handleToggleMentions();
+  };
 
   const { keyboardProps } = useKeyboard({
     onKeyDown: (e) => {

@@ -29,6 +29,8 @@ export const CommentReply = memo(
     isOwnComment,
     isPostAuthor,
     isPending,
+    mentions,
+    editedAt,
     isLiked,
     replyToName,
     _count,
@@ -37,7 +39,7 @@ export const CommentReply = memo(
     const { prompt } = useDialogs();
     const { openReport } = useReportDialog();
     const { createCommentMutation } = useCreateCommentMutations();
-    const { handleDelete } = useUpdateDeleteComments({ postId });
+    const { handleEdit, handleDelete } = useUpdateDeleteComments({ postId });
     const { likeComment, unLikeComment } = useLikeUnlikeComments({ postId });
 
     const handleLikeClick = useCallback(
@@ -72,6 +74,8 @@ export const CommentReply = memo(
             shouldHighlight={shouldHighlight}
             isPostAuthor={isPostAuthor}
             isPending={isPending}
+            mentions={mentions}
+            editedAt={editedAt}
             replyToName={replyToName}
           />
 
@@ -102,8 +106,11 @@ export const CommentReply = memo(
               <DropdownMenuButton
                 key={`replies-${commentId}-options`}
                 label={t('回复选项', 'Reply options')}
-                onAction={() => handleDelete({ commentId })}>
+                onAction={(key) =>
+                  key === 'edit' ? handleEdit({ commentId, content, mentions }) : handleDelete({ commentId })
+                }>
                 <Section>
+                  <Item key="edit">{t('编辑回复', 'Edit reply')}</Item>
                   <Item key="delete">{t('删除回复', 'Delete reply')}</Item>
                 </Section>
               </DropdownMenuButton>

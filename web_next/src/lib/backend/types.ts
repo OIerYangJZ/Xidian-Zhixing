@@ -106,6 +106,10 @@ export interface ApiPost {
   publisherClubId: string;
   liked: boolean;
   favorited: boolean;
+  repostCount: number;
+  reposted: boolean;
+  mentions: ApiMention[];
+  editedAt: string;
   status: 'ongoing' | 'resolved' | 'closed';
   reviewStatus: 'approved' | 'pending' | 'rejected' | 'resolved';
   allowComment: boolean;
@@ -118,6 +122,39 @@ export interface ApiPost {
   isFollowingAuthor: boolean;
   canMessageAuthor: boolean;
   isOwnPost: boolean;
+}
+
+export interface ApiMention {
+  userId: string;
+  nickname: string;
+}
+
+/** A /api/users/<id>/timeline item: a post, possibly as someone's repost. */
+export interface ApiTimelineItem extends ApiPost {
+  repostedBy: ApiMention | null;
+  eventKey: string;
+  eventAt: string;
+}
+
+export interface ApiPage<T> {
+  items: T[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export type ApiActivityType = 'post' | 'comment' | 'like_post' | 'like_comment' | 'favorite' | 'repost' | 'follow';
+
+export interface ApiActivity {
+  id: string;
+  type: ApiActivityType;
+  createdAt: string;
+  post?: { id: string; title: string };
+  commentId?: string;
+  content?: string;
+  isAnonymous?: boolean;
+  user?: ApiMention;
 }
 
 export interface ApiPostPage {
@@ -144,9 +181,19 @@ export interface ApiComment {
   isAnonymous: boolean;
   reviewStatus: string;
   parentId: string;
+  mentions: ApiMention[];
+  editedAt: string;
 }
 
-export type ApiNotificationType = 'comment' | 'reply' | 'like' | 'favorite' | 'report_result' | 'system';
+export type ApiNotificationType =
+  | 'comment'
+  | 'reply'
+  | 'like'
+  | 'favorite'
+  | 'repost'
+  | 'mention'
+  | 'report_result'
+  | 'system';
 
 export interface ApiNotification {
   id: string;

@@ -26,6 +26,7 @@ export type ActivityType =
   | 'CREATE_REPLY'
   | 'REPLY_MENTION'
   | 'REPLY_LIKE'
+  | 'POST_REPOST'
   | 'REPORT_RESULT'
   | 'SYSTEM';
 
@@ -63,9 +64,16 @@ export interface GetUser {
   userLevelLabel: string;
 }
 
+export interface Mention {
+  userId: string;
+  nickname: string;
+}
+
 export interface GetVisualMedia {
   type: VisualMediaType;
   url: string;
+  /** Upload id of an image already on the post; absent for one just picked. */
+  uploadId?: string;
 }
 
 export interface VisualMediaModalType {
@@ -92,8 +100,13 @@ export interface GetPost {
   isOwnPost: boolean;
   isLiked: boolean;
   isBookmarked: boolean;
-  /** No reposts on this backend; always false. */
   isReposted: boolean;
+  /** People @-mentioned in the text; `@nickname` links to their profile. */
+  mentions: Mention[];
+  /** Last author edit, '' when never edited. */
+  editedAt: string;
+  /** Upload ids of the attached images, in order (for editing). */
+  uploadedImageIds: string[];
   isPinned: boolean;
   isPrivate: boolean;
   allowComment: boolean;
@@ -120,6 +133,7 @@ export interface PostId {
   commentsShown: boolean;
   feedEventKey?: string;
   feedCursor?: string;
+  /** Set on a profile timeline when this entry is the profile owner's repost. */
   repostedBy?: { name: string | null; username: string | null };
 }
 
@@ -139,6 +153,8 @@ export interface GetComment {
   isPostAuthor: boolean;
   isAnonymous: boolean;
   isPending: boolean;
+  mentions: Mention[];
+  editedAt: string;
   _count: {
     commentLikes: number;
     replies: number;

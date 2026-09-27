@@ -13,7 +13,16 @@ export interface NotificationsData {
   unreadByType: Record<ApiNotificationType, number>;
 }
 
-const CATEGORIES: ApiNotificationType[] = ['comment', 'reply', 'like', 'favorite', 'report_result', 'system'];
+const CATEGORIES: ApiNotificationType[] = [
+  'comment',
+  'reply',
+  'like',
+  'favorite',
+  'repost',
+  'mention',
+  'report_result',
+  'system',
+];
 
 /**
  * One request serves both the list and the unread badge: the backend returns

@@ -28,6 +28,9 @@ export function Activity({
     CREATE_COMMENT: t('评论了你的帖子', 'commented on your post'),
     COMMENT_LIKE: t('赞了你的评论', 'liked your comment'),
     CREATE_REPLY: t('回复了你的评论', 'replied to your comment'),
+    POST_REPOST: t('转发了你的帖子', 'reposted your post'),
+    POST_MENTION: t('在帖子中提到了你', 'mentioned you in a post'),
+    COMMENT_MENTION: t('在评论中提到了你', 'mentioned you in a comment'),
   };
   const verb = verbs[type];
 

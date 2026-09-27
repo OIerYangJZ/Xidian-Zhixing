@@ -8,14 +8,14 @@ import { useDeletePostMutation } from '@/hooks/mutations/useDeletePostMutation';
 import { useErrorNotifier } from '@/hooks/useErrorNotifier';
 import { useLanguage } from '@/hooks/useLanguage';
 import { setPostProgress } from '@/lib/backend/endpoints';
-import type { PostProgress } from '@/types/definitions';
+import type { GetPost, PostProgress } from '@/types/definitions';
+import { useCreatePostModal } from '@/hooks/useCreatePostModal';
 import { DropdownMenuButton } from './ui/DropdownMenuButton';
 
-/**
- * The author's menu.  Published text and images cannot be edited on this
- * backend, so the options are the post's 进行中/已解决 status and deletion.
- */
-export function PostOptions({ postId, progress }: { postId: string; progress: PostProgress }) {
+/** The author's menu: edit, 进行中/已解决 status, delete. */
+export function PostOptions({ post }: { post: GetPost }) {
+  const { id: postId, progress } = post;
+  const { launchEditPost } = useCreatePostModal();
   const { confirm } = useDialogs();
   const { deleteMutation } = useDeletePostMutation();
   const { notifyError } = useErrorNotifier();
@@ -24,7 +24,7 @@ export function PostOptions({ postId, progress }: { postId: string; progress: Po
 
   const progressMutation = useMutation({
     mutationFn: (next: PostProgress) => setPostProgress(postId, next),
-    onSuccess: (post) => qc.setQueryData(['posts', postId], post),
+    onSuccess: (updated) => qc.setQueryData(['posts', postId], updated),
     onError: (error) => notifyError(error, t('更新失败', 'Update failed')),
   });
 
@@ -42,11 +42,12 @@ export function PostOptions({ postId, progress }: { postId: string; progress: Po
 
   const handleOptionClick = useCallback(
     (key: Key) => {
-      if (key === 'resolve') progressMutation.mutate('resolved');
+      if (key === 'edit') launchEditPost(post);
+      else if (key === 'resolve') progressMutation.mutate('resolved');
       else if (key === 'reopen') progressMutation.mutate('ongoing');
       else handleDeleteClick();
     },
-    [handleDeleteClick, progressMutation],
+    [handleDeleteClick, launchEditPost, post, progressMutation],
   );
 
   return (
@@ -55,6 +56,7 @@ export function PostOptions({ postId, progress }: { postId: string; progress: Po
       label={t('动态选项', 'Post options')}
       onAction={handleOptionClick}>
       <Section>
+        <Item key="edit">{t('编辑动态', 'Edit post')}</Item>
         {progress === 'ongoing' ? (
           <Item key="resolve">{t('标记为已解决', 'Mark as resolved')}</Item>
         ) : (

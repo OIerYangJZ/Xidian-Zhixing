@@ -1,6 +1,7 @@
 import { Query, useMutation, useQueryClient } from '@tanstack/react-query';
-import { GetVisualMedia, DisplayIdentity } from '@/types/definitions';
-import { createPost, uploadImage } from '@/lib/backend/endpoints';
+import { GetVisualMedia, DisplayIdentity, GetPost } from '@/types/definitions';
+import { createPost, editPost, uploadImage } from '@/lib/backend/endpoints';
+import { mentionIdsIn } from '@/lib/mentions';
 import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
 import { useToast } from '../useToast';
 import { useErrorNotifier } from '../useErrorNotifier';
@@ -20,15 +21,37 @@ const isTimeline = (query: Query) => {
   return (head === 'posts' && second === 'feed') || third === 'posts';
 };
 
+/** Upload the images that are new to the post; keep the ids of the others. */
+async function uploadIdsFor(visualMedia: GetVisualMedia[]): Promise<string[]> {
+  const ids: string[] = [];
+  /* eslint-disable no-await-in-loop -- one by one: uploads are rate limited */
+  for (const [index, media] of visualMedia.entries()) {
+    if (media.uploadId) {
+      ids.push(media.uploadId);
+    } else {
+      const file = await fetch(media.url).then((r) => r.blob());
+      const upload = await uploadImage(file, `image-${index + 1}`);
+      if (upload.status === 'rejected') {
+        throw new Error(upload.moderationReason || '有图片未通过审核，请更换后再发布');
+      }
+      ids.push(upload.id);
+    }
+  }
+  /* eslint-enable no-await-in-loop */
+  return ids;
+}
+
 /**
- * Creating is the only write: the backend does not edit a post's text or
- * images after publishing (PATCH only changes its 进行中/已解决 status).
+ * Publishing a new post, or (with `editing`) saving an edit of an existing
+ * one.  The identity and section of a post are fixed once it is published.
  */
 export function useWritePostMutations({
   draft,
+  editing,
   exitCreatePostModal,
 }: {
   draft: PostDraft;
+  editing: GetPost | null;
   exitCreatePostModal: () => void;
 }) {
   const qc = useQueryClient();
@@ -37,18 +60,7 @@ export function useWritePostMutations({
 
   const createPostMutation = useMutation({
     mutationFn: async () => {
-      // Images upload one by one (base64 JSON, rate limited), then attach by id.
-      /* eslint-disable no-await-in-loop */
-      const imageUploadIds: string[] = [];
-      for (const [index, { url }] of draft.visualMedia.entries()) {
-        const file = await fetch(url).then((r) => r.blob());
-        const upload = await uploadImage(file, `image-${index + 1}`);
-        if (upload.status === 'rejected') {
-          throw new Error(upload.moderationReason || '有图片未通过审核，请更换后再发布');
-        }
-        imageUploadIds.push(upload.id);
-      }
-      /* eslint-enable no-await-in-loop */
+      const imageUploadIds = await uploadIdsFor(draft.visualMedia);
       const anonymous = draft.displayIdentity === 'ANONYMOUS';
       return createPost({
         title: draft.title.trim(),
@@ -56,6 +68,7 @@ export function useWritePostMutations({
         imageUploadIds,
         ...draft.section,
         useAnonymousAlias: anonymous,
+        mentionUserIds: mentionIdsIn(`${draft.title}\n${draft.content}`),
         ...(anonymous && { anonymousAlias: draft.anonymousAlias.trim() || '匿名同学' }),
       });
     },
@@ -75,5 +88,30 @@ export function useWritePostMutations({
     },
   });
 
-  return { createPostMutation };
+  const editPostMutation = useMutation({
+    mutationFn: async () => {
+      if (!editing) throw new Error('没有正在编辑的帖子');
+      const text = `${draft.title}\n${draft.content}`;
+      return editPost(editing.id, {
+        title: draft.title.trim(),
+        content: draft.content,
+        imageUploadIds: await uploadIdsFor(draft.visualMedia),
+        mentionUserIds: mentionIdsIn(text, editing.mentions),
+      });
+    },
+    onSuccess: (edited) => {
+      qc.setQueryData(['posts', edited.id], edited);
+      showToast({
+        title: edited.status === 'PUBLISHED' ? '已保存修改' : '修改已提交审核，通过后会公开显示',
+        type: 'success',
+      });
+      revokeVisualMediaObjectUrls(draft.visualMedia.filter((media) => !media.uploadId));
+      exitCreatePostModal();
+    },
+    onError: (err) => {
+      notifyError(err, '保存失败');
+    },
+  });
+
+  return { createPostMutation, editPostMutation };
 }

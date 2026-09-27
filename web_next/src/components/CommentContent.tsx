@@ -7,7 +7,10 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { profileHref } from '@/lib/profileHref';
 import { useLanguage } from '@/hooks/useLanguage';
+import type { Mention } from '@/types/definitions';
 import { HighlightedMentionsAndHashTags } from './HighlightedMentionsAndHashTags';
+
+const NO_MENTIONS: Mention[] = [];
 
 export function CommentContent({
   name,
@@ -18,6 +21,8 @@ export function CommentContent({
   isPostAuthor = false,
   isPending = false,
   replyToName = null,
+  mentions = NO_MENTIONS,
+  editedAt = '',
 }: {
   name: string | null;
   username: string | null;
@@ -29,6 +34,8 @@ export function CommentContent({
   isPending?: boolean;
   /** Who this reply answers, when that is not the thread's first comment. */
   replyToName?: string | null;
+  mentions?: Mention[];
+  editedAt?: string;
 }) {
   const { language, t } = useLanguage();
   const ref = useRef<HTMLDivElement>(null);
@@ -60,6 +67,7 @@ export function CommentContent({
         <span className="text-xs text-muted-foreground">
           {formatDistanceToNowStrict(new Date(createdAt), { addSuffix: true, locale: language === 'zh' ? zhCN : enUS })}
         </span>
+        {editedAt && <span className="text-xs text-muted-foreground">{t('已编辑', 'edited')}</span>}
         {isPending && <span className="text-xs text-amber-600 dark:text-amber-400">{t('审核中', 'In review')}</span>}
       </div>
       <div className={cn('mt-1 rounded-lg', shouldHighlight && 'ring-2 ring-primary ring-offset-2')}>
@@ -69,7 +77,7 @@ export function CommentContent({
               {t('回复', 'Replying to')} <span className="font-medium text-foreground">@{replyToName}</span>:
             </span>
           )}
-          <HighlightedMentionsAndHashTags text={content} shouldAddLinks />
+          <HighlightedMentionsAndHashTags text={content} shouldAddLinks mentions={mentions} />
         </p>
       </div>
     </div>

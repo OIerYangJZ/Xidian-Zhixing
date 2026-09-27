@@ -1,26 +1,44 @@
 import parse, { Element, domToReact } from 'html-react-parser';
 import DOMPurify from 'dompurify';
 import Link from 'next/link';
-import { tagHref } from '@/lib/profileHref';
+import type { Mention } from '@/types/definitions';
+import { profileHref, tagHref } from '@/lib/profileHref';
 
-export function HighlightedMentionsAndHashTags({ text, shouldAddLinks }: { text: string; shouldAddLinks?: boolean }) {
-  /**
-   * Define a regex pattern to match words that begin with `@` or `#`
-   *
-   * * The first group matches a line start, whitespace, or punctuation before the marker
-   * * The second group matches either the `@` or `#`
-   * * The third group matches Unicode letters, numbers, and underscores after the `@` or `#`
-   */
-  const pattern = /(^|[\s\p{P}\p{S}])(@|#)([\p{L}\p{N}_]+)/gu;
-  const cleanText = DOMPurify.sanitize(text.replace(/</g, '&lt;').replace(/>/, '&gt;'));
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapeHtml = (value: string) =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  // Use replace() method to surround the matches' word with the <span> tag
-  const html = cleanText.replace(pattern, (match, space: string, char: string, word: string) => {
-    const coloredWord = `<span class="text-primary">${char}${word}</span>`;
+/**
+ * Colours #hashtags and @mentions; with `shouldAddLinks`, hashtags open the
+ * tag page and mentions the backend resolved (`mentions`) open that
+ * person's profile.  Mentions are matched on the whole stored nickname, so
+ * names containing - or · stay one link.
+ */
+export function HighlightedMentionsAndHashTags({
+  text,
+  shouldAddLinks,
+  mentions = [],
+}: {
+  text: string;
+  shouldAddLinks?: boolean;
+  mentions?: Mention[];
+}) {
+  const byNickname = new Map(mentions.map((mention) => [mention.nickname, mention.userId]));
+  // Longest first, so "@小波波" is not taken as "@小波".
+  const nicknames = [...byNickname.keys()].sort((a, b) => b.length - a.length).map(escapeRegExp);
+  const mentionAlternatives = nicknames.length ? `${nicknames.join('|')}|` : '';
+  const pattern = new RegExp(
+    `(^|[\\s\\p{P}\\p{S}])(?:@(${mentionAlternatives}[\\p{L}\\p{N}_]+)|#([\\p{L}\\p{N}_]+))`,
+    'gu',
+  );
 
-    // Only hashtags link: users have no @handle to resolve on this backend.
-    if (!shouldAddLinks || char !== '#') return `${space}${coloredWord}`;
-    return `${space}<a href="${tagHref(word)}">${coloredWord}</a>`;
+  const cleanText = DOMPurify.sanitize(escapeHtml(text));
+  const html = cleanText.replace(pattern, (_match, lead: string, mention?: string, hashtag?: string) => {
+    const word = mention ?? hashtag ?? '';
+    const coloured = `<span class="text-primary">${mention !== undefined ? '@' : '#'}${word}</span>`;
+    if (!shouldAddLinks) return `${lead}${coloured}`;
+    const href = mention !== undefined ? profileHref(byNickname.get(word)) : tagHref(word);
+    return href ? `${lead}<a href="${escapeHtml(href)}">${coloured}</a>` : `${lead}${coloured}`;
   });
 
   if (!shouldAddLinks) return parse(html) as JSX.Element;

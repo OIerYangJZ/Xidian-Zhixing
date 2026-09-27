@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useOnScreen from '@/hooks/useOnScreen';
 import { AnimatePresence, motion } from 'framer-motion';
 import { POSTS_PER_PAGE } from '@/constants';
-import { listFavoritePosts, listPosts, type PostSort } from '@/lib/backend/endpoints';
+import { listFavoritePosts, listPosts, listTimeline, type PostSort, type TimelineEntry } from '@/lib/backend/endpoints';
 import { chunk } from 'lodash';
 import { useShouldAnimate } from '@/hooks/useShouldAnimate';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -60,17 +60,26 @@ type PostsProps =
 
 type PageParam = number;
 
-function fetchPage({ type, userId, hashtag, keyword, sort, sectionId }: PostsProps, page: PageParam) {
-  if (type === 'bookmarks') return listFavoritePosts();
-  return listPosts({
-    page,
-    limit: POSTS_PER_PAGE,
-    sort: sort || 'latest',
-    ...(type === 'profile' && { authorId: userId }),
-    ...(type === 'hashtag' && { channel: hashtag }),
-    ...(type === 'search' && { keyword }),
-    ...(type === 'feed' && sectionId && { sectionId }),
-  });
+type PageEntries = { entries: TimelineEntry[]; hasMore: boolean };
+
+async function fetchPage(
+  { type, userId, hashtag, keyword, sort, sectionId }: PostsProps,
+  page: PageParam,
+): Promise<PageEntries> {
+  // A profile shows what the user wrote and what they reposted.
+  if (type === 'profile') return listTimeline(userId, page, POSTS_PER_PAGE);
+  const { posts, hasMore } =
+    type === 'bookmarks'
+      ? await listFavoritePosts()
+      : await listPosts({
+          page,
+          limit: POSTS_PER_PAGE,
+          sort: sort || 'latest',
+          ...(type === 'hashtag' && { channel: hashtag }),
+          ...(type === 'search' && { keyword }),
+          ...(type === 'feed' && sectionId && { sectionId }),
+        });
+  return { entries: posts.map((post) => ({ post, repostedBy: null, eventKey: '' })), hasMore };
 }
 
 export function Posts(props: PostsProps) {
@@ -108,15 +117,22 @@ export function Posts(props: PostsProps) {
     queryKey,
     initialPageParam: 1,
     queryFn: async ({ pageParam }): Promise<PostIds> => {
-      const { posts, hasMore } = await fetchPage(props, pageParam);
-      const postIds: PostIds = posts.map((post) => {
+      const { entries, hasMore } = await fetchPage(props, pageParam);
+      const postIds: PostIds = entries.map(({ post, repostedBy, eventKey }) => {
         // Set query data for each `post`, these queries will be used by the <Post> component
         qc.setQueryData(['posts', post.id], post);
 
         // If the `post` already exists in `data`, make sure to use its current `commentsShown`
         // value to prevent the post's comment section from closing if it is already shown
-        const currentPostId = data?.pages.flat().find(({ id }) => id === post.id);
-        return { id: post.id, commentsShown: currentPostId?.commentsShown || false };
+        const currentPostId = data?.pages
+          .flat()
+          .find(({ id, feedEventKey }) => id === post.id && (feedEventKey || '') === eventKey);
+        return {
+          id: post.id,
+          commentsShown: currentPostId?.commentsShown || false,
+          ...(eventKey && { feedEventKey: eventKey }),
+          ...(repostedBy && { repostedBy: { name: repostedBy.nickname, username: repostedBy.userId } }),
+        };
       });
       pageHasMore.current.set(pageParam, hasMore);
       return postIds;
@@ -144,14 +160,14 @@ export function Posts(props: PostsProps) {
     if (type !== 'feed') return undefined;
     const interval = setInterval(async () => {
       try {
-        const { posts } = await fetchPage(props, 1);
+        const { entries } = await fetchPage(props, 1);
         const seen = new Set(
           qc
             .getQueryData<InfiniteData<PostIds>>(queryKey)
             ?.pages.flat()
             .map(({ id }) => id),
         );
-        setNumberOfNewPostsLoaded(posts.filter(({ id }) => !seen.has(id)).length);
+        setNumberOfNewPostsLoaded(entries.filter(({ post }) => !seen.has(post.id)).length);
       } catch {
         // Polling is best-effort.
       }

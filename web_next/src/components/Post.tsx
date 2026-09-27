@@ -11,18 +11,21 @@ import { zhCN, enUS } from 'date-fns/locale';
 import SvgComment from '@/svg_components/Comment';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GetPost, PostId } from '@/types/definitions';
-import { postHref } from '@/lib/profileHref';
+import { postHref, profileHref } from '@/lib/profileHref';
 import { isEqual } from 'lodash';
 import SvgHeart from '@/svg_components/Heart';
 import SvgBookmark from '@/svg_components/Bookmark';
 import { useQuery } from '@tanstack/react-query';
 import { usePostLikesMutations } from '@/hooks/mutations/usePostLikesMutations';
 import { usePostBookmarkMutations } from '@/hooks/mutations/usePostBookmarkMutations';
+import { usePostRepostMutation } from '@/hooks/mutations/usePostRepostMutation';
 import { useToast } from '@/hooks/useToast';
 import { getPost } from '@/lib/backend/endpoints';
 import { useReportDialog } from '@/hooks/useReportDialog';
 import Link from 'next/link';
+import { Avatar } from '@/components/ui/Avatar';
 import { PostMeta } from './PostMeta';
+import { RepostIcon } from './icons/RepostIcon';
 import { ToggleStepper } from './ui/ToggleStepper';
 import { Comments } from './Comments';
 import { PostVisualMediaContainer } from './PostVisualMediaContainer';
@@ -62,6 +65,7 @@ export const Post = memo(
     id: postId,
     commentsShown,
     feedEventKey,
+    repostedBy,
     toggleComments,
   }: PostId & {
     toggleComments: (postId: string, feedEventKey?: string) => void;
@@ -71,6 +75,7 @@ export const Post = memo(
     const { openReport } = useReportDialog();
     const { likeMutation, unLikeMutation } = usePostLikesMutations({ postId });
     const { bookmarkMutation, removeBookmarkMutation } = usePostBookmarkMutations({ postId });
+    const repostMutation = usePostRepostMutation({ postId });
     const { data, isPending, isError } = useQuery<GetPost>({
       queryKey: ['posts', postId],
       queryFn: () => getPost(postId),
@@ -154,8 +159,8 @@ export const Post = memo(
       visualMedia,
       isLiked,
       isBookmarked,
+      isReposted,
       viewCount,
-      progress,
       _count: postCounts,
     } = data;
     const { isOwnPost } = data;
@@ -182,25 +187,27 @@ export const Post = memo(
           }
           handleCommentsToggle();
         }}>
+        {repostedBy && (
+          <div className="mb-1 flex items-center gap-2 pl-[60px] pt-2 text-xs text-muted-foreground">
+            <RepostIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            {repostedBy.username ? (
+              <Link href={profileHref(repostedBy.username)!} className="font-medium hover:underline">
+                {repostedBy.name}
+              </Link>
+            ) : (
+              <span className="font-medium">{repostedBy.name}</span>
+            )}
+            <span>{t('转发了', 'reposted')}</span>
+          </div>
+        )}
         <div className="relative pl-[60px]">
           <div className="absolute left-0 top-0 h-[48px] w-[48px]">
             {displayIdentity === 'ANONYMOUS' ? (
-              <div className="grid h-[48px] w-[48px] place-items-center rounded-full bg-secondary text-base font-semibold text-muted-foreground">
-                {t('匿', 'A')}
-              </div>
+              <Avatar name={authorAlias || t('匿名同学', 'Anonymous')} anonymous />
             ) : displayIdentity === 'CLUB' && publishedAsClub ? (
-              <div className="h-[48px] w-[48px] overflow-hidden rounded-full bg-secondary">
-                {publishedAsClub.avatar ? (
-                  <img src={publishedAsClub.avatar} alt="" className="h-full w-full object-cover" />
-                ) : null}
-              </div>
+              <Avatar name={publishedAsClub.name} photoUrl={publishedAsClub.avatar} />
             ) : author ? (
-              <ProfilePhoto
-                photoUrl={author.profilePhoto || ''}
-                username={author.username}
-                name={author.name}
-                fallbackAvatarClassName="text-[16px]"
-              />
+              <ProfilePhoto photoUrl={author.profilePhoto || ''} username={author.username} name={author.name} />
             ) : null}
           </div>
           <div className="relative pr-10">
@@ -229,15 +236,13 @@ export const Post = memo(
                 />
               ) : null}
             </div>
-            <div className="absolute right-0 top-0">
-              {isOwnPost && <PostOptions postId={postId} progress={progress} />}
-            </div>
+            <div className="absolute right-0 top-0">{isOwnPost && <PostOptions post={data} />}</div>
           </div>
           <PostMeta post={data} />
           {title && <h2 className="mt-1 break-words text-[15px] font-semibold leading-6 text-foreground">{title}</h2>}
           {content && (
             <p className="mb-1.5 mt-1 whitespace-pre-wrap break-words text-sm leading-5 text-foreground">
-              <HighlightedMentionsAndHashTags text={content} shouldAddLinks />
+              <HighlightedMentionsAndHashTags text={content} shouldAddLinks mentions={data.mentions} />
             </p>
           )}
           {visualMedia.length > 0 && (
@@ -254,6 +259,16 @@ export const Post = memo(
               onChange={handleCommentsToggle}
               Icon={SvgComment}
               quantity={postCounts.comments}
+              color="accent"
+              compact
+            />
+            <ToggleStepper
+              isSelected={isReposted}
+              aria-label={isReposted ? t('取消转发', 'Undo repost') : t('转发', 'Repost')}
+              isDisabled={repostMutation.isPending || data.isPrivate || (isOwnPost && displayIdentity === 'ANONYMOUS')}
+              onChange={(next) => repostMutation.mutate(next)}
+              Icon={RepostIcon}
+              quantity={postCounts.reposts}
               color="accent"
               compact
             />

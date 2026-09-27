@@ -221,3 +221,16 @@
     }
   }
 }
+
+/* Avatar initials: a light tint of a per-name hue (see components/ui/Avatar). */
+.avatar-tint {
+  background-color: hsl(var(--avatar-h) 55% 91%);
+  color: hsl(var(--avatar-h) 45% 30%);
+}
+.dark .avatar-tint {
+  background-color: hsl(var(--avatar-h) 30% 22%);
+  color: hsl(var(--avatar-h) 60% 82%);
+}
+.avatar-seal {
+  box-shadow: 0 2px 8px rgb(var(--primary) / 0.25);
+}

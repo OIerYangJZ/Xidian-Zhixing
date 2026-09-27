@@ -1,7 +1,7 @@
 'use client';
 
 import { GetComment } from '@/types/definitions';
-import { memo, useEffect, useCallback } from 'react';
+import { memo, useEffect, useCallback, Key } from 'react';
 import { isEqual } from 'lodash';
 import SvgHeart from '@/svg_components/Heart';
 import SvgArrowReply from '@/svg_components/ArrowReply';
@@ -34,6 +34,8 @@ export const Comment = memo(
     _count,
     isPending,
     isPostAuthor,
+    mentions,
+    editedAt,
     repliesShown,
     replies,
     setRepliesVisibility,
@@ -47,7 +49,7 @@ export const Comment = memo(
     const { prompt } = useDialogs();
     const { openReport } = useReportDialog();
     const { createCommentMutation } = useCreateCommentMutations();
-    const { handleDelete } = useUpdateDeleteComments({ postId });
+    const { handleEdit, handleDelete } = useUpdateDeleteComments({ postId });
     const { likeComment, unLikeComment } = useLikeUnlikeComments({ postId });
 
     const searchParams = useSearchParams();
@@ -83,7 +85,10 @@ export const Comment = memo(
       [commentId, likeComment, unLikeComment],
     );
     const reportComment = () => openReport({ targetType: 'comment', targetId: commentId });
-    const onDropdownAction = useCallback(() => handleDelete({ commentId }), [commentId, handleDelete]);
+    const onDropdownAction = useCallback(
+      (key: Key) => (key === 'edit' ? handleEdit({ commentId, content, mentions }) : handleDelete({ commentId })),
+      [commentId, content, handleDelete, handleEdit, mentions],
+    );
 
     // Show the replies if the comment to be highlighted is a reply to this comment
     useEffect(() => {
@@ -96,7 +101,7 @@ export const Comment = memo(
 
     return (
       <div className="relative flex gap-3 before:absolute before:bottom-0 before:left-5 before:top-11 before:w-px before:bg-border">
-        <div className="relative z-[1] h-10 w-10 flex-shrink-0 rounded-full bg-background">
+        <div className="relative z-[1] h-10 w-10 flex-shrink-0 rounded-[24%] bg-background">
           <ProfilePhoto name={author.name} username={author.username} photoUrl={author.profilePhoto} />
         </div>
 
@@ -109,6 +114,8 @@ export const Comment = memo(
             shouldHighlight={shouldHighlight}
             isPostAuthor={isPostAuthor}
             isPending={isPending}
+            mentions={mentions}
+            editedAt={editedAt}
           />
 
           <div className="flex gap-2">
@@ -140,6 +147,7 @@ export const Comment = memo(
                 label={t('评论选项', 'Comment options')}
                 onAction={onDropdownAction}>
                 <Section>
+                  <Item key="edit">{t('编辑评论', 'Edit comment')}</Item>
                   <Item key="delete">{t('删除评论', 'Delete comment')}</Item>
                 </Section>
               </DropdownMenuButton>

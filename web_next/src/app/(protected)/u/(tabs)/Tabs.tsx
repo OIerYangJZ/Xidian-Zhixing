@@ -13,6 +13,8 @@ export default function Tabs({ isOwnProfile, profileId }: { isOwnProfile: boolea
     { title: t('动态', 'Posts'), tab: undefined },
     { title: t('媒体', 'Media'), tab: 'photos' },
     isOwnProfile ? { title: t('收藏', 'Bookmarks'), tab: 'bookmarks' } : { title: t('简介', 'About'), tab: 'about' },
+    // Your own history of likes, comments, reposts…: private, so own profile only.
+    ...(isOwnProfile ? [{ title: t('互动', 'Activity'), tab: 'activity' }] : []),
   ];
 
   return (

@@ -28,6 +28,8 @@ export function Notifications() {
     { key: 'reply', label: t('回复', 'Replies') },
     { key: 'like', label: t('赞', 'Likes') },
     { key: 'favorite', label: t('收藏', 'Saves') },
+    { key: 'repost', label: t('转发', 'Reposts') },
+    { key: 'mention', label: t('@我', 'Mentions') },
     { key: 'system', label: t('系统', 'System') },
   ];
   const unreadOf = (key: Tab) =>

@@ -1,7 +1,7 @@
 'use client';
 
 import Button from '@/components/ui/Button';
-import { FallbackProfilePhoto } from '@/components/ui/FallbackProfilePhoto';
+import { Avatar } from '@/components/ui/Avatar';
 import { useUpdateProfileAndCoverPhotoClient } from '@/hooks/useUpdateProfileAndCoverPhotoClient';
 import { useVisualMediaModal } from '@/hooks/useVisualMediaModal';
 import { Camera } from '@/svg_components';
@@ -31,17 +31,17 @@ export default function ProfilePhoto({
   }, [photoUrl, showVisualMediaModal]);
 
   return (
-    <div className="absolute bottom-[-72px] left-4 h-36 w-36 rounded-full border-4 border-background bg-background">
-      {photoUrl && <img src={photoUrl} alt="Profile" className="absolute h-full w-full rounded-full object-cover" />}
-      {photoUrl ? (
+    <div className="absolute bottom-[-72px] left-4 h-36 w-36 rounded-[26%] border-4 border-background bg-background">
+      <div className="absolute inset-0">
+        <Avatar name={name} photoUrl={photoUrl} />
+      </div>
+      {photoUrl && (
         <button
           type="button"
           aria-label="Open profile photo"
           onClick={showProfilePhotoModal}
-          className="absolute h-full w-full cursor-pointer rounded-full bg-black/30 opacity-0 active:opacity-100"
+          className="absolute h-full w-full cursor-pointer rounded-[24%] bg-black/30 opacity-0 active:opacity-100"
         />
-      ) : (
-        <FallbackProfilePhoto name={name} className="text-6xl" />
       )}
       {isOwnProfile && (
         <label>

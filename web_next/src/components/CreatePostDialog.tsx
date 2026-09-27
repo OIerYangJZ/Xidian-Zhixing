@@ -2,7 +2,7 @@ import Button from '@/components/ui/Button';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import { GetVisualMedia, DisplayIdentity } from '@/types/definitions';
+import { GetVisualMedia, DisplayIdentity, GetPost } from '@/types/definitions';
 import { useWritePostMutations } from '@/hooks/mutations/useWritePostMutations';
 import { useDialogs } from '@/hooks/useDialogs';
 import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
@@ -18,19 +18,25 @@ const GENERAL_SECTION = { sectionType: 'general', sectionId: 'general', sectionN
 const MAX_IMAGES = 9;
 
 export function CreatePostDialog({
+  editingPost,
   shouldOpenFileInputOnMount,
   setShown,
 }: {
+  /** Set when editing: text and images change, identity and section do not. */
+  editingPost: GetPost | null;
   shouldOpenFileInputOnMount: boolean;
   setShown: (isOpen: boolean) => void;
 }) {
   const { t } = useLanguage();
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [visualMedia, setVisualMedia] = useState<GetVisualMedia[]>([]);
-  const [displayIdentity, setDisplayIdentity] = useState<DisplayIdentity>('USER');
-  const [anonymousAlias, setAnonymousAlias] = useState('');
-  const [sectionId, setSectionId] = useState(GENERAL_SECTION.sectionId);
+  const isEditing = editingPost !== null;
+  const [title, setTitle] = useState(editingPost?.title ?? '');
+  const [content, setContent] = useState(editingPost?.content ?? '');
+  const [visualMedia, setVisualMedia] = useState<GetVisualMedia[]>(editingPost?.visualMedia ?? []);
+  const [displayIdentity, setDisplayIdentity] = useState<DisplayIdentity>(editingPost?.displayIdentity ?? 'USER');
+  const [anonymousAlias, setAnonymousAlias] = useState(
+    editingPost?.displayIdentity === 'ANONYMOUS' ? editingPost.authorAlias : '',
+  );
+  const [sectionId, setSectionId] = useState(editingPost?.sectionId ?? GENERAL_SECTION.sectionId);
   const { data: sectionTree } = useQuery({
     queryKey: ['sections', 'tree'],
     queryFn: getSectionTree,
@@ -49,15 +55,20 @@ export function CreatePostDialog({
     () => ({ title, content, visualMedia, displayIdentity, anonymousAlias, section }),
     [title, content, visualMedia, displayIdentity, anonymousAlias, section],
   );
-  const { createPostMutation } = useWritePostMutations({ draft, exitCreatePostModal });
+  const { createPostMutation, editPostMutation } = useWritePostMutations({
+    draft,
+    editing: editingPost,
+    exitCreatePostModal,
+  });
+  const saving = createPostMutation.isPending || editPostMutation.isPending;
 
   useEffect(() => {
     // Offer a random alias the first time the author switches to anonymous.
-    if (displayIdentity !== 'ANONYMOUS' || anonymousAlias) return;
+    if (isEditing || displayIdentity !== 'ANONYMOUS' || anonymousAlias) return;
     getAnonymousAlias()
       .then(({ alias }) => setAnonymousAlias((current) => current || alias))
       .catch(() => {});
-  }, [displayIdentity, anonymousAlias]);
+  }, [isEditing, displayIdentity, anonymousAlias]);
   const { confirm } = useDialogs();
   const inputFileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -76,7 +87,10 @@ export function CreatePostDialog({
     e.target.value = '';
   }, []);
 
-  const handleClickPostButton = useCallback(() => createPostMutation.mutate(), [createPostMutation]);
+  const handleClickPostButton = useCallback(
+    () => (isEditing ? editPostMutation.mutate() : createPostMutation.mutate()),
+    [createPostMutation, editPostMutation, isEditing],
+  );
 
   const exit = useCallback(() => {
     exitCreatePostModal();
@@ -93,12 +107,17 @@ export function CreatePostDialog({
   }, [confirm, exit, t]);
 
   const handleClose = useCallback(() => {
-    if (title !== '' || content !== '' || visualMedia.length > 0) {
+    const changed = isEditing
+      ? title !== editingPost.title ||
+        content !== (editingPost.content ?? '') ||
+        visualMedia.map((media) => media.url).join() !== editingPost.visualMedia.map((media) => media.url).join()
+      : title !== '' || content !== '' || visualMedia.length > 0;
+    if (changed) {
       confirmExit();
       return;
     }
     exit();
-  }, [confirmExit, title, content, visualMedia, exit]);
+  }, [confirmExit, title, content, visualMedia, exit, isEditing, editingPost]);
 
   const sortVariants = useMemo(
     () => ({
@@ -132,7 +151,9 @@ export function CreatePostDialog({
   }, []);
 
   return (
-    <GenericDialog title={t('发布动态', 'Create post')} handleClose={handleClose}>
+    <GenericDialog
+      title={isEditing ? t('编辑动态', 'Edit post') : t('发布动态', 'Create post')}
+      handleClose={handleClose}>
       <div className="mb-[18px] flex flex-row gap-3 px-4">
         <div className="h-11 w-11">
           <ProfilePhotoOwn />
@@ -152,12 +173,8 @@ export function CreatePostDialog({
           />
         </div>
         <div>
-          <Button
-            onPress={handleClickPostButton}
-            size="small"
-            isDisabled={content.trim() === ''}
-            loading={createPostMutation.isPending}>
-            {t('发布', 'Post')}
+          <Button onPress={handleClickPostButton} size="small" isDisabled={content.trim() === ''} loading={saving}>
+            {isEditing ? t('保存', 'Save') : t('发布', 'Post')}
           </Button>
         </div>
       </div>
@@ -166,6 +183,7 @@ export function CreatePostDialog({
           <span>{t('发布身份', 'Post as')}</span>
           <select
             aria-label={t('发布身份', 'Post as')}
+            disabled={isEditing}
             value={displayIdentity}
             onChange={(event) => setDisplayIdentity(event.target.value as DisplayIdentity)}
             className="min-h-10 border border-border bg-background px-3 text-foreground">
@@ -177,6 +195,7 @@ export function CreatePostDialog({
           <span>{t('发布到', 'Section')}</span>
           <select
             aria-label={t('发布到', 'Section')}
+            disabled={isEditing}
             value={sectionId}
             onChange={(event) => setSectionId(event.target.value)}
             className="min-h-10 border border-border bg-background px-3 text-foreground">
@@ -193,6 +212,7 @@ export function CreatePostDialog({
             <span>{t('匿名昵称', 'Anonymous name')}</span>
             <input
               value={anonymousAlias}
+              disabled={isEditing}
               onChange={(event) => setAnonymousAlias(event.target.value.slice(0, 24))}
               aria-label={t('匿名昵称', 'Anonymous name')}
               className="min-h-10 w-40 border border-border bg-background px-3 text-foreground"

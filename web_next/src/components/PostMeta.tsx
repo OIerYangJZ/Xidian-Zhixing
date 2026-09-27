@@ -10,7 +10,14 @@ const chip = 'inline-flex h-5 items-center rounded px-1.5 text-[11px] font-mediu
 export function PostMeta({ post }: { post: GetPost }) {
   const { t } = useLanguage();
   const showSection = post.sectionName && post.sectionId !== 'general';
-  if (!post.isPinned && !showSection && post.progress === 'ongoing' && post.status === 'PUBLISHED' && !post.isPrivate)
+  if (
+    !post.isPinned &&
+    !showSection &&
+    post.progress === 'ongoing' &&
+    post.status === 'PUBLISHED' &&
+    !post.isPrivate &&
+    !post.editedAt
+  )
     return null;
 
   return (
@@ -33,6 +40,7 @@ export function PostMeta({ post }: { post: GetPost }) {
       {post.status === 'REMOVED' && (
         <span className={cn(chip, 'bg-destructive/10 text-destructive')}>{t('未通过审核', 'Rejected')}</span>
       )}
+      {post.editedAt && <span className={cn(chip, 'bg-secondary text-muted-foreground')}>{t('已编辑', 'Edited')}</span>}
       {post.isPrivate && (
         <span className={cn(chip, 'bg-secondary text-muted-foreground')}>{t('仅自己可见', 'Only you')}</span>
       )}

@@ -7,6 +7,7 @@ import { useNotificationsCountQuery } from '@/hooks/queries/useNotificationsCoun
 import { NotificationBell, Search, Settings } from '@/svg_components';
 import { useLanguage } from '@/hooks/useLanguage';
 import { profileHref } from '@/lib/profileHref';
+import { Avatar } from '@/components/ui/Avatar';
 
 export function MobileTopBar() {
   const { t } = useLanguage();
@@ -62,12 +63,8 @@ export function MobileTopBar() {
         <Link
           href={user?.username ? profileHref(user.username)! : '/feed'}
           aria-label={t('个人主页', 'Profile')}
-          className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-secondary">
-          {user?.profilePhoto ? (
-            <img src={user.profilePhoto} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <span className="text-xs font-semibold">{user?.name?.slice(0, 1) || t('知', 'Z')}</span>
-          )}
+          className="block h-9 w-9">
+          <Avatar name={user?.name || t('知', 'Z')} photoUrl={user?.profilePhoto} />
         </Link>
       </div>
     </header>

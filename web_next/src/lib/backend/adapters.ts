@@ -49,7 +49,10 @@ export function toGetPost(post: ApiPost): GetPost {
     isOwnPost: post.isOwnPost,
     isLiked: post.liked,
     isBookmarked: post.favorited,
-    isReposted: false,
+    isReposted: post.reposted,
+    mentions: post.mentions || [],
+    editedAt: post.editedAt || '',
+    uploadedImageIds: post.uploadedImageIds || [],
     isPinned: post.isPinned,
     isPrivate: post.isPrivate,
     allowComment: post.allowComment,
@@ -64,11 +67,16 @@ export function toGetPost(post: ApiPost): GetPost {
           profilePhoto: orNull(post.authorAvatarUrl),
         }
       : null,
-    visualMedia: (post.imageUrls || []).map((url) => ({ type: 'PHOTO', url })),
+    // imageUrls and uploadedImageIds are built in the same pass, so they line up.
+    visualMedia: (post.imageUrls || []).map((url, index) => ({
+      type: 'PHOTO',
+      url,
+      uploadId: post.uploadedImageIds?.[index],
+    })),
     _count: {
       postLikes: post.likeCount,
       comments: post.commentCount,
-      reposts: 0,
+      reposts: post.repostCount,
       bookmarks: post.favoriteCount,
     },
   };
@@ -164,6 +172,8 @@ export function toGetComments(comments: ApiComment[]): GetComment[] {
     isPostAuthor: comment.isPostAuthor,
     isAnonymous: comment.isAnonymous,
     isPending: comment.reviewStatus === 'pending',
+    mentions: comment.mentions || [],
+    editedAt: comment.editedAt || '',
     _count: {
       commentLikes: comment.likeCount,
       replies: childCount.get(comment.id) || 0,
@@ -181,6 +191,10 @@ function activityType(notification: ApiNotification): ActivityType {
       return notification.relatedType === 'comment' ? 'COMMENT_LIKE' : 'POST_LIKE';
     case 'favorite':
       return 'POST_FAVORITE';
+    case 'repost':
+      return 'POST_REPOST';
+    case 'mention':
+      return notification.relatedType === 'comment' ? 'COMMENT_MENTION' : 'POST_MENTION';
     case 'report_result':
       return 'REPORT_RESULT';
     default:

@@ -21,12 +21,7 @@ export const DiscoverProfile = memo(
     return (
       <article className="feed-separator flex items-center gap-3 border-b px-4 py-4 sm:px-5">
         <div className="h-12 w-12 shrink-0">
-          <ProfilePhoto
-            name={user.name}
-            username={user.username}
-            photoUrl={user.profilePhoto}
-            fallbackAvatarClassName="text-xl"
-          />
+          <ProfilePhoto name={user.name} username={user.username} photoUrl={user.profilePhoto} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-1.5">

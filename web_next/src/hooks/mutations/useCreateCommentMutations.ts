@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { GetComment, GetPost } from '@/types/definitions';
 import { createComment } from '@/lib/backend/endpoints';
+import { mentionIdsIn } from '@/lib/mentions';
 import { useErrorNotifier } from '../useErrorNotifier';
 import { useToast } from '../useToast';
 
@@ -12,7 +13,7 @@ export function useCreateCommentMutations() {
 
   const createCommentMutation = useMutation({
     mutationFn: ({ postId, content, parentId }: { postId: string; content: string; parentId?: string }) =>
-      createComment(postId, content, parentId),
+      createComment(postId, content, parentId, mentionIdsIn(content)),
     onSuccess: (created) => {
       // Both sort orders of this post's comments hold the same flat list.
       qc.setQueriesData<GetComment[]>({ queryKey: ['posts', created.postId, 'comments'] }, (oldComments) =>

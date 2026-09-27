@@ -8,7 +8,10 @@ import type { GetComment, GetPost, GetUser } from '@/types/definitions';
 import { api } from './client';
 import { meToGetUser, toGetComments, toGetPost, toGetUser } from './adapters';
 import type {
+  ApiActivity,
   ApiBlockedUser,
+  ApiPage,
+  ApiTimelineItem,
   ApiComment,
   ApiConversation,
   ApiDirectMessage,
@@ -89,7 +92,53 @@ export interface CreatePostInput {
   allowComment?: boolean;
   allowDm?: boolean;
   visibility?: 'public' | 'private';
+  /** Accounts @-mentioned in the text; the backend keeps only those it finds there. */
+  mentionUserIds?: string[];
 }
+
+export interface EditPostInput {
+  title: string;
+  content: string;
+  /** The complete new image list; images left out are deleted. */
+  imageUploadIds: string[];
+  mentionUserIds: string[];
+}
+
+export const editPost = async (postId: string, input: EditPostInput) =>
+  toGetPost(await api<ApiPost>(`/api/posts/${postId}`, { method: 'PATCH', body: input }));
+
+export const setPostReposted = (postId: string, reposted: boolean) =>
+  api<{ reposted: boolean; repostCount: number }>(`/api/posts/${postId}/repost`, {
+    method: 'POST',
+    body: { reposted },
+  });
+
+export interface TimelineEntry {
+  post: GetPost;
+  repostedBy: { userId: string; nickname: string } | null;
+  eventKey: string;
+}
+
+/** A user's posts and reposts, newest first (profile 动态 tab). */
+export async function listTimeline(
+  userId: string,
+  page: number,
+  limit: number,
+): Promise<{ entries: TimelineEntry[]; hasMore: boolean }> {
+  const data = await api<ApiPage<ApiTimelineItem>>(`/api/users/${userId}/timeline`, { query: { page, limit } });
+  return {
+    entries: data.items.map((item) => ({
+      post: toGetPost(item),
+      repostedBy: item.repostedBy,
+      eventKey: item.eventKey,
+    })),
+    hasMore: data.hasMore,
+  };
+}
+
+/** What the signed-in user did, newest first (profile 互动 tab). */
+export const listMyActivity = (page: number, limit: number) =>
+  api<ApiPage<ApiActivity>>('/api/users/me/activity', { query: { page, limit } });
 
 export const createPost = async (input: CreatePostInput) =>
   toGetPost(await api<ApiPost>('/api/posts', { method: 'POST', body: input }));
@@ -140,10 +189,23 @@ export async function listComments(postId: string, sort: CommentSort): Promise<G
   return toGetComments(await api<ApiComment[]>(`/api/posts/${postId}/comments`, { query: { sort } }));
 }
 
-export async function createComment(postId: string, content: string, parentId?: string): Promise<GetComment> {
+export async function createComment(
+  postId: string,
+  content: string,
+  parentId?: string,
+  mentionUserIds: string[] = [],
+): Promise<GetComment> {
   const comment = await api<ApiComment>(`/api/posts/${postId}/comments`, {
     method: 'POST',
-    body: { content, parentId: parentId || undefined },
+    body: { content, parentId: parentId || undefined, mentionUserIds },
+  });
+  return toGetComments([comment])[0];
+}
+
+export async function editComment(commentId: string, content: string, mentionUserIds: string[]): Promise<GetComment> {
+  const comment = await api<ApiComment>(`/api/comments/${commentId}`, {
+    method: 'PATCH',
+    body: { content, mentionUserIds },
   });
   return toGetComments([comment])[0];
 }

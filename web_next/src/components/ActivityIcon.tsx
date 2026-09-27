@@ -4,6 +4,7 @@ import SvgComment from '@/svg_components/Comment';
 import SvgHeart from '@/svg_components/Heart';
 import SvgProfile from '@/svg_components/Profile';
 import type { ActivityType } from '@/types/definitions';
+import { RepostIcon } from './icons/RepostIcon';
 
 function CreateFollowNotificationIcon() {
   return (
@@ -23,6 +24,13 @@ function MentionNotificationIcon() {
   return (
     <div className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-primary p-1 ring-2 ring-background">
       <SvgAtSign width={18} height={18} stroke="white" />
+    </div>
+  );
+}
+function RepostNotificationIcon() {
+  return (
+    <div className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-emerald-500 p-1 text-white ring-2 ring-background">
+      <RepostIcon width={16} height={16} />
     </div>
   );
 }
@@ -56,6 +64,7 @@ const ActivityIcons: Record<ActivityType, () => JSX.Element> = {
   REPLY_MENTION: () => <MentionNotificationIcon />,
 
   POST_FAVORITE: () => <LikeNotificationIcon />,
+  POST_REPOST: () => <RepostNotificationIcon />,
   REPORT_RESULT: () => <MentionNotificationIcon />,
   SYSTEM: () => <MentionNotificationIcon />,
 };
