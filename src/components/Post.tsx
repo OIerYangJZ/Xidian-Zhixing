@@ -257,7 +257,7 @@ export const Post = memo(
           <div className="-ml-2 flex items-center justify-between pt-1 text-muted-foreground">
             <ToggleStepper
               isSelected={commentsShown || false}
-              aria-label={t('显示评论', 'Show replies')}
+              aria-label={commentsShown ? t('隐藏评论', 'Hide replies') : t('显示评论', 'Show replies')}
               onChange={handleCommentsToggle}
               Icon={SvgComment}
               quantity={postCounts.comments}
