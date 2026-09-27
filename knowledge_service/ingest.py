@@ -24,6 +24,8 @@ SERVICE_TITLE_TERMS = (
     "图书馆", "馆藏", "自习室", "座位预约", "食堂", "餐饮", "饮食", "水电", "热水", "浴室",
     "统一身份认证", "学生邮件认证", "正版软件", "自助打印", "服务器申请",
     "高算资源", "教室运维", "会议中心", "固话业务", "出访指南",
+    "场馆", "运动场", "体育馆", "国家奖学金", "国家励志奖学金", "助学金评定",
+    "奖学金评审", "资助评定", "就业学费补偿",
 )
 
 SERVICE_PATH_PREFIXES = ("/f_w/", "/fwzn", "/bszn", "/bslc", "/ssfw/", "/bmfw/", "/cyfw/")
@@ -42,6 +44,9 @@ def knowledge_source_url(url: str, title: str = "") -> bool:
         return False
     path=urlsplit(url).path.lower()
     if "/info/" in path or path.endswith((".pdf", ".doc", ".docx", ".xls", ".xlsx")):
+        return True
+    query=urlsplit(url).query.casefold()
+    if path.endswith("/download.jsp") and "urltype=news.downloadattachurl" in query and re.search(r"\.(?:pdf|docx?|xlsx?)\b",title,re.I):
         return True
     lowered=title.casefold()
     if any(token in path for token in ("/login", "slogin", "showpublic")):
@@ -215,9 +220,17 @@ def import_app_snapshot(db_path: str, app_db: str, report_path: str, limit: int 
         if old.get("status", "published")!="published" or not title or len(body)<80:
             report["skippedInvalid"]+=1
             continue
-        doc,chunks=make_document(title,body,url,authority="official",source_id=old.get("sourceId"))
+        doc,chunks=make_document(title,body,url,published_at=old.get("publishedAt"),
+            authority="official",source_id=old.get("sourceId"))
         doc.update({"parserVersion":"radio-state-snapshot-1","sourceSnapshotAt":snapshot_at,
-            "sourceSnapshotRecordId":old.get("id"),"chunkCount":len(chunks)})
+            "sourceSnapshotRecordId":old.get("id"),"sourceSnapshotCreatedAt":old.get("createdAt"),
+            "sourceSnapshotUpdatedAt":old.get("updatedAt"),"chunkCount":len(chunks)})
+        for field in ("effectiveFrom","effectiveTo","supersedesId","campuses","educationLevels"):
+            if field in old:
+                doc[field]=old[field]
+                for chunk in chunks:
+                    if field != "supersedesId":
+                        chunk[field]=old[field]
         for chunk in chunks:
             chunk["parserVersion"]="radio-state-snapshot-1"
         store.put_document(doc,chunks)

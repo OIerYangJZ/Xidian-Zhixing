@@ -8,11 +8,14 @@ import jieba
 
 STOP_WORDS = set("的 了 是 在 我 你 他 她 它 吗 呢 吧 啊 和 与 及 或 怎么 如何 什么 哪些 哪里 请 请问 帮 帮我 一下 这个 那个 可以 需要 有 没有 进行 相关 以及 为 对 将 还 就 都 很 想 要 能 该 西电 西安电子科技大学".split())
 ALIASES = {"南校区": "长安校区", "北校区": "雁塔校区", "寝室": "宿舍", "连不上": "无法连接", "断网": "网络故障"}
-for word in ["长安校区", "雁塔校区", "南校区", "北校区", "国家励志奖学金", "国家奖学金", "国家助学金", "补退选", "转专业", "校园网", "一网通办"]:
+GENERIC_QUERY_TERMS = set("申请 办理 补办 流程 条件 要求 开放 时间 联系 联系方式 电话 方法 方式 怎么 如何 查询 需要 怎样 哪里 地址".split())
+for word in ["长安校区", "雁塔校区", "南校区", "北校区", "国家励志奖学金", "国家奖学金", "国家助学金", "补退选", "转专业", "校园网", "一网通办", "无线网", "无线网络", "校园卡", "一卡通", "挂失"]:
     jieba.add_word(word)
 
 
 def tokens(text: str) -> list[str]:
+    text = re.sub(r"校园卡(?:丢失|丢了|遗失)", "一卡通 挂失", text, flags=re.I)
+    text = re.sub(r"wi[\s-]*fi|无线网(?!络)", "无线网络", text, flags=re.I)
     for original, canonical in ALIASES.items():
         text = text.replace(original, canonical)
     return [w for w in jieba.lcut(text.lower()) if w not in STOP_WORDS and re.search(r"[\w\u4e00-\u9fff]", w)]
@@ -23,8 +26,11 @@ class BM25:
         self.rows = {r["id"]: r for r in rows}
         self.postings = defaultdict(dict)
         self.lengths = {}
+        self.title_terms = {}
         for row in rows:
-            terms = tokens(row["title"] + " " + row["title"] + " " + row["content"])
+            title_terms = tokens(row["title"])
+            self.title_terms[row["id"]] = set(title_terms)
+            terms = title_terms + title_terms + tokens(row["content"])
             self.lengths[row["id"]] = len(terms)
             for term, count in Counter(terms).items():
                 self.postings[term][row["id"]] = count
@@ -40,6 +46,8 @@ class BM25:
                 if allowed is not None and key not in allowed:
                     continue
                 scores[key] += idf * tf * 2.2 / (tf+1.2*(0.25+0.75*self.lengths[key]/max(1,self.average_length)))
+                if len(term) > 1 and term not in GENERIC_QUERY_TERMS and idf >= 1.2 and term in self.title_terms[key]:
+                    scores[key] += idf * 4
         return sorted(scores.items(), key=lambda item:item[1], reverse=True)[:limit]
 
 

@@ -20,7 +20,7 @@ export function HighlightedMentionsAndHashTags({ text, shouldAddLinks }: { text:
     if (!shouldAddLinks) return `${space}${coloredWord}`;
 
     const isHashtag = char === '#';
-    const url = isHashtag ? `/posts/hashtag/${word}` : `/${word}`;
+    const url = isHashtag ? `/posts/hashtag/${encodeURIComponent(word)}` : `/${word}`;
     return `${space}<a href="${url}">${coloredWord}</a>`;
   });
 

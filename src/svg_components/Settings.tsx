@@ -3,13 +3,11 @@ import { SVGProps } from 'react';
 export default function Settings(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path d="M12 15.25a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5Z" stroke="currentColor" strokeWidth="1.8" />
-      <path
-        d="m19.4 15 .05.04a1.8 1.8 0 1 1-2.55 2.55l-.04-.05a1.8 1.8 0 0 0-3.06 1.27v.14a1.8 1.8 0 1 1-3.6 0v-.08a1.8 1.8 0 0 0-3.06-1.27l-.04.05a1.8 1.8 0 1 1-2.55-2.55l.05-.04a1.8 1.8 0 0 0-1.27-3.06h-.14a1.8 1.8 0 1 1 0-3.6h.08a1.8 1.8 0 0 0 1.27-3.06l-.05-.04a1.8 1.8 0 1 1 2.55-2.55l.04.05a1.8 1.8 0 0 0 3.06-1.27v-.14a1.8 1.8 0 1 1 3.6 0v.08a1.8 1.8 0 0 0 3.06 1.27l.04-.05a1.8 1.8 0 1 1 2.55 2.55l-.05.04a1.8 1.8 0 0 0 1.27 3.06h.14a1.8 1.8 0 1 1 0 3.6h-.08A1.8 1.8 0 0 0 19.4 15Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
+      <g stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 1.8v2.1m0 16.2v2.1M1.8 12h2.1m16.2 0h2.1M4.78 4.78l1.49 1.49m11.46 11.46 1.49 1.49m0-14.44-1.49 1.49M6.27 17.73l-1.49 1.49" />
+        <circle cx="12" cy="12" r="7.15" />
+        <circle cx="12" cy="12" r="3.05" />
+      </g>
     </svg>
   );
 }

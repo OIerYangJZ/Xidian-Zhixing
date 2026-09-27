@@ -22,7 +22,7 @@ export default function ProfileBlock({
         </div>
       )}
 
-      <div className="min-w-0 pt-0.5">
+      <div className={hideAvatar ? 'min-w-0' : 'min-w-0 pt-0.5'}>
         <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
           <h2 className="max-w-full truncate text-sm font-semibold text-foreground">
             <Link href={`/${username}`} className="link">

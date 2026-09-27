@@ -3,12 +3,13 @@ import json
 import re
 from urllib.parse import urljoin, urlsplit
 from lxml import html
-import trafilatura
 from .attachments import ocr_images
 
 
 def parse_html(data,url):
-    tree=html.fromstring(trafilatura.utils.decode_file(data))
+    # lxml decodes from the page's declared encoding; keep parsing independent
+    # of trafilatura for the CMS article formats handled below.
+    tree=html.fromstring(data)
     tree.make_links_absolute(url)
     title_nodes=tree.xpath('//meta[@name="pageTitle"]/@content | //title/text()')
     title=next((str(x).strip() for x in title_nodes if str(x).strip()),'')
@@ -30,10 +31,15 @@ def parse_html(data,url):
         pages=ocr_images(urls)
         text='\n\n'.join(body for _,body in pages)
     else:
-        nodes=tree.xpath('//*[@id="vsb_content" or @id="vsb_content_2" or contains(concat(" ",normalize-space(@class)," ")," v_news_content ")]')
+        # Some Xidian pages embed a converted DOCX inside the CMS article. The
+        # outer node contains the converter's CSS, while the inner article is
+        # the actual policy text.
+        nodes=tree.xpath('//section[contains(concat(" ",normalize-space(@class)," ")," docx ")]//article | //section[contains(concat(" ",normalize-space(@class)," ")," docx ")] | //*[@id="vsb_content" or @id="vsb_content_2" or contains(concat(" ",normalize-space(@class)," ")," v_news_content ")]')
         # Network-center service pages put procedures/materials beside the CMS introduction.
         if urlsplit(url).hostname=='xxzx.xidian.edu.cn' and tree.xpath('//div[contains(concat(" ",normalize-space(@class)," ")," list01 ")]'):
             nodes=tree.xpath('//div[contains(concat(" ",normalize-space(@class)," ")," list01 ")]')
+        elif urlsplit(url).hostname=='tyb.xidian.edu.cn' and urlsplit(url).path.startswith('/cggl'):
+            nodes=tree.xpath('//div[contains(concat(" ",normalize-space(@class)," ")," main_con_r ")]')
         if nodes:
             node=nodes[0]
             for unwanted in node.xpath('.//script|.//style'):
@@ -59,11 +65,16 @@ def parse_html(data,url):
                 pages=ocr_images(list(dict.fromkeys(image_urls)))
                 text='\n\n'.join(body for _,body in pages)
         else:
-            for footer in tree.xpath('//footer|//*[contains(concat(" ",normalize-space(@class)," ")," part3_lxwm ")]'):
-                footer.drop_tree()
-            extracted=trafilatura.bare_extraction(html.tostring(tree),url=url,
-                include_tables=True,include_links=True,include_comments=False,with_metadata=False,favor_precision=True)
-            text=extracted.text.strip() if extracted and extracted.text else ''
+            for unwanted in tree.xpath('//script|//style|//header|//nav|//footer|//aside|//*[contains(concat(" ",normalize-space(@class)," ")," part3_lxwm ")]'):
+                unwanted.drop_tree()
+            try:
+                import trafilatura
+                extracted=trafilatura.bare_extraction(html.tostring(tree),url=url,
+                    include_tables=True,include_links=True,include_comments=False,with_metadata=False,favor_precision=True)
+                text=extracted.text.strip() if extracted and extracted.text else ''
+            except ImportError:
+                body=tree.xpath('//main|//article|//*[@id="vsb_content"]|//body')
+                text=body[0].text_content().strip() if body else ''
     text='\n'.join(line.strip() for line in text.splitlines() if line.strip())
     if len(text)<80:
         raise ValueError('正文不足，需检查图片、附件或访问权限')

@@ -13,7 +13,7 @@ export function ProfilePhoto({
   fallbackAvatarClassName?: string;
 }) {
   return (
-    <Link href={`/${username}`}>
+    <Link href={`/${username}`} className="block h-full w-full overflow-hidden rounded-full">
       {photoUrl ? (
         <img
           src={photoUrl}

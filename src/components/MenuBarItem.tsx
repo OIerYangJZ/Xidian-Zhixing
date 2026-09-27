@@ -5,7 +5,8 @@ import { useDialogs } from '@/hooks/useDialogs';
 import { cn } from '@/lib/cn';
 import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import React, { SVGProps, useCallback, useEffect } from 'react';
+import Link from 'next/link';
+import React, { SVGProps, useCallback } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Badge } from './ui/Badge';
 import { ButtonNaked } from './ui/ButtonNaked';
@@ -28,29 +29,20 @@ export function MenuBarItem({
   const { confirm } = useDialogs();
   const { t } = useLanguage();
   const onItemClick = useCallback(() => {
-    if (route === '/api/auth/signout')
-      confirm({
-        title: t('退出登录', 'Log out'),
-        message: t('确定退出西电知行吗？', 'Are you sure you want to log out of Zhixing?'),
-        onConfirm: () => signOut({ callbackUrl: '/' }),
-      });
-    else router.push(route);
-  }, [route, router, confirm, t]);
-  useEffect(() => {
-    if (route !== '/api/auth/signout') router.prefetch(route);
-  }, [route, router]);
-
-  return (
-    <ButtonNaked
-      aria-label={children as string}
-      aria-current={isActive ? 'page' : undefined}
-      className={cn(
-        'group relative flex h-12 w-full cursor-pointer items-center justify-center gap-0 rounded-full px-3 text-foreground transition-colors hover:bg-secondary md:justify-center xl:justify-start xl:gap-4 xl:px-4',
-        mobileTab && 'h-14 flex-1 flex-col gap-0.5 rounded-md px-1 hover:bg-transparent',
-        isActive && !mobileTab && 'bg-secondary/80 font-semibold',
-        isActive && mobileTab && 'text-primary',
-      )}
-      onPress={onItemClick}>
+    confirm({
+      title: t('退出登录', 'Log out'),
+      message: t('确定退出西电知行吗？', 'Are you sure you want to log out of Zhixing?'),
+      onConfirm: () => signOut({ callbackUrl: '/' }),
+    });
+  }, [confirm, t]);
+  const className = cn(
+    'group relative flex h-12 w-full cursor-pointer items-center justify-center gap-0 rounded-full px-3 text-foreground transition-colors hover:bg-secondary md:justify-center xl:justify-start xl:gap-4 xl:px-4',
+    mobileTab && 'h-14 flex-1 flex-col gap-0.5 rounded-md px-1 hover:bg-transparent',
+    isActive && !mobileTab && 'bg-secondary/80 font-semibold',
+    isActive && mobileTab && 'text-primary',
+  );
+  const contents = (
+    <>
       <span
         className={cn(
           'absolute left-1 hidden h-7 w-[3px] rounded-full bg-primary xl:block',
@@ -69,6 +61,30 @@ export function MenuBarItem({
         className={cn('hidden text-[17px] leading-6 xl:block', mobileTab && 'block text-[10px] leading-3 md:hidden')}>
         {children}
       </span>
-    </ButtonNaked>
+    </>
+  );
+
+  if (route === '/api/auth/signout') {
+    return (
+      <ButtonNaked aria-label={children as string} className={className} onPress={onItemClick}>
+        {contents}
+      </ButtonNaked>
+    );
+  }
+
+  return (
+    <Link
+      href={route}
+      prefetch={false}
+      aria-label={children as string}
+      aria-current={isActive ? 'page' : undefined}
+      className={cn(
+        className,
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+      )}
+      onMouseEnter={() => router.prefetch(route)}
+      onFocus={() => router.prefetch(route)}>
+      {contents}
+    </Link>
   );
 }

@@ -4,18 +4,30 @@ import React, { createContext, useCallback, useEffect, useMemo, useState } from 
 
 type Themes = 'system' | 'light' | 'dark';
 export type VisualTheme = 'zhixing' | 'editorial';
+const DEFAULT_ACCENT_COLOR = '#cb0305';
 export const ThemeContext = createContext<{
   theme: Themes;
   handleThemeChange: (theme: Themes) => void;
   visualTheme: VisualTheme;
   handleVisualThemeChange: (theme: VisualTheme) => void;
-}>({ theme: 'system', handleThemeChange: () => {}, visualTheme: 'zhixing', handleVisualThemeChange: () => {} });
+  accentColor: string;
+  handleAccentColorChange: (color: string) => void;
+}>({
+  theme: 'system',
+  handleThemeChange: () => {},
+  visualTheme: 'zhixing',
+  handleVisualThemeChange: () => {},
+  accentColor: DEFAULT_ACCENT_COLOR,
+  handleAccentColorChange: () => {},
+});
 
 const LS_THEME_KEY = 'theme';
 const LS_VISUAL_THEME_KEY = 'zhixing-visual-theme';
+const LS_ACCENT_COLOR_KEY = 'zhixing-accent-color';
 export function ThemeContextProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Themes>('system');
   const [visualTheme, setVisualTheme] = useState<VisualTheme>('zhixing');
+  const [accentColor, setAccentColor] = useState(DEFAULT_ACCENT_COLOR);
 
   const setToDarkTheme = useCallback(() => {
     document.documentElement.classList.add('dark');
@@ -44,9 +56,19 @@ export function ThemeContextProvider({ children }: { children: React.ReactNode }
     document.documentElement.dataset.visualTheme = themeValue;
     setVisualTheme(themeValue);
   }, []);
+  const handleAccentColorChange = useCallback((color: string) => {
+    const red = Number.parseInt(color.slice(1, 3), 16);
+    const green = Number.parseInt(color.slice(3, 5), 16);
+    const blue = Number.parseInt(color.slice(5, 7), 16);
+    document.documentElement.style.setProperty('--accent-brand', `${red} ${green} ${blue}`);
+    document.documentElement.style.setProperty('--primary-accent', `${red} ${green} ${blue}`);
+    document.documentElement.style.setProperty('--ring', `${red} ${green} ${blue}`);
+    localStorage.setItem(LS_ACCENT_COLOR_KEY, color);
+    setAccentColor(color);
+  }, []);
   const value = useMemo(
-    () => ({ theme, handleThemeChange, visualTheme, handleVisualThemeChange }),
-    [theme, handleThemeChange, visualTheme, handleVisualThemeChange],
+    () => ({ theme, handleThemeChange, visualTheme, handleVisualThemeChange, accentColor, handleAccentColorChange }),
+    [theme, handleThemeChange, visualTheme, handleVisualThemeChange, accentColor, handleAccentColorChange],
   );
 
   useEffect(() => {
@@ -55,7 +77,8 @@ export function ThemeContextProvider({ children }: { children: React.ReactNode }
     handleThemeChange(savedTheme);
     const savedVisualTheme = localStorage.getItem(LS_VISUAL_THEME_KEY);
     handleVisualThemeChange(savedVisualTheme === 'editorial' ? 'editorial' : 'zhixing');
-  }, [handleThemeChange, handleVisualThemeChange]);
+    handleAccentColorChange(localStorage.getItem(LS_ACCENT_COLOR_KEY) || DEFAULT_ACCENT_COLOR);
+  }, [handleThemeChange, handleVisualThemeChange, handleAccentColorChange]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

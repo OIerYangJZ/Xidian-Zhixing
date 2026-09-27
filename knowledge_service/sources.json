@@ -11,7 +11,15 @@
     "https://xxzx.xidian.edu.cn/f_w/cjwt.htm",
     "https://info.xidian.edu.cn/cycx/bccx.htm",
     "https://payment.xidian.edu.cn/pages/help/contact.jsp",
-    "https://hudong.moe.gov.cn/jyb_xxgk/moe_1777/moe_1779/202410/t20241029_1159726.html"
+    "https://hudong.moe.gov.cn/jyb_xxgk/moe_1777/moe_1779/202410/t20241029_1159726.html",
+    "https://xgc.xidian.edu.cn/info/1049/10743.htm",
+    "https://xgc.xidian.edu.cn/info/1049/10740.htm",
+    "https://xgc.xidian.edu.cn/info/1049/10741.htm",
+    "https://xgc.xidian.edu.cn/info/1049/10746.htm",
+    "https://xgc.xidian.edu.cn/info/1049/6994.htm",
+    "https://tyb.xidian.edu.cn/cggl/cgjs.htm",
+    "https://tyb.xidian.edu.cn/cggl/cgsq.htm",
+    "https://tyb.xidian.edu.cn/cggl/glgd.htm"
   ],
   "discoveryPages": [
     "https://lib.xidian.edu.cn/",
@@ -32,6 +40,12 @@
     "https://xgc.xidian.edu.cn/",
     "https://xgc.xidian.edu.cn/bszn.htm",
     "https://bksy.xidian.edu.cn/",
-    "https://bksy.xidian.edu.cn/bszn.htm"
+    "https://bksy.xidian.edu.cn/bszn.htm",
+    "https://xgc.xidian.edu.cn/gzzd.htm",
+    "https://tyb.xidian.edu.cn/cggl.htm",
+    "https://tyb.xidian.edu.cn/cggl/cgjs.htm",
+    "https://tyb.xidian.edu.cn/cggl/cgsq.htm",
+    "https://tyb.xidian.edu.cn/cggl/glgd.htm",
+    "https://gr.xidian.edu.cn/info/1072/17664.htm"
   ]
 }

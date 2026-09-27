@@ -2,7 +2,8 @@ import { ThemeContext } from '@/contexts/ThemeContext';
 import { useContext } from 'react';
 
 export function useTheme() {
-  const { theme, handleThemeChange, visualTheme, handleVisualThemeChange } = useContext(ThemeContext);
+  const { theme, handleThemeChange, visualTheme, handleVisualThemeChange, accentColor, handleAccentColorChange } =
+    useContext(ThemeContext);
 
   const switchTheme = () => {
     if (theme === 'system') return handleThemeChange('light');
@@ -11,5 +12,13 @@ export function useTheme() {
     return undefined;
   };
 
-  return { theme, switchTheme, handleThemeChange, visualTheme, handleVisualThemeChange };
+  return {
+    theme,
+    switchTheme,
+    handleThemeChange,
+    visualTheme,
+    handleVisualThemeChange,
+    accentColor,
+    handleAccentColorChange,
+  };
 }

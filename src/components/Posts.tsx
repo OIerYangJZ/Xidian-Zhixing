@@ -80,7 +80,7 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
 
       const fetchUrl =
         type === 'hashtag'
-          ? `/api/posts/hashtag/${hashtag}`
+          ? `/api/posts/hashtag/${encodeURIComponent(hashtag)}`
           : `/api/users/${userId}/${type === 'profile' ? 'posts' : type === 'bookmarks' ? 'bookmarks' : 'feed'}`;
       const res = await fetch(`${fetchUrl}?${params.toString()}`);
 

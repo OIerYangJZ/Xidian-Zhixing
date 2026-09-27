@@ -10,7 +10,7 @@
     --text-primary: 15 20 25;
     --text-secondary: 83 100 113;
     --separator: 239 243 244;
-    --accent-brand: 29 155 240;
+    --accent-brand: 203 3 5;
     --danger: 244 33 46;
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
@@ -37,7 +37,7 @@
     --popover-foreground: var(--text-primary);
     --primary: var(--accent-brand);
     --primary-foreground: 255 255 255;
-    --primary-accent: 29 155 240;
+    --primary-accent: 203 3 5;
     --secondary: var(--surface-elevated);
     --secondary-foreground: var(--text-primary);
     --secondary-accent: 232 234 237;
@@ -62,7 +62,7 @@
     --text-primary: 231 233 234;
     --text-secondary: 113 118 123;
     --separator: 47 51 54;
-    --accent-brand: 29 155 240;
+    --accent-brand: 203 3 5;
     --danger: 244 33 46;
 
     --background: var(--page-bg);
@@ -73,7 +73,7 @@
     --popover-foreground: var(--text-primary);
     --primary: var(--accent-brand);
     --primary-foreground: 12 12 13;
-    --primary-accent: 29 155 240;
+    --primary-accent: 203 3 5;
     --secondary: var(--surface-elevated);
     --secondary-foreground: var(--text-primary);
     --secondary-accent: 39 42 45;

@@ -223,7 +223,20 @@ export const Post = memo(
     });
 
     return (
-      <article className="feed-separator border-b px-4 py-4 transition-colors hover:bg-foreground/[0.012] sm:px-5">
+      <article
+        className="feed-separator cursor-pointer border-b px-[12px] py-0 transition-colors hover:bg-foreground/[0.012] sm:px-[16px]"
+        onClick={(event) => {
+          const target = event.target;
+          if (
+            target instanceof Element &&
+            target.closest(
+              'a, button, input, textarea, select, [role="button"], [role="checkbox"], [data-post-interactive]',
+            )
+          ) {
+            return;
+          }
+          handleCommentsToggle();
+        }}>
         {repostedBy && (
           <div className="mb-2 flex items-center gap-2 pl-[60px] text-xs text-muted-foreground">
             <RepostIcon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -238,23 +251,28 @@ export const Post = memo(
           </div>
         )}
         <div className="relative pl-[60px]">
-          <div className="absolute left-0 top-0 h-12 w-12">
+          <div className="absolute left-0 top-0 h-[48px] w-[48px]">
             {displayIdentity === 'ANONYMOUS' ? (
-              <div className="grid h-12 w-12 place-items-center rounded-full bg-secondary text-base font-semibold text-muted-foreground">
+              <div className="grid h-[48px] w-[48px] place-items-center rounded-full bg-secondary text-base font-semibold text-muted-foreground">
                 {t('匿', 'A')}
               </div>
             ) : displayIdentity === 'CLUB' && publishedAsClub ? (
-              <div className="h-12 w-12 overflow-hidden rounded-full bg-secondary">
+              <div className="h-[48px] w-[48px] overflow-hidden rounded-full bg-secondary">
                 {publishedAsClub.avatar ? (
                   <img src={publishedAsClub.avatar} alt="" className="h-full w-full object-cover" />
                 ) : null}
               </div>
             ) : author ? (
-              <ProfilePhoto photoUrl={author.profilePhoto || ''} username={author.username} name={author.name} />
+              <ProfilePhoto
+                photoUrl={author.profilePhoto || ''}
+                username={author.username}
+                name={author.name}
+                fallbackAvatarClassName="text-[16px]"
+              />
             ) : null}
           </div>
           <div className="relative pr-10">
-            <div className="min-w-0 pt-0.5">
+            <div className="min-w-0">
               {displayIdentity === 'ANONYMOUS' ? (
                 <div className="flex flex-wrap items-center gap-x-2">
                   <div className="text-sm font-semibold text-foreground">{t('匿名同学', 'Anonymous student')}</div>
@@ -287,11 +305,13 @@ export const Post = memo(
             </p>
           )}
           {visualMedia.length > 0 && (
-            <div className="mb-1 mt-1 overflow-hidden rounded-xl border border-border bg-secondary/30">
+            <div
+              data-post-interactive
+              className="mb-1 mt-1 overflow-hidden rounded-xl border border-border bg-secondary/30">
               <PostVisualMediaContainer visualMedia={visualMedia} />
             </div>
           )}
-          <div className="flex items-center justify-between text-muted-foreground">
+          <div data-post-interactive className="flex items-center justify-between text-muted-foreground">
             <ToggleStepper
               isSelected={commentsShown || false}
               aria-label={commentsShown ? t('隐藏评论', 'Hide replies') : t('显示评论', 'Show replies')}
@@ -349,7 +369,13 @@ export const Post = memo(
 
         <AnimatePresence>
           {commentsShown && (
-            <motion.div key={`${postId}-comments`} variants={variants} initial={false} animate="animate" exit="exit">
+            <motion.div
+              data-post-interactive
+              key={`${postId}-comments`}
+              variants={variants}
+              initial={false}
+              animate="animate"
+              exit="exit">
               <Comments postId={postId} />
             </motion.div>
           )}

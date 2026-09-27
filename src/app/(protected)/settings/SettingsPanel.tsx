@@ -9,7 +9,8 @@ import { LogOutCircle } from '@/svg_components';
 import { signOut } from 'next-auth/react';
 
 export function SettingsPanel() {
-  const { theme, handleThemeChange, visualTheme, handleVisualThemeChange } = useTheme();
+  const { theme, handleThemeChange, visualTheme, handleVisualThemeChange, accentColor, handleAccentColorChange } =
+    useTheme();
   const { language, setLanguage, t } = useLanguage();
   const { confirm } = useDialogs();
   const groups = [
@@ -132,9 +133,7 @@ export function SettingsPanel() {
                   onChange={(event) => handleVisualThemeChange(event.target.value as 'zhixing' | 'editorial')}
                   className="min-h-11 border border-border bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   <option value="zhixing">{t('极简', 'Minimal')}</option>
-                  <option value="editorial">
-                    {t('人本·初创', 'Human-centered · Startup')}
-                  </option>
+                  <option value="editorial">{t('人本·初创', 'Human-centered · Startup')}</option>
                 </select>
               </label>
               <label className="flex flex-col gap-2 text-sm font-medium">
@@ -148,6 +147,19 @@ export function SettingsPanel() {
                   <option value="light">{t('浅色', 'Light')}</option>
                   <option value="dark">{t('深色', 'Dark')}</option>
                 </select>
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-medium">
+                {t('高亮颜色', 'Accent color')}
+                <span className="flex min-h-11 items-center gap-3 border border-border bg-background px-3">
+                  <input
+                    type="color"
+                    aria-label={t('高亮颜色', 'Accent color')}
+                    value={accentColor}
+                    onChange={(event) => handleAccentColorChange(event.target.value)}
+                    className="h-7 w-10 cursor-pointer border-0 bg-transparent p-0"
+                  />
+                  <span className="text-xs font-normal text-muted-foreground">{accentColor.toUpperCase()}</span>
+                </span>
               </label>
               <label className="flex flex-col gap-2 text-sm font-medium">
                 {t('界面语言', 'Interface language')}

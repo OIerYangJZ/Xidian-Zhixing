@@ -24,7 +24,7 @@ export async function GET(request: Request, props: { params: Promise<{ hashtag: 
       status: 'PUBLISHED',
       moderationCases: { none: { status: 'OPEN' } },
       content: {
-        search: params.hashtag,
+        search: decodeURIComponent(params.hashtag),
       },
       ...filters,
     },
