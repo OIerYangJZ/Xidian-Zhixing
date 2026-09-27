@@ -16,9 +16,13 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
   const { postId, commentId, reason, details } = parsed.data;
-  const target = postId
+  const targetPost = postId
     ? await prisma.post.findFirst({ where: { id: postId, status: 'PUBLISHED' }, select: { userId: true } })
-    : await prisma.comment.findUnique({ where: { id: commentId! }, select: { userId: true, postId: true } });
+    : null;
+  const targetComment = commentId
+    ? await prisma.comment.findUnique({ where: { id: commentId }, select: { userId: true, postId: true } })
+    : null;
+  const target = targetPost || targetComment;
   if (!target) return NextResponse.json({ error: 'not_found' }, { status: 404 });
   if (target.userId === user.id) return NextResponse.json({ error: 'own_content' }, { status: 400 });
   const existing = await prisma.report.findFirst({
@@ -34,7 +38,7 @@ export async function POST(request: Request) {
     await tx.moderationCase.create({
       data: {
         reportId: created.id,
-        postId: postId ?? ('postId' in target ? target.postId : undefined),
+        postId: postId ?? targetComment!.postId,
         commentId,
         openedById: user.id,
         notes: details || reason,
