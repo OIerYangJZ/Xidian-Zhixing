@@ -75,10 +75,16 @@ abstract final class ZxFonts {
 
   static Future<void>? _deferred;
 
-  /// Where the web build serves the font. From the origin root, not the
-  /// page: a share link opens on /p/<id>, where 'fonts/…' would resolve to
-  /// /p/fonts/…. The web build uses the default base href '/'.
-  static const String webRareFontPath = '/fonts/STSong-Rare.ttf';
+  /// Where the web build serves the font. From the base href, not the page:
+  /// a share link opens on /p/<id>, where 'fonts/…' would resolve to
+  /// /p/fonts/…. The public build uses base href '/'; the admin console
+  /// published under /admin/ passes WEB_BASE_HREF=/admin/ to match its
+  /// --base-href (scripts/build_web_admin.sh).
+  static const String _webBaseHref = String.fromEnvironment(
+    'WEB_BASE_HREF',
+    defaultValue: '/',
+  );
+  static const String webRareFontPath = '${_webBaseHref}fonts/STSong-Rare.ttf';
 
   @visibleForTesting
   static Future<ByteData> Function(Uri url) debugFetchFont = _fetchWebFont;

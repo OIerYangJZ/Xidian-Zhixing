@@ -48,6 +48,7 @@ echo "[admin-build] API_BASE_URL : $ADMIN_API_BASE_URL"
     --base-href="$ADMIN_BASE_HREF" \
     --dart-define=ENABLE_ADMIN_CONSOLE=true \
     --dart-define=ADMIN_ONLY="$ADMIN_ONLY" \
+    --dart-define=WEB_BASE_HREF="$ADMIN_BASE_HREF" \
     --dart-define=API_BASE_URL="$ADMIN_API_BASE_URL" \
     --dart-define=APP_VERSION="$FULL_VERSION" \
     --dart-define=APP_BUILD_TYPE="$BUILD_TYPE")
