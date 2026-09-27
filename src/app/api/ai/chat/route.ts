@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     );
     return apiSuccess({
       conversationId: conversation.id,
-      userMessage,
+      userMessage: { ...userMessage, sources: [] },
       answer: result.message.content,
       reply: result.message.content,
       message: result.message,

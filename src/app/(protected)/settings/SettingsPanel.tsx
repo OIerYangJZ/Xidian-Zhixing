@@ -133,7 +133,7 @@ export function SettingsPanel() {
                   className="min-h-11 border border-border bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   <option value="zhixing">{t('知行首页风格（默认）', 'Zhixing home (default)')}</option>
                   <option value="editorial">
-                    {t('西电暖色风格（参考图）', 'Xidian warm style (reference-inspired)')}
+                    {t('暖纸红棕风格（参考图）', 'Warm paper and red-brown (reference-inspired)')}
                   </option>
                 </select>
               </label>
