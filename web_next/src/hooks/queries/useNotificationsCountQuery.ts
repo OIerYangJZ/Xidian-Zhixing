@@ -1,6 +1,6 @@
 import { getNotificationsCount } from '@/lib/client_data_fetching/getNotificationsCount';
 import { useQuery } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 
 export function useNotificationsCountQuery() {
   const { data: session } = useSession();

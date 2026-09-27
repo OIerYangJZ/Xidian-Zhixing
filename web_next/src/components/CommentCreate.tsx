@@ -8,7 +8,7 @@ import Button from './ui/Button';
 import { ProfilePhotoOwn } from './ui/ProfilePhotoOwn';
 import { TextAreaWithMentionsAndHashTags } from './TextAreaWithMentionsAndHashTags';
 
-export function CommentCreate({ postId }: { postId: number }) {
+export function CommentCreate({ postId }: { postId: string }) {
   const { t } = useLanguage();
   const [content, setContent] = useState('');
   const { createCommentMutation } = useCreateCommentMutations();

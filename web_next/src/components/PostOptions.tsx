@@ -16,7 +16,7 @@ export function PostOptions({
   visualMedia,
   displayIdentity,
 }: {
-  postId: number;
+  postId: string;
   content: string | null;
   visualMedia?: GetVisualMedia[];
   displayIdentity: DisplayIdentity;

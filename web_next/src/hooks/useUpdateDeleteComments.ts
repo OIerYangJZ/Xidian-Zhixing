@@ -7,7 +7,7 @@ export function useUpdateDeleteComments({ queryKey }: { queryKey: QueryKey }) {
   const { updateCommentMutation, deleteCommentMutation } = useUpdateDeleteCommentMutations({ queryKey });
   const { prompt, confirm } = useDialogs();
 
-  const handleEdit = ({ commentId, content }: { commentId: number; content: string }) => {
+  const handleEdit = ({ commentId, content }: { commentId: string; content: string }) => {
     prompt({
       title: 'Edit Comment',
       initialPromptValue: content,
@@ -18,7 +18,7 @@ export function useUpdateDeleteComments({ queryKey }: { queryKey: QueryKey }) {
     });
   };
 
-  const handleDelete = ({ commentId }: { commentId: number }) => {
+  const handleDelete = ({ commentId }: { commentId: string }) => {
     confirm({
       title: 'Confirm Delete',
       message: 'Do you really wish to delete this comment?',

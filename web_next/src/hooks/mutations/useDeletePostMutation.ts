@@ -3,7 +3,7 @@
 import { InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query';
 import { chunk } from 'lodash';
 import { POSTS_PER_PAGE } from '@/constants';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { PostIds } from '@/types/definitions';
 import { useErrorNotifier } from '../useErrorNotifier';
 
@@ -14,7 +14,7 @@ export function useDeletePostMutation() {
   const { notifyError } = useErrorNotifier();
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ postId }: { postId: number }) => {
+    mutationFn: async ({ postId }: { postId: string }) => {
       const res = await fetch(`/api/posts/${postId}`, {
         method: 'DELETE',
       });
@@ -23,7 +23,7 @@ export function useDeletePostMutation() {
         throw Error('Failed to delete post.');
       }
 
-      return (await res.json()) as { id: number };
+      return (await res.json()) as { id: string };
     },
     onMutate: async ({ postId }) => {
       // Cancel any outgoing refetches

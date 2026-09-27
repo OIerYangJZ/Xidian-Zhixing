@@ -1,10 +1,10 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { GetPost } from '@/types/definitions';
 
-export function usePostLikesMutations({ postId }: { postId: number }) {
+export function usePostLikesMutations({ postId }: { postId: string }) {
   const qc = useQueryClient();
   const queryKey = ['posts', postId];
   const { data: session } = useSession();

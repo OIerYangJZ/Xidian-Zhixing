@@ -1,6 +1,6 @@
 import { GetActivity } from '@/types/definitions';
 import { SemiBold } from '@/components/ui/SemiBold';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { useRouter } from 'next/navigation';
 import { useNotificationsReadStatusMutations } from '@/hooks/mutations/useNotificationsReadStatusMutations';
 import { useLanguage } from '@/hooks/useLanguage';

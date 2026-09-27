@@ -11,7 +11,7 @@ import {
   Settings,
 } from '@/svg_components';
 import { useSessionUserData } from '@/hooks/useSessionUserData';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { useNotificationsCountQuery } from '@/hooks/queries/useNotificationsCountQuery';
 import { useCreatePostModal } from '@/hooks/useCreatePostModal';
 import { useLanguage } from '@/hooks/useLanguage';

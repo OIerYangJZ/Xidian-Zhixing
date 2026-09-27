@@ -1,6 +1,6 @@
 import { GetComment } from '@/types/definitions';
 
-export async function getReplies({ parentId }: { parentId: number }) {
+export async function getReplies({ parentId }: { parentId: string }) {
   const res = await fetch(`/api/comments/${parentId}/replies`);
 
   if (!res.ok) throw new Error('Error getting replies.');

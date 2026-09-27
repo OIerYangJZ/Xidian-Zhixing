@@ -1,19 +1,43 @@
-import { VisualMediaType, User, Follow, ActivityType, VisualMedia, DisplayIdentity, PostStatus } from '@prisma/client';
-
-type UserSummary = Pick<User, 'id' | 'username' | 'name' | 'profilePhoto'>;
 /**
- * The `User` type from Prisma indicates that the `username` and `name` fields are nullable,
- * however, after the initial user setup upon user's registration, these two fields will be
- * guaranteed to be filled in.
+ * Shapes the UI components consume.
+ *
+ * These keep the names the components were written against (GetPost, GetUser,
+ * GetComment, GetActivity), but every value now comes from the Python backend
+ * through src/lib/backend/adapters.ts.  IDs are the backend's prefixed strings
+ * ("p123", "u12", "cm45"); never parse them as numbers.
  */
+
+export type VisualMediaType = 'PHOTO' | 'VIDEO';
+export type DisplayIdentity = 'USER' | 'CLUB' | 'ANONYMOUS';
+/** Moderation state as the author sees it; others only ever get PUBLISHED. */
+export type PostStatus = 'PUBLISHED' | 'PENDING_REVIEW' | 'REMOVED';
+/** Author-set progress on a post (求助 → 已解决 …). */
+export type PostProgress = 'ongoing' | 'resolved' | 'closed';
+export type SectionType = 'general' | 'college' | 'club';
+
+export type ActivityType =
+  | 'CREATE_FOLLOW'
+  | 'POST_LIKE'
+  | 'POST_FAVORITE'
+  | 'POST_MENTION'
+  | 'CREATE_COMMENT'
+  | 'COMMENT_MENTION'
+  | 'COMMENT_LIKE'
+  | 'CREATE_REPLY'
+  | 'REPLY_MENTION'
+  | 'REPLY_LIKE'
+  | 'REPORT_RESULT'
+  | 'SYSTEM';
+
 export interface UserSummaryAfterSetUp {
   id: string;
+  /** Profiles are addressed by id; kept under this name for the route code. */
   username: string;
   name: string;
   profilePhoto: string | null;
 }
 
-interface UserAfterSetUp {
+export interface GetUser {
   id: string;
   username: string;
   name: string;
@@ -22,26 +46,21 @@ interface UserAfterSetUp {
   showContactable: boolean;
   profilePhoto: string | null;
   coverPhoto: string | null;
-}
-
-// Use this type when finding a User in prisma.
-export interface FindUserResult extends User {
-  followers: Follow[];
-  _count: {
-    following: number;
-    followers: number;
-  };
-}
-
-/**
- * The <FindUserResult> shall be converted to <GetUser>, use
- * the ./src/lib/prisma/toGetUser.ts function to do this.
- * <GetUser> must be the response type of GET users route handlers.
- */
-export interface GetUser extends UserAfterSetUp {
   followerCount: number | null;
   followingCount: number | null;
-  isFollowing: boolean | null; // true when the authenticated user is following the user being requested
+  /** true when the signed-in user follows this user */
+  isFollowing: boolean | null;
+  isFollower: boolean;
+  isOwnProfile: boolean;
+  canFollow: boolean;
+  canDirectMessage: boolean;
+  isBlockedByMe: boolean;
+  postCount: number;
+  gender: string;
+  college: string;
+  major: string;
+  verified: boolean;
+  userLevelLabel: string;
 }
 
 export interface GetVisualMedia {
@@ -54,59 +73,32 @@ export interface VisualMediaModalType {
   initialSlide: number;
 }
 
-// Use this type when finding a Post in prisma.
-export interface FindPostResult {
-  id: number;
-  userId: string;
-  content: string | null;
-  createdAt: Date;
-  viewCount: number;
-  status: PostStatus;
-  displayIdentity: DisplayIdentity;
-  spaceId: number | null;
-  publishedAsClub: { id: number; name: string; slug: string; avatar: string | null } | null;
-  /**
-   * Use `postLikes` to store the <PostLike>'s id of the user to the Post.
-   * If there is a <PostLike> id, that means the user requesting has
-   * liked the Post.
-   */
-  postLikes: {
-    id: number;
-  }[];
-  bookmarks: { id: number }[];
-  reposts: { id: number }[];
-  user: UserSummary;
-  visualMedia: VisualMedia[];
-  _count: {
-    postLikes: number;
-    comments: number;
-    reposts: number;
-    bookmarks: number;
-  };
-}
-
-/**
- * The <FindPostResult> shall be converted to <GetPost>, use
- * the ./src/lib/prisma/toGetPost.ts function to do this.
- * <GetPost> must be the response type of GET posts route handlers.
- */
 export interface GetPost {
-  id: number;
+  id: string;
+  title: string;
   content: string | null;
-  createdAt: Date;
+  createdAt: string;
   viewCount: number;
   status: PostStatus;
+  progress: PostProgress;
   displayIdentity: DisplayIdentity;
-  spaceId: number | null;
-  publishedAsClub: { id: number; name: string; slug: string; avatar: string | null } | null;
+  /** Alias shown for anonymous posts; the author's nickname otherwise. */
+  authorAlias: string;
+  sectionType: SectionType;
+  sectionId: string;
+  sectionName: string;
+  tags: string[];
+  publishedAsClub: { id: string; name: string; slug: string; avatar: string | null } | null;
   isOwnPost: boolean;
-  /**
-   * The `isLiked` is used to check whether the authenticated user requesting
-   * the post has liked it or not.
-   */
   isLiked: boolean;
   isBookmarked: boolean;
+  /** No reposts on this backend; always false. */
   isReposted: boolean;
+  isPinned: boolean;
+  isPrivate: boolean;
+  allowComment: boolean;
+  canMessageAuthor: boolean;
+  /** null when the author is hidden (anonymous or private profile). */
   user: UserSummaryAfterSetUp | null;
   visualMedia: GetVisualMedia[];
   _count: {
@@ -121,54 +113,32 @@ export interface GetPost {
  * Use `PostIds` when rendering a list of <Post>'s, this type
  * must be passed to <Post>, and <Post> must use the `id` to
  * check for queried post data using this `queryKey` format:
- * ['posts', number] where number is the post's id
+ * ['posts', string] where string is the post's id
  */
 export interface PostId {
-  id: number;
+  id: string;
   commentsShown: boolean;
   feedEventKey?: string;
   feedCursor?: string;
-  repostedBy?: Pick<User, 'name' | 'username'>;
+  repostedBy?: { name: string | null; username: string | null };
 }
 
 export type PostIds = PostId[];
 
-// Use this type when finding a Comment in prisma.
-export interface FindCommentResult {
-  id: number;
-  content: string;
-  createdAt: Date;
-  userId: string;
-  postId: number;
-  parentId: number | null;
-  user: UserSummary;
-  /**
-   * Use `commentLikes` to store the <CommentLike>'s id of the user to the Comment.
-   * If there is a <CommentLike> id, that means the user requesting has
-   * liked the Comment.
-   */
-  commentLikes: {
-    id: number;
-  }[];
-  _count: {
-    commentLikes: number;
-    replies: number;
-  };
-}
-
-/**
- * The <FindCommentResult> shall be converted to <GetComment>, use
- * the ./src/lib/prisma/toGetComment.ts function to do this.
- * <GetComment> must be the response type of GET comments route handlers.
- */
 export interface GetComment {
-  id: number;
-  postId: number;
-  parentId: number | null;
+  id: string;
+  postId: string;
+  /** Directly replied-to comment; null at the top level. */
+  parentId: string | null;
   content: string;
-  createdAt: Date;
+  createdAt: string;
   user: UserSummaryAfterSetUp;
   isLiked: boolean;
+  isOwnComment: boolean;
+  /** 洞主: written by the post's author */
+  isPostAuthor: boolean;
+  isAnonymous: boolean;
+  isPending: boolean;
   _count: {
     commentLikes: number;
     replies: number;
@@ -176,21 +146,19 @@ export interface GetComment {
   repliesShown?: boolean;
 }
 
-interface FindActivityResult {
-  id: number;
+export interface GetActivity {
+  id: string;
   type: ActivityType;
-  sourceId: number;
-  targetId: number | null;
-  createdAt: Date;
+  /** Post (or comment) the activity is about. */
+  sourceId: string;
+  targetId: string | null;
+  /** Post to open when the activity is clicked. */
+  postId: string;
+  createdAt: string;
   isNotificationRead: boolean;
-  sourceUser: UserSummary;
-  targetUser: UserSummary;
-}
-export type FindActivityResults = FindActivityResult[];
-
-export interface GetActivity extends FindActivityResult {
   sourceUser: UserSummaryAfterSetUp;
   targetUser: UserSummaryAfterSetUp;
+  title?: string;
   content?: string | null;
 }
 export type GetActivities = GetActivity[];

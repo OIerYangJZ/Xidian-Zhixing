@@ -1,7 +1,7 @@
 import { ACTIVITIES_PER_PAGE } from '@/constants';
 import { InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query';
 import { chunk } from 'lodash';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { GetActivity } from '@/types/definitions';
 
 export function useNotificationsReadStatusMutations() {
@@ -11,7 +11,7 @@ export function useNotificationsReadStatusMutations() {
   const queryKey = ['users', userId, 'notifications'];
 
   const markAsReadMutation = useMutation({
-    mutationFn: async ({ notificationId }: { notificationId: number }) => {
+    mutationFn: async ({ notificationId }: { notificationId: string }) => {
       const res = await fetch(`/api/users/${session?.user.id}/notifications/${notificationId}`, {
         method: 'PATCH',
       });

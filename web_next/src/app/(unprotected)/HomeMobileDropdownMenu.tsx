@@ -2,7 +2,7 @@
 
 import { DropdownMenuButton } from '@/components/ui/DropdownMenuButton';
 import { HamburgerMenu } from '@/svg_components';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { useRouter } from 'next/navigation';
 import { Key, useCallback, useMemo } from 'react';
 import { Item, Section } from 'react-stately';

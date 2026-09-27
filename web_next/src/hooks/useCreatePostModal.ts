@@ -20,7 +20,7 @@ export function useCreatePostModal() {
     initialContent: string;
     initialVisualMedia: GetVisualMedia[];
     initialDisplayIdentity: DisplayIdentity;
-    postId: number;
+    postId: string;
   }) => {
     setToEditValues({
       postId,

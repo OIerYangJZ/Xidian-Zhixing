@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { GetUser } from '@/types/definitions';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { useToast } from '../useToast';
 
 const follow = async ({ userId, targetUserId }: { userId: string; targetUserId: string }) => {

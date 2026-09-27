@@ -5,14 +5,14 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { GetComment } from '@/types/definitions';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getComments } from '@/lib/client_data_fetching/getComments';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { useShouldAnimate } from '@/hooks/useShouldAnimate';
 import { useLanguage } from '@/hooks/useLanguage';
 import { commentFramerVariants } from '@/lib/framerVariants';
 import { CommentCreate } from './CommentCreate';
 import { Comment } from './Comment';
 
-export function Comments({ postId }: { postId: number }) {
+export function Comments({ postId }: { postId: string }) {
   const { t } = useLanguage();
   const qc = useQueryClient();
   const [sort, setSort] = useState<'hot' | 'time'>('hot');
@@ -33,7 +33,7 @@ export function Comments({ postId }: { postId: number }) {
   });
 
   const setRepliesVisibility = useCallback(
-    ({ commentId, shown }: { commentId: number; shown: boolean }) => {
+    ({ commentId, shown }: { commentId: string; shown: boolean }) => {
       qc.setQueryData<GetComment[]>(queryKey, (oldComments) => {
         if (!oldComments) return oldComments;
         // Make a shallow copy of `oldComments`

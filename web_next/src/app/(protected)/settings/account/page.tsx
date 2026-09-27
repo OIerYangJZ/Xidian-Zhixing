@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import Link from 'next/link';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -12,8 +12,8 @@ import { useEffect, useState } from 'react';
 type AppealCase = {
   id: string;
   action: string;
-  postId: number | null;
-  commentId: number | null;
+  postId: string | null;
+  commentId: string | null;
   appeals: Array<{ id: string; resolvedAt: string | null }>;
 };
 

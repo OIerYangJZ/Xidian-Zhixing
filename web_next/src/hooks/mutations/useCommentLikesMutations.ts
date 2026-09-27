@@ -1,5 +1,5 @@
 import { QueryKey, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { GetComment } from '@/types/definitions';
 
 export function useCommentLikesMutations({ queryKey }: { queryKey: QueryKey }) {
@@ -7,7 +7,7 @@ export function useCommentLikesMutations({ queryKey }: { queryKey: QueryKey }) {
   const { data: session } = useSession();
   const userId = session?.user.id;
 
-  const likeUnlikeOptimisticSetter = ({ commentId, isLiked }: { commentId: number; isLiked: boolean }) => {
+  const likeUnlikeOptimisticSetter = ({ commentId, isLiked }: { commentId: string; isLiked: boolean }) => {
     qc.setQueryData<GetComment[]>(queryKey, (oldComments) => {
       if (!oldComments) return oldComments;
 
@@ -33,7 +33,7 @@ export function useCommentLikesMutations({ queryKey }: { queryKey: QueryKey }) {
   };
 
   const likeCommentMutation = useMutation({
-    mutationFn: async ({ commentId }: { commentId: number }) => {
+    mutationFn: async ({ commentId }: { commentId: string }) => {
       const res = await fetch(`/api/users/${userId}/liked-comments`, {
         method: 'POST',
         body: JSON.stringify({ commentId }),
@@ -73,7 +73,7 @@ export function useCommentLikesMutations({ queryKey }: { queryKey: QueryKey }) {
   });
 
   const unLikeCommentMutation = useMutation({
-    mutationFn: async ({ commentId }: { commentId: number }) => {
+    mutationFn: async ({ commentId }: { commentId: string }) => {
       const res = await fetch(`/api/users/${userId}/liked-comments/${commentId}`, {
         method: 'DELETE',
       });

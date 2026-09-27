@@ -2,7 +2,7 @@
 
 import { getReplies } from '@/lib/client_data_fetching/getReplies';
 import { useQuery } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { useUpdateDeleteComments } from '@/hooks/useUpdateDeleteComments';
 import { useLikeUnlikeComments } from '@/hooks/useLikeUnlikeComments';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -11,7 +11,7 @@ import { commentFramerVariants } from '@/lib/framerVariants';
 import { useLanguage } from '@/hooks/useLanguage';
 import { CommentReply } from './CommentReply';
 
-export function CommentReplies({ parentId }: { parentId: number }) {
+export function CommentReplies({ parentId }: { parentId: string }) {
   const { t } = useLanguage();
   const { data: session } = useSession();
   const queryKey = ['comments', parentId, 'replies'];

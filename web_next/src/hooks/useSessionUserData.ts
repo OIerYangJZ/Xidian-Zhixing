@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { useUserQuery } from './queries/useUserQuery';
 
 /**

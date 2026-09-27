@@ -1,6 +1,6 @@
 import { GetComment } from '@/types/definitions';
 
-export async function getComments({ postId, sort }: { postId: number; sort: 'hot' | 'time' }) {
+export async function getComments({ postId, sort }: { postId: string; sort: 'hot' | 'time' }) {
   const res = await fetch(`/api/posts/${postId}/comments?sort=${sort}`);
 
   if (!res.ok) throw new Error('Error Getting Comments');

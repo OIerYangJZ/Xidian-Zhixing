@@ -3,7 +3,7 @@
 import { useActiveRouteChecker } from '@/hooks/useActiveRouteChecker';
 import { useDialogs } from '@/hooks/useDialogs';
 import { cn } from '@/lib/cn';
-import { signOut } from 'next-auth/react';
+import { useAuthActions } from '@/lib/backend/session';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import React, { SVGProps, useCallback } from 'react';
@@ -27,6 +27,7 @@ export function MenuBarItem({
   const router = useRouter();
   const [isActive] = useActiveRouteChecker(route);
   const { confirm } = useDialogs();
+  const { signOut } = useAuthActions();
   const { t } = useLanguage();
   const onItemClick = useCallback(() => {
     confirm({
@@ -34,7 +35,7 @@ export function MenuBarItem({
       message: t('确定退出西电知行吗？', 'Are you sure you want to log out of Zhixing?'),
       onConfirm: () => signOut({ callbackUrl: '/' }),
     });
-  }, [confirm, t]);
+  }, [confirm, signOut, t]);
   const className = cn(
     'group relative flex h-12 w-full cursor-pointer items-center justify-center gap-0 rounded-full px-3 text-foreground transition-colors hover:bg-secondary md:justify-center xl:justify-start xl:gap-4 xl:px-4',
     mobileTab && 'h-14 flex-1 flex-col gap-0.5 rounded-md px-1 hover:bg-transparent',

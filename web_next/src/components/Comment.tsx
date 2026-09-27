@@ -36,7 +36,7 @@ export const Comment = memo(
     queryKey,
   }: GetComment & {
     isOwnComment: boolean;
-    setRepliesVisibility: (params: { commentId: number; shown: boolean }) => void;
+    setRepliesVisibility: (params: { commentId: string; shown: boolean }) => void;
     queryKey: QueryKey;
   }) => {
     const numberOfLikes = _count.commentLikes;

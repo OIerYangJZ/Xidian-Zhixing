@@ -12,14 +12,14 @@ type ModerationCaseItem = {
   createdAt: string;
   openedBy: { id: string; username: string | null; name: string | null } | null;
   post: {
-    id: number;
+    id: string;
     content: string | null;
     createdAt: string;
     user: { id: string; username: string | null; name: string | null; status: string };
     visualMedia: Array<{ type: 'PHOTO' | 'VIDEO'; url: string | null }>;
   } | null;
   comment: {
-    id: number;
+    id: string;
     content: string;
     user: { id: string; username: string | null; name: string | null; status: string };
   } | null;

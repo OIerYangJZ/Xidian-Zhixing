@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/hooks/useLanguage';
 

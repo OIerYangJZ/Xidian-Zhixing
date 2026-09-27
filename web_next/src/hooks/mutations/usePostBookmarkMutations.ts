@@ -2,9 +2,9 @@
 
 import { GetPost } from '@/types/definitions';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 
-export function usePostBookmarkMutations({ postId }: { postId: number }) {
+export function usePostBookmarkMutations({ postId }: { postId: string }) {
   const queryClient = useQueryClient();
   const queryKey = ['posts', postId];
   const { data: session } = useSession();

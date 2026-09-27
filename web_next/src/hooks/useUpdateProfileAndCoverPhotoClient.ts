@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import React, { useRef } from 'react';
 import { useDialogs } from './useDialogs';
 import { useToast } from './useToast';

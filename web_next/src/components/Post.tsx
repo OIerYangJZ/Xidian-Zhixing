@@ -18,7 +18,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePostLikesMutations } from '@/hooks/mutations/usePostLikesMutations';
 import { usePostBookmarkMutations } from '@/hooks/mutations/usePostBookmarkMutations';
 import { useToast } from '@/hooks/useToast';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import Link from 'next/link';
 import { useDialogs } from '@/hooks/useDialogs';
 import { ToggleStepper } from './ui/ToggleStepper';
@@ -77,7 +77,7 @@ export const Post = memo(
     repostedBy,
     toggleComments,
   }: PostId & {
-    toggleComments: (postId: number, feedEventKey?: string) => void;
+    toggleComments: (postId: string, feedEventKey?: string) => void;
   }) => {
     const { t, language } = useLanguage();
     const { showToast } = useToast();

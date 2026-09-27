@@ -27,10 +27,10 @@ export const CommentReply = memo(
     unLikeComment,
   }: GetComment & {
     isOwnReply: boolean;
-    handleEdit: (params: { commentId: number; content: string }) => void;
-    handleDelete: (params: { commentId: number }) => void;
-    likeComment: (params: { commentId: number }) => void;
-    unLikeComment: (params: { commentId: number }) => void;
+    handleEdit: (params: { commentId: string; content: string }) => void;
+    handleDelete: (params: { commentId: string }) => void;
+    likeComment: (params: { commentId: string }) => void;
+    unLikeComment: (params: { commentId: string }) => void;
   }) => {
     const numberOfLikes = _count.commentLikes;
     const { t } = useLanguage();

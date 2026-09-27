@@ -11,14 +11,10 @@ const LanguageContext = createContext<{
   setLanguage: (language: Language) => void;
 }>({ language: 'zh', setLanguage: () => {} });
 
-export function LanguageContextProvider({
-  children,
-  initialLanguage,
-}: {
-  children: React.ReactNode;
-  initialLanguage: Language;
-}) {
-  const [language, setLanguageState] = useState(initialLanguage);
+export function LanguageContextProvider({ children }: { children: React.ReactNode }) {
+  // The static HTML is rendered in Chinese; a saved preference is applied
+  // right after hydration (the boot script in app/layout already set <html lang>).
+  const [language, setLanguageState] = useState<Language>('zh');
 
   const persistLanguage = useCallback((next: Language) => {
     localStorage.setItem(storageKey, next);
@@ -28,11 +24,13 @@ export function LanguageContextProvider({
   }, []);
 
   useEffect(() => {
-    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
-    const hasCookie = document.cookie.split('; ').some((entry) => entry.startsWith(`${cookieKey}=`));
     const savedLanguage = localStorage.getItem(storageKey);
-    if (!hasCookie && (savedLanguage === 'zh' || savedLanguage === 'en')) persistLanguage(savedLanguage);
-  }, [language, persistLanguage]);
+    if (savedLanguage === 'zh' || savedLanguage === 'en') setLanguageState(savedLanguage);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+  }, [language]);
 
   useEffect(() => {
     const handleLanguageMessage = (event: MessageEvent) => {

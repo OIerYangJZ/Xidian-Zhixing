@@ -6,13 +6,14 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useDialogs } from '@/hooks/useDialogs';
 import { LogOutCircle } from '@/svg_components';
-import { signOut } from 'next-auth/react';
+import { useAuthActions } from '@/lib/backend/session';
 
 export function SettingsPanel() {
   const { theme, handleThemeChange, visualTheme, handleVisualThemeChange, accentColor, handleAccentColorChange } =
     useTheme();
   const { language, setLanguage, t } = useLanguage();
   const { confirm } = useDialogs();
+  const { signOut } = useAuthActions();
   const groups = [
     {
       title: t('账号和安全', 'Account and security'),

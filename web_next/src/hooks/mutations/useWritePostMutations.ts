@@ -1,6 +1,6 @@
 import { InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query';
 import { chunk } from 'lodash';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/backend/session';
 import { GetVisualMedia, GetPost, PostIds } from '@/types/definitions';
 import type { DisplayIdentity } from '@prisma/client';
 import { POSTS_PER_PAGE } from '@/constants';
@@ -101,7 +101,7 @@ export function useWritePostMutations({
   });
 
   const updatePostMutation = useMutation({
-    mutationFn: async ({ postId }: { postId: number }) => {
+    mutationFn: async ({ postId }: { postId: string }) => {
       const res = await fetch(`/api/posts/${postId}`, {
         method: 'PATCH',
         body: await generateFormData(),

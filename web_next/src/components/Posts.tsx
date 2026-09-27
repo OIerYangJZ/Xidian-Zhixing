@@ -1,11 +1,12 @@
 'use client';
 
 import { InfiniteData, QueryKey, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { GetPost, PostIds } from '@/types/definitions';
+import { PostIds } from '@/types/definitions';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useOnScreen from '@/hooks/useOnScreen';
 import { AnimatePresence, motion } from 'framer-motion';
-import { NO_PREV_DATA_LOADED, POSTS_PER_PAGE } from '@/constants';
+import { POSTS_PER_PAGE } from '@/constants';
+import { listFavoritePosts, listPosts, type PostSort } from '@/lib/backend/endpoints';
 import { chunk } from 'lodash';
 import { useShouldAnimate } from '@/hooks/useShouldAnimate';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -19,130 +20,95 @@ import { Post } from './Post';
 import { GenericLoading } from './GenericLoading';
 import { PostSkeleton } from './PostSkeleton';
 
-// If the `type` is 'profile' or 'feed', the `userId` property is required
+// If the `type` is 'profile' or 'bookmarks', the `userId` property is required
 // If the `type` is 'hashtag', the `hashtag` property is required
 type PostsProps =
   | {
       type: 'hashtag';
       userId?: undefined;
       hashtag: string;
+      sort?: PostSort;
+      sectionId?: undefined;
     }
   | {
-      type: 'profile' | 'feed';
-      userId: string;
+      type: 'feed';
+      userId?: string;
       hashtag?: undefined;
+      sort?: PostSort;
+      /** Restrict the feed to one section (板块). */
+      sectionId?: string;
     }
   | {
-      type: 'bookmarks';
+      type: 'profile' | 'bookmarks';
       userId: string;
       hashtag?: undefined;
+      sort?: undefined;
+      sectionId?: undefined;
     };
 
-export function Posts({ type, hashtag, userId }: PostsProps) {
+type PageParam = number;
+
+function fetchPage({ type, userId, hashtag, sort, sectionId }: PostsProps, page: PageParam) {
+  if (type === 'bookmarks') return listFavoritePosts();
+  return listPosts({
+    page,
+    limit: POSTS_PER_PAGE,
+    sort: sort || 'latest',
+    ...(type === 'profile' && { authorId: userId }),
+    ...(type === 'hashtag' && { channel: hashtag }),
+    ...(type === 'feed' && sectionId && { sectionId }),
+  });
+}
+
+export function Posts(props: PostsProps) {
+  const { type, hashtag, userId, sort, sectionId } = props;
   const { t } = useLanguage();
   const qc = useQueryClient();
   // Need to memoize `queryKey`, so when used in a dependency array, it won't trigger the `useEffect`/`useCallback`
   const queryKey = useMemo(
-    () => (type === 'hashtag' ? ['posts', { hashtag }] : ['users', userId, 'posts', { type }]),
-    [type, userId, hashtag],
+    () =>
+      type === 'hashtag'
+        ? ['posts', { hashtag, sort }]
+        : type === 'feed'
+          ? ['posts', 'feed', { sort: sort || 'latest', sectionId: sectionId || '' }]
+          : ['users', userId, 'posts', { type }],
+    [type, userId, hashtag, sort, sectionId],
   );
   const topElRef = useRef<HTMLDivElement>(null);
-  const isTopOnScreen = useOnScreen(topElRef);
   const bottomElRef = useRef<HTMLDivElement>(null);
   const isBottomOnScreen = useOnScreen(bottomElRef);
   // `shouldAnimate` is `false` when the browser's back button is pressed
   // `true` when the page is pushed
   const { shouldAnimate } = useShouldAnimate();
-  // This keeps track of the number of pages loaded by the `fetchPreviousPage()`
+  // Posts published since the first page was loaded (feed polling only).
   const [numberOfNewPostsLoaded, setNumberOfNewPostsLoaded] = useState(0);
+  // `hasMore` per loaded page; getNextPageParam only sees the page's ids.
+  const pageHasMore = useRef(new Map<PageParam, boolean>());
 
-  const {
-    data,
-    error,
-    isPending,
-    isError,
-    fetchNextPage, // Fetches (older) posts in 'descending' order, starting from the last page's last item (bottom of page)
-    hasNextPage,
-    fetchPreviousPage, // Fetches (newer) posts in 'ascending' order, starting from the latest page's latest item (top of page)
-    isFetchingNextPage,
-  } = useInfiniteQuery<PostIds, Error, InfiniteData<PostIds>, QueryKey, number | string>({
-    queryKey,
-    defaultPageParam: 0,
-    queryFn: async ({ pageParam: cursor, direction }): Promise<PostIds> => {
-      const isForwards = direction === 'forward';
-      const isBackwards = !isForwards;
-      const params = new URLSearchParams('');
+  const { data, error, isPending, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+    useInfiniteQuery<PostIds, Error, InfiniteData<PostIds>, QueryKey, PageParam>({
+      queryKey,
+      initialPageParam: 1,
+      queryFn: async ({ pageParam }): Promise<PostIds> => {
+        const { posts, hasMore } = await fetchPage(props, pageParam);
+        const postIds: PostIds = posts.map((post) => {
+          // Set query data for each `post`, these queries will be used by the <Post> component
+          qc.setQueryData(['posts', post.id], post);
 
-      // If the direction is 'backwards', load all new posts by setting a high `limit`
-      params.set('limit', isForwards ? POSTS_PER_PAGE.toString() : '100');
-      params.set('cursor', cursor.toString());
-      params.set('sort-direction', isForwards ? 'desc' : 'asc');
-
-      const fetchUrl =
-        type === 'hashtag'
-          ? `/api/posts/hashtag/${encodeURIComponent(hashtag)}`
-          : `/api/users/${userId}/${type === 'profile' ? 'posts' : type === 'bookmarks' ? 'bookmarks' : 'feed'}`;
-      const res = await fetch(`${fetchUrl}?${params.toString()}`);
-
-      if (!res.ok) throw Error('Failed to load posts.');
-      const posts = (await res.json()) as (GetPost & {
-        feedEventKey?: string;
-        feedCursor?: string;
-        repostedBy?: PostIds[number]['repostedBy'];
-      })[];
-
-      if (!posts.length && isBackwards) {
-        // Prevent React Query from 'prepending' the data with an empty array
-        throw new Error(NO_PREV_DATA_LOADED);
-      }
-
-      if (isBackwards) {
-        setNumberOfNewPostsLoaded((prev) => prev + posts.length);
-      }
-
-      const postIds = posts.map((post) => {
-        // Set query data for each `post`, these queries will be used by the <Post> component
-        qc.setQueryData(['posts', post.id], post);
-
-        // If the `post` already exists in `data`, make sure to use its current `commentsShown`
-        // value to prevent the post's comment section from closing if it is already shown
-        const currentPostId = data?.pages
-          .flat()
-          .find(({ id, feedEventKey }) => id === post.id && feedEventKey === post.feedEventKey);
-        return {
-          id: post.id,
-          commentsShown: currentPostId?.commentsShown || false,
-          ...(post.feedEventKey && {
-            feedEventKey: post.feedEventKey,
-            feedCursor: post.feedCursor,
-            repostedBy: post.repostedBy,
-          }),
-        };
-      });
-
-      // When the direction is 'backwards', the `postIds` are in ascending order
-      // Reverse it so that the latest post comes first in the array
-      return isForwards ? postIds : postIds.reverse();
-    },
-    getNextPageParam: (lastPage, pages) => {
-      // If the `pages` `length` is 0, that means there is not a single post to load
-      if (pages.length === 0) return undefined;
-
-      // If the last page doesn't have posts, that means the end is reached
-      if (lastPage.length === 0) return undefined;
-
-      // Return the id of the last post, this will serve as the cursor
-      // that will be passed to `queryFn` as `pageParam` property
-      return lastPage.slice(-1)[0].feedCursor || lastPage.slice(-1)[0].id;
-    },
-    getPreviousPageParam: (firstPage) => {
-      if (firstPage.length > 0) return firstPage[0].feedCursor || firstPage[0].id;
-      return 0;
-    },
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-    retry: false,
-  });
+          // If the `post` already exists in `data`, make sure to use its current `commentsShown`
+          // value to prevent the post's comment section from closing if it is already shown
+          const currentPostId = data?.pages.flat().find(({ id }) => id === post.id);
+          return { id: post.id, commentsShown: currentPostId?.commentsShown || false };
+        });
+        pageHasMore.current.set(pageParam, hasMore);
+        return postIds;
+      },
+      getNextPageParam: (_lastPage, _pages, lastPageParam) =>
+        pageHasMore.current.get(lastPageParam) ? lastPageParam + 1 : undefined,
+      refetchOnWindowFocus: false,
+      staleTime: Infinity,
+      retry: false,
+    });
 
   useEffect(() => {
     // Refresh pushed-to pages without clearing the cached timeline, so returning
@@ -155,29 +121,34 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
   }, []);
 
   useEffect(() => {
-    // Poll less often to avoid repeated feed queries while reading.
-    const interval = setInterval(fetchPreviousPage, 30000);
+    // The backend pages by number, not by cursor, so new posts are detected by
+    // peeking at page one and counting ids the timeline has not seen yet.
+    if (type !== 'feed') return undefined;
+    const interval = setInterval(async () => {
+      try {
+        const { posts } = await fetchPage(props, 1);
+        const seen = new Set(qc.getQueryData<InfiniteData<PostIds>>(queryKey)?.pages.flat().map(({ id }) => id));
+        setNumberOfNewPostsLoaded(posts.filter(({ id }) => !seen.has(id)).length);
+      } catch {
+        // Polling is best-effort.
+      }
+    }, 30000);
     return () => clearInterval(interval);
-  }, [fetchPreviousPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, queryKey]);
 
   useEffect(() => {
     if (isBottomOnScreen && hasNextPage) fetchNextPage();
   }, [isBottomOnScreen, hasNextPage, fetchNextPage]);
 
-  useEffect(() => {
-    // If top of <Posts> is on screen and the `numberOfNewPostsLoaded` is more than 0,
-    // reset the `numberOfNewPostsLoaded`
-    if (isTopOnScreen && numberOfNewPostsLoaded) {
-      setTimeout(() => setNumberOfNewPostsLoaded(0), 1000);
-    }
-  }, [isTopOnScreen, numberOfNewPostsLoaded]);
-
   const viewNewlyLoadedPosts = useCallback(() => {
     topElRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
+    setNumberOfNewPostsLoaded(0);
+    refetch();
+  }, [refetch]);
 
   const toggleComments = useCallback(
-    async (postId: number, feedEventKey?: string) => {
+    async (postId: string, feedEventKey?: string) => {
       qc.setQueryData<InfiniteData<PostIds>>(queryKey, (oldData) => {
         if (!oldData) return oldData;
 
@@ -289,7 +260,7 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
         style={bottomLoaderStyle}>
         {isFetchingNextPage && <GenericLoading>{t('正在加载更多动态…', 'Loading more posts…')}</GenericLoading>}
       </div>
-      {isError && error.message !== NO_PREV_DATA_LOADED && <SomethingWentWrong />}
+      {isError && <SomethingWentWrong />}
       {!isPending && !isFetchingNextPage && !hasNextPage && <AllCaughtUp />}
     </>
   );

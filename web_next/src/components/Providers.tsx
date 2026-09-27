@@ -5,28 +5,19 @@ import { DialogsContextProvider } from '@/contexts/DialogsContext';
 import { ReactQueryProvider } from '@/contexts/ReactQueryProvider';
 import { ShouldAnimateContextProvider } from '@/contexts/ShouldAnimateContext';
 import { ThemeContextProvider } from '@/contexts/ThemeContext';
-import { LanguageContextProvider, type Language } from '@/contexts/LanguageContext';
+import { LanguageContextProvider } from '@/contexts/LanguageContext';
 import { ToastContextProvider } from '@/contexts/ToastContext';
 import { VisualMediaModalContextProvider } from '@/contexts/VisualMediaModalContext';
-import { SessionProvider } from 'next-auth/react';
-import type { Session } from 'next-auth';
+import { SessionProvider } from '@/lib/backend/session';
 import React from 'react';
 
-export function Providers({
-  children,
-  session,
-  initialLanguage,
-}: {
-  children: React.ReactNode;
-  session: Session | null;
-  initialLanguage: Language;
-}) {
+export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <LanguageContextProvider initialLanguage={initialLanguage}>
+    <LanguageContextProvider>
       <ThemeContextProvider>
         <ToastContextProvider>
           <ReactQueryProvider>
-            <SessionProvider session={session}>
+            <SessionProvider>
               <DialogsContextProvider>
                 <VisualMediaModalContextProvider>
                   <CreatePostModalContextProvider>

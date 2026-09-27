@@ -8,7 +8,7 @@ export function useUpdateDeleteCommentMutations({ queryKey }: { queryKey: QueryK
   const { notifyError } = useErrorNotifier();
 
   const updateCommentMutation = useMutation({
-    mutationFn: async ({ commentId, content }: { commentId: number; content: string }) => {
+    mutationFn: async ({ commentId, content }: { commentId: string; content: string }) => {
       const res = await fetch(`/api/comments/${commentId}`, {
         method: 'PUT',
         headers: {
@@ -57,13 +57,13 @@ export function useUpdateDeleteCommentMutations({ queryKey }: { queryKey: QueryK
   });
 
   const deleteCommentMutation = useMutation({
-    mutationFn: async ({ commentId }: { commentId: number }) => {
+    mutationFn: async ({ commentId }: { commentId: string }) => {
       const res = await fetch(`/api/comments/${commentId}`, {
         method: 'DELETE',
       });
 
       if (!res.ok) throw new Error('Error deleting comment.');
-      return (await res.json()) as { id: number };
+      return (await res.json()) as { id: string };
     },
     onMutate: async ({ commentId }) => {
       await qc.cancelQueries({ queryKey });
