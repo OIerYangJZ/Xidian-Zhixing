@@ -126,6 +126,9 @@ export interface GetPost {
 export interface PostId {
   id: number;
   commentsShown: boolean;
+  feedEventKey?: string;
+  feedCursor?: string;
+  repostedBy?: Pick<User, 'name' | 'username'>;
 }
 
 export type PostIds = PostId[];

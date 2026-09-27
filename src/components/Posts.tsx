@@ -65,7 +65,7 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
     hasNextPage,
     fetchPreviousPage, // Fetches (newer) posts in 'ascending' order, starting from the latest page's latest item (top of page)
     isFetchingNextPage,
-  } = useInfiniteQuery<PostIds, Error, InfiniteData<PostIds>, QueryKey, number>({
+  } = useInfiniteQuery<PostIds, Error, InfiniteData<PostIds>, QueryKey, number | string>({
     queryKey,
     defaultPageParam: 0,
     queryFn: async ({ pageParam: cursor, direction }): Promise<PostIds> => {
@@ -85,7 +85,11 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
       const res = await fetch(`${fetchUrl}?${params.toString()}`);
 
       if (!res.ok) throw Error('Failed to load posts.');
-      const posts = (await res.json()) as GetPost[];
+      const posts = (await res.json()) as (GetPost & {
+        feedEventKey?: string;
+        feedCursor?: string;
+        repostedBy?: PostIds[number]['repostedBy'];
+      })[];
 
       if (!posts.length && isBackwards) {
         // Prevent React Query from 'prepending' the data with an empty array
@@ -102,10 +106,17 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
 
         // If the `post` already exists in `data`, make sure to use its current `commentsShown`
         // value to prevent the post's comment section from closing if it is already shown
-        const currentPostId = data?.pages.flat().find(({ id }) => id === post.id);
+        const currentPostId = data?.pages
+          .flat()
+          .find(({ id, feedEventKey }) => id === post.id && feedEventKey === post.feedEventKey);
         return {
           id: post.id,
           commentsShown: currentPostId?.commentsShown || false,
+          ...(post.feedEventKey && {
+            feedEventKey: post.feedEventKey,
+            feedCursor: post.feedCursor,
+            repostedBy: post.repostedBy,
+          }),
         };
       });
 
@@ -122,10 +133,10 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
 
       // Return the id of the last post, this will serve as the cursor
       // that will be passed to `queryFn` as `pageParam` property
-      return lastPage.slice(-1)[0].id;
+      return lastPage.slice(-1)[0].feedCursor || lastPage.slice(-1)[0].id;
     },
     getPreviousPageParam: (firstPage) => {
-      if (firstPage.length > 0) return firstPage[0].id;
+      if (firstPage.length > 0) return firstPage[0].feedCursor || firstPage[0].id;
       return 0;
     },
     refetchOnWindowFocus: false,
@@ -167,15 +178,17 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
   }, []);
 
   const toggleComments = useCallback(
-    async (postId: number) => {
-      qc.setQueryData<InfiniteData<{ id: number; commentsShown: boolean }[]>>(queryKey, (oldData) => {
+    async (postId: number, feedEventKey?: string) => {
+      qc.setQueryData<InfiniteData<PostIds>>(queryKey, (oldData) => {
         if (!oldData) return oldData;
 
         // Flatten the old pages
         const newPosts = oldData?.pages.flat();
 
         // Find the index of the post
-        const index = newPosts.findIndex((post) => post.id === postId);
+        const index = newPosts.findIndex(
+          (post) => post.id === postId && (!feedEventKey || post.feedEventKey === feedEventKey),
+        );
 
         // Get the value of the old post
         const oldPost = newPosts[index];
@@ -252,8 +265,14 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
                   animate="animate"
                   exit="exit"
                   transition={postTransition(i)}
-                  key={post.id}>
-                  <Post id={post.id} commentsShown={post.commentsShown} toggleComments={toggleComments} />
+                  key={post.feedEventKey || post.id}>
+                  <Post
+                    id={post.id}
+                    feedEventKey={post.feedEventKey}
+                    repostedBy={post.repostedBy}
+                    commentsShown={post.commentsShown}
+                    toggleComments={toggleComments}
+                  />
                 </motion.div>
               )),
             )}

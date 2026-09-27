@@ -71,9 +71,11 @@ export const Post = memo(
   ({
     id: postId,
     commentsShown,
+    feedEventKey,
+    repostedBy,
     toggleComments,
   }: PostId & {
-    toggleComments: (postId: number) => void;
+    toggleComments: (postId: number, feedEventKey?: string) => void;
   }) => {
     const { t, language } = useLanguage();
     const { showToast } = useToast();
@@ -101,11 +103,15 @@ export const Post = memo(
           });
         return { previous };
       },
-      onSuccess: (_data, nextReposted) =>
+      onSuccess: (_data, nextReposted) => {
+        qc.invalidateQueries({
+          queryKey: ['users', session?.user.id, 'posts', { type: 'feed' }],
+        });
         showToast({
           title: nextReposted ? t('转发成功', 'Reposted') : t('已取消转发', 'Repost removed'),
           type: 'success',
-        }),
+        });
+      },
       onError: (_error, nextReposted, context) => {
         qc.setQueryData(['posts', postId], context?.previous);
         showToast({
@@ -143,8 +149,8 @@ export const Post = memo(
       [likePost, unLikePost],
     );
     const handleCommentsToggle = useCallback(() => {
-      toggleComments(postId);
-    }, [postId, toggleComments]);
+      toggleComments(postId, feedEventKey);
+    }, [feedEventKey, postId, toggleComments]);
     const sharePost = async () => {
       const url = `${window.location.origin}/posts/${postId}`;
       try {
@@ -217,6 +223,19 @@ export const Post = memo(
 
     return (
       <article className="feed-separator border-b px-4 py-3 transition-colors hover:bg-foreground/[0.012] sm:px-4">
+        {repostedBy && (
+          <div className="mb-2 flex items-center gap-2 pl-[52px] text-xs text-muted-foreground">
+            <RepostIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{t('转发自', 'Reposted by')}</span>
+            {repostedBy.username ? (
+              <Link href={`/${repostedBy.username}`} className="font-medium hover:underline">
+                {repostedBy.name || repostedBy.username}
+              </Link>
+            ) : (
+              <span className="font-medium">{repostedBy.name || t('同学', 'Student')}</span>
+            )}
+          </div>
+        )}
         <div className="flex items-start gap-3">
           {displayIdentity === 'ANONYMOUS' ? (
             <div className="flex items-center gap-3">
