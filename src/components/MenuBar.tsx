@@ -99,7 +99,7 @@ export function MenuBar() {
               <ProfilePhotoOwn />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{user?.name || '知行同学'}</p>
+              <p className="truncate text-sm font-semibold">{user?.name || t('知行同学', 'Zhixing student')}</p>
               <p className="truncate text-xs text-muted-foreground">@{username}</p>
             </div>
           </div>

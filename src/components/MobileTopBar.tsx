@@ -62,7 +62,7 @@ export function MobileTopBar() {
           {user?.profilePhoto ? (
             <img src={user.profilePhoto} alt="" className="h-full w-full object-cover" />
           ) : (
-            <span className="text-xs font-semibold">{user?.name?.slice(0, 1) || '知'}</span>
+            <span className="text-xs font-semibold">{user?.name?.slice(0, 1) || t('知', 'Z')}</span>
           )}
         </Link>
       </div>

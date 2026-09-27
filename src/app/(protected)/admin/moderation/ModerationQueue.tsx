@@ -76,7 +76,9 @@ export function ModerationQueue() {
         <article key={item.id} className="border-b border-border px-4 py-5 sm:px-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold">{item.post.user.name || item.post.user.username || '用户'}</p>
+              <p className="text-sm font-semibold">
+                {item.post.user.name || item.post.user.username || t('用户', 'User')}
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {new Date(item.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')} · {t('帖子', 'Post')} #
                 {item.post.id}
