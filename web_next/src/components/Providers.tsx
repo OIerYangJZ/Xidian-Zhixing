@@ -7,6 +7,7 @@ import { ShouldAnimateContextProvider } from '@/contexts/ShouldAnimateContext';
 import { ThemeContextProvider } from '@/contexts/ThemeContext';
 import { LanguageContextProvider } from '@/contexts/LanguageContext';
 import { ToastContextProvider } from '@/contexts/ToastContext';
+import { ReportDialogContextProvider } from '@/contexts/ReportDialogContext';
 import { VisualMediaModalContextProvider } from '@/contexts/VisualMediaModalContext';
 import { SessionProvider } from '@/lib/backend/session';
 import React from 'react';
@@ -21,7 +22,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
               <DialogsContextProvider>
                 <VisualMediaModalContextProvider>
                   <CreatePostModalContextProvider>
-                    <ShouldAnimateContextProvider>{children}</ShouldAnimateContextProvider>
+                    <ReportDialogContextProvider>
+                      <ShouldAnimateContextProvider>{children}</ShouldAnimateContextProvider>
+                    </ReportDialogContextProvider>
                   </CreatePostModalContextProvider>
                 </VisualMediaModalContextProvider>
               </DialogsContextProvider>

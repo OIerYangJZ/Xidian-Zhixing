@@ -1,96 +1,64 @@
 'use client';
 
-import useOnScreen from '@/hooks/useOnScreen';
-import { InfiniteData, QueryKey, useInfiniteQuery } from '@tanstack/react-query';
-import { Key, useCallback, useEffect, useMemo, useRef } from 'react';
-import { GetActivity } from '@/types/definitions';
+import { Key, useCallback, useMemo, useState } from 'react';
 import { Activity } from '@/components/Activity';
 import { AllCaughtUp } from '@/components/AllCaughtUp';
 import { useNotificationsReadStatusMutations } from '@/hooks/mutations/useNotificationsReadStatusMutations';
-import { NO_PREV_DATA_LOADED } from '@/constants';
+import { useNotificationsQuery } from '@/hooks/queries/useNotificationsQuery';
 import { DropdownMenuButton } from '@/components/ui/DropdownMenuButton';
 import { Section, Item } from 'react-stately';
-import { useNotificationsCountQuery } from '@/hooks/queries/useNotificationsCountQuery';
 import { GenericLoading } from '@/components/GenericLoading';
 import { SomethingWentWrong } from '@/components/SometingWentWrong';
-import { getNotifications } from '@/lib/client_data_fetching/getNotifications';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { cn } from '@/lib/cn';
 import { useLanguage } from '@/hooks/useLanguage';
+import type { ApiNotificationType } from '@/lib/backend/types';
 
-export function Notifications({ userId }: { userId: string }) {
+type Tab = 'all' | ApiNotificationType;
+
+export function Notifications() {
   const { t } = useLanguage();
-  const { data: notificationCount } = useNotificationsCountQuery();
+  const [tab, setTab] = useState<Tab>('all');
+  const { data, isPending, isError } = useNotificationsQuery();
   const { markAllAsReadMutation } = useNotificationsReadStatusMutations();
 
-  const bottomElRef = useRef<HTMLDivElement>(null);
-  const isBottomOnScreen = useOnScreen(bottomElRef);
-  const { data, error, isPending, isError, fetchNextPage, isFetchingNextPage, hasNextPage, fetchPreviousPage } =
-    useInfiniteQuery<GetActivity[], Error, InfiniteData<GetActivity[], unknown>, QueryKey, number>({
-      queryKey: ['users', userId, 'notifications'],
-      defaultPageParam: 0,
-      queryFn: async ({ pageParam: cursor, direction }) => {
-        const activities = await getNotifications({
-          userId,
-          cursor,
-          direction,
-        });
-
-        const isForwards = direction === 'forward';
-        if (!activities.length && !isForwards) {
-          // Prevent React Query from 'prepending' the data with an empty array
-          throw new Error(NO_PREV_DATA_LOADED);
-        }
-
-        // If the direction is backwards, `activities` need to be reversed
-        // to make sure that the latest activity is shown at the top
-        return isForwards ? activities : activities.reverse();
-      },
-      getNextPageParam: (lastPage, pages) => {
-        // If the `pages` `length` is 0, that means there is not a single activity to load
-        if (pages.length === 0) return undefined;
-
-        // If the last page doesn't have activities, that means the end is reached
-        if (lastPage.length === 0) return undefined;
-
-        // Return the `id` of the last activity, this will serve as the cursor
-        // that will be passed to `queryFn` as the `pageParam` property
-        return lastPage.slice(-1)[0].id;
-      },
-      getPreviousPageParam: (firstPage) => {
-        if (!firstPage?.length) return 0;
-        return firstPage[0].id;
-      },
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
-      enabled: !!userId,
-    });
-
-  useEffect(() => {
-    if (isBottomOnScreen && hasNextPage) fetchNextPage();
-  }, [isBottomOnScreen, hasNextPage, fetchNextPage]);
-
-  useEffect(() => {
-    const interval = setInterval(fetchPreviousPage, 30000);
-    return () => clearInterval(interval);
-  }, [fetchPreviousPage]);
+  const tabs: { key: Tab; label: string }[] = [
+    { key: 'all', label: t('全部', 'All') },
+    { key: 'comment', label: t('评论', 'Comments') },
+    { key: 'reply', label: t('回复', 'Replies') },
+    { key: 'like', label: t('赞', 'Likes') },
+    { key: 'favorite', label: t('收藏', 'Saves') },
+    { key: 'system', label: t('系统', 'System') },
+  ];
+  const unreadOf = (key: Tab) =>
+    !data
+      ? 0
+      : key === 'all'
+        ? data.unreadCount
+        : key === 'system'
+          ? (data.unreadByType.system || 0) + (data.unreadByType.report_result || 0)
+          : data.unreadByType[key] || 0;
+  const items = useMemo(
+    () =>
+      (data?.items ?? []).filter(
+        (item) =>
+          tab === 'all' || item.category === tab || (tab === 'system' && item.category === 'report_result'),
+      ),
+    [data, tab],
+  );
 
   const markAllAsRead = useCallback(
     (key: Key) => {
-      if (key === 'mark-all') {
-        markAllAsReadMutation.mutate();
+      if (key !== 'mark-all') return;
+      if (tab === 'system') {
+        markAllAsReadMutation.mutate('system');
+        markAllAsReadMutation.mutate('report_result');
+      } else {
+        markAllAsReadMutation.mutate(tab === 'all' ? undefined : tab);
       }
     },
-    [markAllAsReadMutation],
+    [markAllAsReadMutation, tab],
   );
-
-  const disabledKeys = useMemo(() => {
-    if (notificationCount === undefined || notificationCount === 0) {
-      return ['mark-all'];
-    }
-    return [];
-  }, [notificationCount]);
-  const bottomLoaderStyle = useMemo(() => ({ display: data ? 'block' : 'none' }), [data]);
 
   return (
     <div>
@@ -102,33 +70,40 @@ export function Notifications({ userId }: { userId: string }) {
             key="notifications-option"
             label={t('通知选项', 'Notification options')}
             onAction={markAllAsRead}
-            disabledKeys={disabledKeys}>
+            disabledKeys={unreadOf(tab) === 0 ? ['mark-all'] : []}>
             <Section>
               <Item key="mark-all">{t('全部标为已读', 'Mark all as read')}</Item>
             </Section>
           </DropdownMenuButton>
         }
       />
-      <div>
-        {isPending ? (
-          <GenericLoading>{t('正在加载通知', 'Loading notifications')}</GenericLoading>
-        ) : (
-          data?.pages.flat().map((activity) => <Activity key={activity.id} {...activity} />)
-        )}
+      <div className="flex gap-1 overflow-x-auto border-b border-border px-3">
+        {tabs.map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            className={cn(
+              'relative shrink-0 px-3 py-3 text-sm font-medium text-muted-foreground',
+              tab === key && 'text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary',
+            )}>
+            {label}
+            {unreadOf(key) > 0 && <span className="ml-1 text-xs text-primary">{unreadOf(key)}</span>}
+          </button>
+        ))}
       </div>
-
-      <div
-        className="min-h-[16px]"
-        ref={bottomElRef}
-        /**
-         * The first page will be initially loaded by React Query
-         * so the bottom loader has to be hidden first
-         */
-        style={bottomLoaderStyle}>
-        {isFetchingNextPage && <GenericLoading>{t('正在加载更多通知', 'Loading more notifications')}</GenericLoading>}
-      </div>
-      {isError && error.message !== NO_PREV_DATA_LOADED && <SomethingWentWrong />}
-      {!isPending && !isFetchingNextPage && !hasNextPage && <AllCaughtUp />}
+      {isPending ? (
+        <GenericLoading>{t('正在加载通知', 'Loading notifications')}</GenericLoading>
+      ) : isError ? (
+        <SomethingWentWrong />
+      ) : (
+        <>
+          {items.map((activity) => (
+            <Activity key={activity.id} {...activity} />
+          ))}
+          <AllCaughtUp />
+        </>
+      )}
     </div>
   );
 }

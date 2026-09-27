@@ -1,48 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { GetUser } from '@/types/definitions';
-import { useSession } from '@/lib/backend/session';
+import { followUser, unfollowUser } from '@/lib/backend/endpoints';
 import { useToast } from '../useToast';
-
-const follow = async ({ userId, targetUserId }: { userId: string; targetUserId: string }) => {
-  const res = await fetch(`/api/users/${userId}/following`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ userIdToFollow: targetUserId }),
-  });
-
-  if (!res.ok) {
-    if (res.status === 409) return;
-    throw new Error('Failed to follow user.');
-  }
-};
-
-const unFollow = async ({ userId, targetUserId }: { userId: string; targetUserId: string }) => {
-  const res = await fetch(`/api/users/${userId}/following/${targetUserId}`, {
-    method: 'DELETE',
-  });
-
-  if (!res.ok) {
-    if (res.status === 409) return;
-    throw new Error('Failed to unfollow user.');
-  }
-};
 
 export function useFollowsMutations({ targetUserId }: { targetUserId: string }) {
   const qc = useQueryClient();
-  const { data: session } = useSession();
-  const currentUserId = session?.user.id;
   const queryKey = ['users', targetUserId];
   const { showToast } = useToast();
 
   const followMutation = useMutation({
-    mutationFn: () => {
-      if (currentUserId) {
-        return follow({ userId: currentUserId, targetUserId });
-      }
-      return Promise.reject(new Error('User not authenticated.'));
-    },
+    mutationFn: () => followUser(targetUserId),
     onMutate: async () => {
       // Cancel outgoing queries and snapshot the prev value
       await qc.cancelQueries({ queryKey });
@@ -72,12 +39,7 @@ export function useFollowsMutations({ targetUserId }: { targetUserId: string }) 
   });
 
   const unFollowMutation = useMutation({
-    mutationFn: () => {
-      if (currentUserId) {
-        return unFollow({ userId: currentUserId, targetUserId });
-      }
-      return Promise.reject(new Error('User not authenticated.'));
-    },
+    mutationFn: () => unfollowUser(targetUserId),
     onMutate: async () => {
       // Cancel outgoing queries and snapshot the prev value
       await qc.cancelQueries({ queryKey });

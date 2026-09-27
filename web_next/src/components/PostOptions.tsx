@@ -1,30 +1,32 @@
 'use client';
 
 import { Item, Section } from 'react-stately';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDialogs } from '@/hooks/useDialogs';
-import { GetVisualMedia } from '@/types/definitions';
 import { Key, useCallback } from 'react';
-import { useCreatePostModal } from '@/hooks/useCreatePostModal';
 import { useDeletePostMutation } from '@/hooks/mutations/useDeletePostMutation';
+import { useErrorNotifier } from '@/hooks/useErrorNotifier';
 import { useLanguage } from '@/hooks/useLanguage';
-import type { DisplayIdentity } from '@prisma/client';
+import { setPostProgress } from '@/lib/backend/endpoints';
+import type { PostProgress } from '@/types/definitions';
 import { DropdownMenuButton } from './ui/DropdownMenuButton';
 
-export function PostOptions({
-  postId,
-  content,
-  visualMedia,
-  displayIdentity,
-}: {
-  postId: string;
-  content: string | null;
-  visualMedia?: GetVisualMedia[];
-  displayIdentity: DisplayIdentity;
-}) {
+/**
+ * The author's menu.  Published text and images cannot be edited on this
+ * backend, so the options are the post's 进行中/已解决 status and deletion.
+ */
+export function PostOptions({ postId, progress }: { postId: string; progress: PostProgress }) {
   const { confirm } = useDialogs();
-  const { launchEditPost } = useCreatePostModal();
   const { deleteMutation } = useDeletePostMutation();
+  const { notifyError } = useErrorNotifier();
+  const qc = useQueryClient();
   const { t } = useLanguage();
+
+  const progressMutation = useMutation({
+    mutationFn: (next: PostProgress) => setPostProgress(postId, next),
+    onSuccess: (post) => qc.setQueryData(['posts', postId], post),
+    onError: (error) => notifyError(error, t('更新失败', 'Update failed')),
+  });
 
   const handleDeleteClick = useCallback(() => {
     confirm({
@@ -38,24 +40,13 @@ export function PostOptions({
     });
   }, [confirm, deleteMutation, postId, t]);
 
-  const handleEditClick = useCallback(() => {
-    launchEditPost({
-      postId,
-      initialContent: content ?? '',
-      initialVisualMedia: visualMedia ?? [],
-      initialDisplayIdentity: displayIdentity,
-    });
-  }, [launchEditPost, postId, content, visualMedia, displayIdentity]);
-
   const handleOptionClick = useCallback(
     (key: Key) => {
-      if (key === 'edit') {
-        handleEditClick();
-      } else {
-        handleDeleteClick();
-      }
+      if (key === 'resolve') progressMutation.mutate('resolved');
+      else if (key === 'reopen') progressMutation.mutate('ongoing');
+      else handleDeleteClick();
     },
-    [handleEditClick, handleDeleteClick],
+    [handleDeleteClick, progressMutation],
   );
 
   return (
@@ -64,7 +55,11 @@ export function PostOptions({
       label={t('动态选项', 'Post options')}
       onAction={handleOptionClick}>
       <Section>
-        <Item key="edit">{t('编辑动态', 'Edit post')}</Item>
+        {progress === 'ongoing' ? (
+          <Item key="resolve">{t('标记为已解决', 'Mark as resolved')}</Item>
+        ) : (
+          <Item key="reopen">{t('重新标记为进行中', 'Mark as ongoing')}</Item>
+        )}
         <Item key="delete">{t('删除动态', 'Delete post')}</Item>
       </Section>
     </DropdownMenuButton>

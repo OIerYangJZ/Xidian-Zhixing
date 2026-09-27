@@ -13,6 +13,7 @@ import { GenericLoading } from './GenericLoading';
 import { Textarea } from './ui/Textarea';
 import Button from './ui/Button';
 import { TextInput } from './ui/TextInput';
+import { profileHref } from '@/lib/profileHref';
 
 export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
   const [userData] = useSessionUserData();
@@ -45,7 +46,7 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
           setError(field, { message });
           setFocus(field);
         },
-        onSuccess: () => router.push(redirectTo || `/${data.username}`),
+        onSuccess: () => router.push(redirectTo || profileHref(data.username)!),
       },
     );
   };

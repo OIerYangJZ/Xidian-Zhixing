@@ -1,7 +1,7 @@
 'use client';
 
 import { GetComment } from '@/types/definitions';
-import { memo, useEffect, useCallback, Key } from 'react';
+import { memo, useEffect, useCallback } from 'react';
 import { isEqual } from 'lodash';
 import SvgHeart from '@/svg_components/Heart';
 import SvgArrowReply from '@/svg_components/ArrowReply';
@@ -12,8 +12,8 @@ import { useCreateCommentMutations } from '@/hooks/mutations/useCreateCommentMut
 import { useUpdateDeleteComments } from '@/hooks/useUpdateDeleteComments';
 import { useLikeUnlikeComments } from '@/hooks/useLikeUnlikeComments';
 import { useLanguage } from '@/hooks/useLanguage';
-import { useToast } from '@/hooks/useToast';
-import { QueryKey } from '@tanstack/react-query';
+import { useReportDialog } from '@/hooks/useReportDialog';
+import type { CommentReplyItem } from '@/lib/commentThreads';
 import { ProfilePhoto } from './ui/ProfilePhoto';
 import { ButtonNaked } from './ui/ButtonNaked';
 import { DropdownMenuButton } from './ui/DropdownMenuButton';
@@ -25,32 +25,35 @@ import { ToggleStepper } from './ui/ToggleStepper';
 export const Comment = memo(
   ({
     id: commentId,
+    postId,
     content,
     createdAt,
     user: author,
     isOwnComment,
     isLiked,
     _count,
+    isPending,
+    isPostAuthor,
     repliesShown,
+    replies,
     setRepliesVisibility,
-    queryKey,
   }: GetComment & {
-    isOwnComment: boolean;
+    replies: CommentReplyItem[];
     setRepliesVisibility: (params: { commentId: string; shown: boolean }) => void;
-    queryKey: QueryKey;
   }) => {
     const numberOfLikes = _count.commentLikes;
     const { t } = useLanguage();
     const numberOfReplies = _count.replies;
     const { prompt } = useDialogs();
-    const { showToast } = useToast();
-    const { createReplyMutation } = useCreateCommentMutations();
-    const { handleEdit, handleDelete } = useUpdateDeleteComments({ queryKey });
-    const { likeComment, unLikeComment } = useLikeUnlikeComments({ queryKey });
+    const { openReport } = useReportDialog();
+    const { createCommentMutation } = useCreateCommentMutations();
+    const { handleDelete } = useUpdateDeleteComments({ postId });
+    const { likeComment, unLikeComment } = useLikeUnlikeComments({ postId });
 
     const searchParams = useSearchParams();
-    // Highlight comment if the `commentId` is equal to the `comment-id` search param
-    const shouldHighlight = searchParams.get('comment-id') === commentId.toString();
+    // Highlight the comment a notification linked to (postHref's `comment` param)
+    const linkedCommentId = searchParams.get('comment');
+    const shouldHighlight = linkedCommentId === commentId;
 
     const toggleReplies = useCallback(
       () => setRepliesVisibility({ commentId, shown: !repliesShown }),
@@ -62,8 +65,9 @@ export const Comment = memo(
         message: t(`你正在回复 ${author.name} 的评论。`, `You are replying to ${author.name}'s comment.`),
         promptType: 'textarea',
         onSubmit: (value) => {
-          createReplyMutation.mutate(
+          createCommentMutation.mutate(
             {
+              postId,
               parentId: commentId,
               content: value,
             },
@@ -73,44 +77,18 @@ export const Comment = memo(
           );
         },
       });
-    }, [author.name, commentId, createReplyMutation, prompt, repliesShown, toggleReplies, t]);
+    }, [author.name, commentId, createCommentMutation, postId, prompt, repliesShown, toggleReplies, t]);
     const handleLikeToggle = useCallback(
       (isSelected: boolean) => (isSelected ? likeComment({ commentId }) : unLikeComment({ commentId })),
       [commentId, likeComment, unLikeComment],
     );
-    const reportComment = () => {
-      prompt({
-        title: t('举报评论', 'Report comment'),
-        message: t('请简要说明举报原因，管理员会查看。', 'Briefly explain the reason for your report.'),
-        promptType: 'textarea',
-        onSubmit: async (details) => {
-          const response = await fetch('/api/reports', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ commentId, reason: 'OTHER', details }),
-          });
-          showToast({
-            title: response.ok ? t('举报已提交', 'Report submitted') : t('举报失败', 'Could not report'),
-            type: response.ok ? 'success' : 'error',
-          });
-        },
-      });
-    };
-    const onDropdownAction = useCallback(
-      (key: Key) => {
-        if (key === 'edit') {
-          handleEdit({ commentId, content });
-        } else {
-          handleDelete({ commentId });
-        }
-      },
-      [commentId, content, handleDelete, handleEdit],
-    );
+    const reportComment = () => openReport({ targetType: 'comment', targetId: commentId });
+    const onDropdownAction = useCallback(() => handleDelete({ commentId }), [commentId, handleDelete]);
 
     // Show the replies if the comment to be highlighted is a reply to this comment
     useEffect(() => {
       setTimeout(() => {
-        const shouldOpenRepliesOnMount = searchParams.get('comment-parent-id') === commentId.toString();
+        const shouldOpenRepliesOnMount = replies.some((reply) => reply.id === linkedCommentId);
         if (shouldOpenRepliesOnMount) setRepliesVisibility({ commentId, shown: true });
       }, 1000);
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,6 +107,8 @@ export const Comment = memo(
             content={content}
             createdAt={createdAt}
             shouldHighlight={shouldHighlight}
+            isPostAuthor={isPostAuthor}
+            isPending={isPending}
           />
 
           <div className="flex gap-2">
@@ -142,7 +122,7 @@ export const Comment = memo(
             <Button
               onPress={handleCreateReply}
               Icon={SvgArrowReply}
-              loading={createReplyMutation.isPending}
+              loading={createCommentMutation.isPending}
               mode="ghost"
             />
             {!isOwnComment && (
@@ -160,7 +140,6 @@ export const Comment = memo(
                 label={t('评论选项', 'Comment options')}
                 onAction={onDropdownAction}>
                 <Section>
-                  <Item key="edit">{t('编辑评论', 'Edit comment')}</Item>
                   <Item key="delete">{t('删除评论', 'Delete comment')}</Item>
                 </Section>
               </DropdownMenuButton>
@@ -169,7 +148,7 @@ export const Comment = memo(
 
           {repliesShown && (
             <div className="ml-5 mt-1 border-l border-border pl-3">
-              <CommentReplies parentId={commentId} />
+              <CommentReplies postId={postId} replies={replies} />
             </div>
           )}
           {numberOfReplies !== 0 && (

@@ -3,6 +3,7 @@
 import { GetPost } from '@/types/definitions';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/lib/backend/session';
+import { setPostFavorited } from '@/lib/backend/endpoints';
 
 export function usePostBookmarkMutations({ postId }: { postId: string }) {
   const queryClient = useQueryClient();
@@ -29,14 +30,7 @@ export function usePostBookmarkMutations({ postId }: { postId: string }) {
   };
 
   const bookmarkMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/users/${session?.user?.id}/bookmarks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postId }),
-      });
-      if (!response.ok && response.status !== 409) throw new Error('收藏动态失败。');
-    },
+    mutationFn: () => setPostFavorited(postId, true),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey });
       const previousPost = queryClient.getQueryData<GetPost>(queryKey);
@@ -48,10 +42,7 @@ export function usePostBookmarkMutations({ postId }: { postId: string }) {
   });
 
   const removeBookmarkMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/users/${session?.user?.id}/bookmarks/${postId}`, { method: 'DELETE' });
-      if (!response.ok && response.status !== 409) throw new Error('取消收藏失败。');
-    },
+    mutationFn: () => setPostFavorited(postId, false),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey });
       const previousPost = queryClient.getQueryData<GetPost>(queryKey);

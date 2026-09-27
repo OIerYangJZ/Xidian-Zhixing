@@ -1,17 +1,17 @@
-// import { PROFILE_QUERY_STALE_TIME } from '@/constants';
-import { getUser } from '@/lib/client_data_fetching/getUser';
+import { getUser } from '@/lib/backend/endpoints';
+import { useSession } from '@/lib/backend/session';
 import { useQuery } from '@tanstack/react-query';
 
 /**
  * Always use this query hook when querying user data/subscribing to a user data query.
- * @param userId string | undefined
+ * The signed-in user's own profile comes from /api/users/me, everyone else's from /api/users/<id>.
  */
 export function useUserQuery(userId?: string) {
+  const { data: session } = useSession();
   return useQuery({
     queryKey: ['users', userId],
-    queryFn: () => getUser(userId),
+    queryFn: () => getUser(userId!, session?.user.id),
     enabled: !!userId,
     staleTime: 60000 * 10,
-    // staleTime: PROFILE_QUERY_STALE_TIME,
   });
 }

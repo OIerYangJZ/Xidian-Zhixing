@@ -1,57 +1,61 @@
 'use client';
 
-import { GetComment } from '@/types/definitions';
-import { Key, memo, useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { isEqual } from 'lodash';
 import SvgHeart from '@/svg_components/Heart';
+import SvgArrowReply from '@/svg_components/ArrowReply';
 import { useSearchParams } from 'next/navigation';
 import { Item, Section } from 'react-stately';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useDialogs } from '@/hooks/useDialogs';
+import { useReportDialog } from '@/hooks/useReportDialog';
+import { useCreateCommentMutations } from '@/hooks/mutations/useCreateCommentMutations';
+import { useUpdateDeleteComments } from '@/hooks/useUpdateDeleteComments';
+import { useLikeUnlikeComments } from '@/hooks/useLikeUnlikeComments';
+import type { CommentReplyItem } from '@/lib/commentThreads';
 import { ToggleStepper } from './ui/ToggleStepper';
 import { CommentContent } from './CommentContent';
 import { DropdownMenuButton } from './ui/DropdownMenuButton';
 import { ProfilePhoto } from './ui/ProfilePhoto';
+import Button from './ui/Button';
 
 export const CommentReply = memo(
   ({
     id: commentId,
+    postId,
     content,
     createdAt,
     user: author,
-    isOwnReply,
+    isOwnComment,
+    isPostAuthor,
+    isPending,
     isLiked,
+    replyToName,
     _count,
-    handleEdit,
-    handleDelete,
-    likeComment,
-    unLikeComment,
-  }: GetComment & {
-    isOwnReply: boolean;
-    handleEdit: (params: { commentId: string; content: string }) => void;
-    handleDelete: (params: { commentId: string }) => void;
-    likeComment: (params: { commentId: string }) => void;
-    unLikeComment: (params: { commentId: string }) => void;
-  }) => {
-    const numberOfLikes = _count.commentLikes;
+  }: CommentReplyItem) => {
     const { t } = useLanguage();
+    const { prompt } = useDialogs();
+    const { openReport } = useReportDialog();
+    const { createCommentMutation } = useCreateCommentMutations();
+    const { handleDelete } = useUpdateDeleteComments({ postId });
+    const { likeComment, unLikeComment } = useLikeUnlikeComments({ postId });
+
     const handleLikeClick = useCallback(
       () => (!isLiked ? likeComment({ commentId }) : unLikeComment({ commentId })),
       [isLiked, likeComment, unLikeComment, commentId],
     );
-    const onDropdownAction = useCallback(
-      (key: Key) => {
-        if (key === 'edit') {
-          handleEdit({ commentId, content });
-        } else {
-          handleDelete({ commentId });
-        }
-      },
-      [handleEdit, handleDelete, commentId, content],
-    );
+    const handleReply = useCallback(() => {
+      prompt({
+        title: t('回复', 'Reply'),
+        message: t(`你正在回复 ${author.name}。`, `You are replying to ${author.name}.`),
+        promptType: 'textarea',
+        onSubmit: (value) => createCommentMutation.mutate({ postId, parentId: commentId, content: value }),
+      });
+    }, [author.name, commentId, createCommentMutation, postId, prompt, t]);
 
     const searchParams = useSearchParams();
-    // Highlight comment if the `commentId` is equal to the `comment-id` search param
-    const shouldHighlight = searchParams.get('comment-id') === commentId.toString();
+    // Highlight the comment a notification linked to (postHref's `comment` param)
+    const shouldHighlight = searchParams.get('comment') === commentId;
 
     return (
       <div className="mt-3 flex gap-3">
@@ -66,23 +70,40 @@ export const CommentReply = memo(
             content={content}
             createdAt={createdAt}
             shouldHighlight={shouldHighlight}
+            isPostAuthor={isPostAuthor}
+            isPending={isPending}
+            replyToName={replyToName}
           />
 
-          <div className="flex origin-left">
+          <div className="flex origin-left items-center gap-1">
             <ToggleStepper
               isSelected={isLiked}
               aria-label={isLiked ? t('取消回复点赞', 'Unlike reply') : t('点赞回复', 'Like reply')}
               onPress={handleLikeClick}
               Icon={SvgHeart}
-              quantity={numberOfLikes}
+              quantity={_count.commentLikes}
             />
-            {isOwnReply && (
+            <Button
+              onPress={handleReply}
+              Icon={SvgArrowReply}
+              loading={createCommentMutation.isPending}
+              mode="ghost"
+              aria-label={t('回复', 'Reply')}
+            />
+            {!isOwnComment && (
+              <button
+                type="button"
+                onClick={() => openReport({ targetType: 'comment', targetId: commentId })}
+                className="px-2 text-xs text-muted-foreground hover:text-destructive">
+                {t('举报', 'Report')}
+              </button>
+            )}
+            {isOwnComment && (
               <DropdownMenuButton
                 key={`replies-${commentId}-options`}
                 label={t('回复选项', 'Reply options')}
-                onAction={onDropdownAction}>
+                onAction={() => handleDelete({ commentId })}>
                 <Section>
-                  <Item key="edit">{t('编辑回复', 'Edit reply')}</Item>
                   <Item key="delete">{t('删除回复', 'Delete reply')}</Item>
                 </Section>
               </DropdownMenuButton>

@@ -5,6 +5,7 @@ import { FormEvent, useState } from 'react';
 import { useSession } from '@/lib/backend/session';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/hooks/useLanguage';
+import { profileHref } from '@/lib/profileHref';
 
 type UserSummary = { id: string; username: string; name: string; profilePhoto: string | null };
 type BlockedUser = UserSummary & { createdAt: string };
@@ -132,7 +133,6 @@ export function BlockedUsersManager() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">{candidate.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">@{candidate.username}</span>
                 </span>
                 <button
                   type="button"
@@ -176,7 +176,7 @@ export function BlockedUsersManager() {
             {blockedUsers.map((blocked) => (
               <li key={blocked.id} className="flex items-center gap-3 px-4 py-3 sm:px-5">
                 <Link
-                  href={`/${blocked.username}`}
+                  href={profileHref(blocked.username)!}
                   aria-label={blocked.name}
                   className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary text-sm">
                   {blocked.profilePhoto ? (
@@ -188,7 +188,6 @@ export function BlockedUsersManager() {
                 </Link>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">{blocked.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">@{blocked.username}</span>
                 </span>
                 <button
                   type="button"

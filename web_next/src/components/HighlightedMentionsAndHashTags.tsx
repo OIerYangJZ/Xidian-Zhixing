@@ -1,6 +1,7 @@
 import parse, { Element, domToReact } from 'html-react-parser';
 import DOMPurify from 'dompurify';
 import Link from 'next/link';
+import { tagHref } from '@/lib/profileHref';
 
 export function HighlightedMentionsAndHashTags({ text, shouldAddLinks }: { text: string; shouldAddLinks?: boolean }) {
   /**
@@ -17,11 +18,9 @@ export function HighlightedMentionsAndHashTags({ text, shouldAddLinks }: { text:
   const html = cleanText.replace(pattern, (match, space: string, char: string, word: string) => {
     const coloredWord = `<span class="text-primary">${char}${word}</span>`;
 
-    if (!shouldAddLinks) return `${space}${coloredWord}`;
-
-    const isHashtag = char === '#';
-    const url = isHashtag ? `/posts/hashtag/${encodeURIComponent(word)}` : `/${word}`;
-    return `${space}<a href="${url}">${coloredWord}</a>`;
+    // Only hashtags link: users have no @handle to resolve on this backend.
+    if (!shouldAddLinks || char !== '#') return `${space}${coloredWord}`;
+    return `${space}<a href="${tagHref(word)}">${coloredWord}</a>`;
   });
 
   if (!shouldAddLinks) return parse(html) as JSX.Element;

@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { LogoText } from './LogoText';
 import { MenuBarItem } from './MenuBarItem';
 import { ProfilePhotoOwn } from './ui/ProfilePhotoOwn';
+import { profileHref } from '@/lib/profileHref';
 
 function DesktopComposeButton() {
   const { launchCreatePost } = useCreatePostModal();
@@ -58,7 +59,7 @@ export function MenuBar() {
   const { t } = useLanguage();
   const [user] = useSessionUserData();
   const { data: session } = useSession();
-  const username = user?.username || 'user-not-found';
+  const profileRoute = profileHref(user?.id) || '/settings/account';
   const { data: notificationCount } = useNotificationsCountQuery();
   const items = [
     { children: t('首页', 'Home'), Icon: GridFeedCards, route: '/feed' },
@@ -67,13 +68,13 @@ export function MenuBar() {
     { children: t('消息', 'Messages'), Icon: Mail, route: '/messages' },
     { children: t('知行 AI', 'Zhixing AI'), Icon: Feather, route: '/ai' },
     { children: t('通知', 'Notifications'), Icon: NotificationBell, route: '/notifications', badge: notificationCount },
-    { children: t('我的', 'Profile'), Icon: Profile, route: `/${username}` },
+    { children: t('我的', 'Profile'), Icon: Profile, route: profileRoute },
     { children: t('设置', 'Settings'), Icon: Settings, route: '/settings' },
     ...(session?.user?.role === 'ADMIN'
       ? [{ children: t('内容审核', 'Moderation'), Icon: GridFeedCards, route: '/admin/moderation' }]
       : []),
   ];
-  const mobileRoutes = ['/feed', '/campus', '/ai', '/messages', `/${username}`];
+  const mobileRoutes = ['/feed', '/campus', '/ai', '/messages', profileRoute];
   const mobileItems = mobileRoutes
     .map((route) => items.find((item) => item.route === route))
     .filter((item): item is (typeof items)[number] => item !== undefined);
@@ -101,7 +102,6 @@ export function MenuBar() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{user?.name || t('知行同学', 'Zhixing student')}</p>
-              <p className="truncate text-xs text-muted-foreground">@{username}</p>
             </div>
           </div>
         </div>

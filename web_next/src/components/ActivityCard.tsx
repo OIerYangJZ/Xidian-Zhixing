@@ -1,10 +1,9 @@
 import { ProfilePhoto } from '@/components/ui/ProfilePhoto';
-import { ActivityType } from '@prisma/client';
 /* eslint-disable import/no-duplicates */
 import { formatDistanceToNowStrict } from 'date-fns';
 import { enUS, zhCN } from 'date-fns/locale';
 import React, { ComponentProps, useRef } from 'react';
-import { UserSummaryAfterSetUp } from '@/types/definitions';
+import { ActivityType, UserSummaryAfterSetUp } from '@/types/definitions';
 import { useLanguage } from '@/hooks/useLanguage';
 import { mergeProps, useFocusRing, useLink } from 'react-aria';
 import { cn } from '@/lib/cn';

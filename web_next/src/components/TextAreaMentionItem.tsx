@@ -38,7 +38,6 @@ export function TextAreaMentionItem({
       </div>
       <div>
         <p className="font-semibold">{name}</p>
-        <p className="text-sm text-muted-foreground">@{username}</p>
       </div>
     </li>
   );

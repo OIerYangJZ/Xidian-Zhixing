@@ -1,42 +1,62 @@
 import Button from '@/components/ui/Button';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import { GetVisualMedia } from '@/types/definitions';
+import { GetVisualMedia, DisplayIdentity } from '@/types/definitions';
 import { useWritePostMutations } from '@/hooks/mutations/useWritePostMutations';
 import { useDialogs } from '@/hooks/useDialogs';
 import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
-import { ToEditValues } from '@/lib/createPost';
 import { useLanguage } from '@/hooks/useLanguage';
-import type { DisplayIdentity } from '@prisma/client';
+import { getAnonymousAlias, getSectionTree } from '@/lib/backend/endpoints';
 import { TextAreaWithMentionsAndHashTags } from './TextAreaWithMentionsAndHashTags';
 import { GenericDialog } from './GenericDialog';
 import { CreatePostSort } from './CreatePostSort';
 import { ProfilePhotoOwn } from './ui/ProfilePhotoOwn';
 import { CreatePostOptions } from './CreatePostOptions';
 
+const GENERAL_SECTION = { sectionType: 'general', sectionId: 'general', sectionName: '综合' };
+const MAX_IMAGES = 9;
+
 export function CreatePostDialog({
-  toEditValues,
   shouldOpenFileInputOnMount,
   setShown,
 }: {
-  toEditValues: ToEditValues | null;
   shouldOpenFileInputOnMount: boolean;
   setShown: (isOpen: boolean) => void;
 }) {
   const { t } = useLanguage();
-  const mode: 'create' | 'edit' = toEditValues === null ? 'create' : 'edit';
-  const [content, setContent] = useState(toEditValues?.initialContent || '');
-  const [visualMedia, setVisualMedia] = useState<GetVisualMedia[]>(toEditValues?.initialVisualMedia ?? []);
-  const [displayIdentity, setDisplayIdentity] = useState<DisplayIdentity>(
-    toEditValues?.initialDisplayIdentity ?? 'USER',
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [visualMedia, setVisualMedia] = useState<GetVisualMedia[]>([]);
+  const [displayIdentity, setDisplayIdentity] = useState<DisplayIdentity>('USER');
+  const [anonymousAlias, setAnonymousAlias] = useState('');
+  const [sectionId, setSectionId] = useState(GENERAL_SECTION.sectionId);
+  const { data: sectionTree } = useQuery({ queryKey: ['sections', 'tree'], queryFn: getSectionTree, staleTime: 300000 });
+  // Clubs publish through their managers only, so they are not offered here.
+  const sections = useMemo(
+    () => [...(sectionTree?.general ?? []), ...(sectionTree?.colleges ?? [])],
+    [sectionTree],
   );
+  const section = useMemo(() => {
+    const picked = sections.find((item) => item.sectionId === sectionId);
+    return picked
+      ? { sectionType: picked.sectionType, sectionId: picked.sectionId, sectionName: picked.sectionName || picked.name }
+      : GENERAL_SECTION;
+  }, [sections, sectionId]);
   const exitCreatePostModal = useCallback(() => setShown(false), [setShown]);
-  const { createPostMutation, updatePostMutation } = useWritePostMutations({
-    content,
-    visualMedia,
-    displayIdentity,
-    exitCreatePostModal,
-  });
+  const draft = useMemo(
+    () => ({ title, content, visualMedia, displayIdentity, anonymousAlias, section }),
+    [title, content, visualMedia, displayIdentity, anonymousAlias, section],
+  );
+  const { createPostMutation } = useWritePostMutations({ draft, exitCreatePostModal });
+
+  useEffect(() => {
+    // Offer a random alias the first time the author switches to anonymous.
+    if (displayIdentity !== 'ANONYMOUS' || anonymousAlias) return;
+    getAnonymousAlias()
+      .then(({ alias }) => setAnonymousAlias((current) => current || alias))
+      .catch(() => {});
+  }, [displayIdentity, anonymousAlias]);
   const { confirm } = useDialogs();
   const inputFileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -45,24 +65,17 @@ export function CreatePostDialog({
     const { files } = e.target;
 
     if (files === null) return;
-    const filesArr = [...files];
+    const filesArr = [...files].filter((file) => file.type.startsWith('image/'));
     const selectedVisualMedia: GetVisualMedia[] = filesArr.map((file) => ({
       type: file.type.startsWith('image/') ? 'PHOTO' : 'VIDEO',
       url: URL.createObjectURL(file),
     }));
-    setVisualMedia((prev) => [...prev, ...selectedVisualMedia]);
+    setVisualMedia((prev) => [...prev, ...selectedVisualMedia].slice(0, MAX_IMAGES));
     // Clear the file input
     e.target.value = '';
   }, []);
 
-  const handleClickPostButton = useCallback(() => {
-    if (mode === 'create') {
-      createPostMutation.mutate();
-    } else {
-      if (!toEditValues) return;
-      updatePostMutation.mutate({ postId: toEditValues.postId });
-    }
-  }, [createPostMutation, mode, toEditValues, updatePostMutation]);
+  const handleClickPostButton = useCallback(() => createPostMutation.mutate(), [createPostMutation]);
 
   const exit = useCallback(() => {
     exitCreatePostModal();
@@ -79,19 +92,12 @@ export function CreatePostDialog({
   }, [confirm, exit, t]);
 
   const handleClose = useCallback(() => {
-    if (mode === 'create') {
-      if (content !== '' || visualMedia.length > 0) {
-        confirmExit();
-        return;
-      }
-    } else if (mode === 'edit') {
-      if (content !== toEditValues?.initialContent || visualMedia !== toEditValues.initialVisualMedia) {
-        confirmExit();
-        return;
-      }
+    if (title !== '' || content !== '' || visualMedia.length > 0) {
+      confirmExit();
+      return;
     }
     exit();
-  }, [confirmExit, content, visualMedia, mode, toEditValues, exit]);
+  }, [confirmExit, title, content, visualMedia, exit]);
 
   const sortVariants = useMemo(
     () => ({
@@ -126,13 +132,20 @@ export function CreatePostDialog({
 
   return (
     <GenericDialog
-      title={mode === 'create' ? t('发布动态', 'Create post') : t('编辑动态', 'Edit post')}
+      title={t('发布动态', 'Create post')}
       handleClose={handleClose}>
       <div className="mb-[18px] flex flex-row gap-3 px-4">
         <div className="h-11 w-11">
           <ProfilePhotoOwn />
         </div>
-        <div className="flex flex-1 flex-col justify-center">
+        <div className="flex flex-1 flex-col justify-center gap-2">
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value.slice(0, 200))}
+            placeholder={t('标题（选填）', 'Title (optional)')}
+            aria-label={t('标题', 'Title')}
+            className="w-full bg-transparent text-lg font-semibold text-foreground outline-none placeholder:text-muted-foreground"
+          />
           <TextAreaWithMentionsAndHashTags
             content={content}
             setContent={setContent}
@@ -143,9 +156,9 @@ export function CreatePostDialog({
           <Button
             onPress={handleClickPostButton}
             size="small"
-            isDisabled={content === '' && visualMedia.length === 0}
-            loading={createPostMutation.isPending || updatePostMutation.isPending}>
-            {mode === 'create' ? t('发布', 'Post') : t('保存', 'Save')}
+            isDisabled={content.trim() === ''}
+            loading={createPostMutation.isPending}>
+            {t('发布', 'Post')}
           </Button>
         </div>
       </div>
@@ -155,14 +168,38 @@ export function CreatePostDialog({
           <select
             aria-label={t('发布身份', 'Post as')}
             value={displayIdentity}
-            disabled={mode === 'edit'}
             onChange={(event) => setDisplayIdentity(event.target.value as DisplayIdentity)}
             className="min-h-10 border border-border bg-background px-3 text-foreground">
             <option value="USER">{t('本人', 'Yourself')}</option>
             <option value="ANONYMOUS">{t('匿名同学', 'Anonymous student')}</option>
-            {displayIdentity === 'CLUB' && <option value="CLUB">{t('社团', 'Club')}</option>}
           </select>
         </label>
+        <label className="mt-3 flex items-center justify-between gap-3 text-sm">
+          <span>{t('发布到', 'Section')}</span>
+          <select
+            aria-label={t('发布到', 'Section')}
+            value={sectionId}
+            onChange={(event) => setSectionId(event.target.value)}
+            className="min-h-10 border border-border bg-background px-3 text-foreground">
+            {sections.length === 0 && <option value={GENERAL_SECTION.sectionId}>{GENERAL_SECTION.sectionName}</option>}
+            {sections.map((item) => (
+              <option key={item.id} value={item.sectionId}>
+                {item.sectionName || item.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {displayIdentity === 'ANONYMOUS' && (
+          <label className="mt-3 flex items-center justify-between gap-3 text-sm">
+            <span>{t('匿名昵称', 'Anonymous name')}</span>
+            <input
+              value={anonymousAlias}
+              onChange={(event) => setAnonymousAlias(event.target.value.slice(0, 24))}
+              aria-label={t('匿名昵称', 'Anonymous name')}
+              className="min-h-10 w-40 border border-border bg-background px-3 text-foreground"
+            />
+          </label>
+        )}
         {displayIdentity === 'ANONYMOUS' && (
           <p className="mt-2 text-xs text-muted-foreground">
             {t(

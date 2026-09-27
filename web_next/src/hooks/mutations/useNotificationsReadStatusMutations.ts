@@ -1,104 +1,36 @@
-import { ACTIVITIES_PER_PAGE } from '@/constants';
-import { InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query';
-import { chunk } from 'lodash';
-import { useSession } from '@/lib/backend/session';
-import { GetActivity } from '@/types/definitions';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { markAllNotificationsRead, markNotificationRead } from '@/lib/backend/endpoints';
+import type { ApiNotificationType } from '@/lib/backend/types';
+import { NOTIFICATIONS_QUERY_KEY, type NotificationsData } from '../queries/useNotificationsQuery';
 
 export function useNotificationsReadStatusMutations() {
   const qc = useQueryClient();
-  const { data: session } = useSession();
-  const userId = session?.user.id;
-  const queryKey = ['users', userId, 'notifications'];
+
+  const setRead = (predicate: (item: NotificationsData['items'][number]) => boolean) =>
+    qc.setQueryData<NotificationsData>(NOTIFICATIONS_QUERY_KEY, (data) => {
+      if (!data) return data;
+      const unreadByType = { ...data.unreadByType };
+      let unreadCount = data.unreadCount;
+      const items = data.items.map((item) => {
+        if (item.isNotificationRead || !predicate(item)) return item;
+        unreadByType[item.category] = Math.max(0, (unreadByType[item.category] || 0) - 1);
+        unreadCount = Math.max(0, unreadCount - 1);
+        return { ...item, isNotificationRead: true };
+      });
+      return { items, unreadCount, unreadByType };
+    });
 
   const markAsReadMutation = useMutation({
-    mutationFn: async ({ notificationId }: { notificationId: string }) => {
-      const res = await fetch(`/api/users/${session?.user.id}/notifications/${notificationId}`, {
-        method: 'PATCH',
-      });
-
-      if (!res.ok) {
-        throw new Error('Error marking the notification as read.');
-      }
-
-      return true;
-    },
-    onMutate: async ({ notificationId }) => {
-      // Cancel outgoing queries and snapshot the prev value
-      await qc.cancelQueries({ queryKey });
-      const previousNotifications = qc.getQueryData(queryKey);
-
-      // Optimistcally update the read status of the notification
-      qc.setQueryData<InfiniteData<GetActivity[]>>(queryKey, (oldData) => {
-        if (!oldData) return oldData;
-
-        // Flatten the old pages first
-        const oldNotifications = oldData.pages.flat();
-
-        // Find the index of the notification to update
-        const index = oldNotifications.findIndex((oldNotification) => oldNotification.id === notificationId);
-
-        // Save the value of the old notification
-        const oldNotification = oldNotifications[index];
-
-        // Update the notification read status using the `index`
-        oldNotifications[index] = {
-          ...oldNotification,
-          isNotificationRead: true,
-        };
-
-        return {
-          pages: chunk(oldNotifications, ACTIVITIES_PER_PAGE),
-          pageParams: oldData.pageParams,
-        };
-      });
-
-      // Return a context object with the snapshotted value
-      return { previousNotifications };
-    },
-    onError: (err, variables, context) => {
-      qc.setQueryData(queryKey, context?.previousNotifications);
-    },
+    mutationFn: ({ notificationId }: { notificationId: string }) => markNotificationRead(notificationId),
+    onMutate: ({ notificationId }) => setRead((item) => item.id === notificationId),
   });
 
   const markAllAsReadMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch(`/api/users/${session?.user.id}/notifications`, {
-        method: 'PATCH',
-      });
-
-      if (!res.ok) {
-        throw new Error('Error marking the notification as read.');
-      }
-
-      return true;
-    },
-    onMutate: async () => {
-      // Cancel outgoing queries and snapshot the prev value
-      await qc.cancelQueries({ queryKey });
-      const previousNotifications = qc.getQueryData(queryKey);
-
-      // Optimistcally update the read status of the notification
-      qc.setQueryData<InfiniteData<GetActivity[]>>(queryKey, (oldData) => {
-        if (!oldData) return oldData;
-
-        // Flatten the old pages, then set each notification's `isNotificationRead` property to `true`
-        const newNotifications = oldData.pages.flat().map((oldNotification) => ({
-          ...oldNotification,
-          isNotificationRead: true,
-        }));
-
-        return {
-          pages: chunk(newNotifications, ACTIVITIES_PER_PAGE),
-          pageParams: oldData.pageParams,
-        };
-      });
-
-      // Return a context object with the snapshotted value
-      return { previousNotifications };
-    },
-    onError: (err, variables, context) => {
-      qc.setQueryData(queryKey, context?.previousNotifications);
-    },
+    mutationFn: (type?: ApiNotificationType) => markAllNotificationsRead(type),
+    onMutate: (type) => setRead((item) => !type || item.category === type),
+    // Coalesced like/favorite notifications can come back unread (see the
+    // contract notes), so take the server's view once it has answered.
+    onSettled: () => qc.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY }),
   });
 
   return { markAsReadMutation, markAllAsReadMutation };

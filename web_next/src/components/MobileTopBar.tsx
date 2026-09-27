@@ -6,6 +6,7 @@ import { useSessionUserData } from '@/hooks/useSessionUserData';
 import { useNotificationsCountQuery } from '@/hooks/queries/useNotificationsCountQuery';
 import { NotificationBell, Search, Settings } from '@/svg_components';
 import { useLanguage } from '@/hooks/useLanguage';
+import { profileHref } from '@/lib/profileHref';
 
 export function MobileTopBar() {
   const { t } = useLanguage();
@@ -59,7 +60,7 @@ export function MobileTopBar() {
           )}
         </Link>
         <Link
-          href={user?.username ? `/${user.username}` : '/feed'}
+          href={user?.username ? profileHref(user.username)! : '/feed'}
           aria-label={t('个人主页', 'Profile')}
           className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-secondary">
           {user?.profilePhoto ? (

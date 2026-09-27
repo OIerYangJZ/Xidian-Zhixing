@@ -237,7 +237,6 @@ export function MessagesInbox() {
               <h2 className="truncate text-sm font-semibold">
                 {peer?.name || peer?.username || t('选择一段对话', 'Select a conversation')}
               </h2>
-              {peer?.username && <p className="mt-0.5 text-xs text-muted-foreground">@{peer.username}</p>}
             </div>
             {activeId && (
               <button

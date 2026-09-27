@@ -11,16 +11,18 @@ import { zhCN, enUS } from 'date-fns/locale';
 import SvgComment from '@/svg_components/Comment';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GetPost, PostId } from '@/types/definitions';
+import { PostMeta } from './PostMeta';
+import { postHref } from '@/lib/profileHref';
 import { isEqual } from 'lodash';
 import SvgHeart from '@/svg_components/Heart';
 import SvgBookmark from '@/svg_components/Bookmark';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { usePostLikesMutations } from '@/hooks/mutations/usePostLikesMutations';
 import { usePostBookmarkMutations } from '@/hooks/mutations/usePostBookmarkMutations';
 import { useToast } from '@/hooks/useToast';
-import { useSession } from '@/lib/backend/session';
+import { getPost } from '@/lib/backend/endpoints';
+import { useReportDialog } from '@/hooks/useReportDialog';
 import Link from 'next/link';
-import { useDialogs } from '@/hooks/useDialogs';
 import { ToggleStepper } from './ui/ToggleStepper';
 import { Comments } from './Comments';
 import { PostVisualMediaContainer } from './PostVisualMediaContainer';
@@ -31,20 +33,6 @@ import { PostOptions } from './PostOptions';
 
 function formatCount(count: number) {
   return count >= 10000 ? `${(count / 10000).toFixed(1).replace(/\.0$/, '')}万` : count.toLocaleString();
-}
-
-function RepostIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <path
-        d="m17 1 4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4m14-1v2a4 4 0 0 1-4 4H3"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 }
 
 function AnalyticsIcon(props: SVGProps<SVGSVGElement>) {
@@ -74,68 +62,18 @@ export const Post = memo(
     id: postId,
     commentsShown,
     feedEventKey,
-    repostedBy,
     toggleComments,
   }: PostId & {
     toggleComments: (postId: string, feedEventKey?: string) => void;
   }) => {
     const { t, language } = useLanguage();
     const { showToast } = useToast();
-    const { prompt } = useDialogs();
+    const { openReport } = useReportDialog();
     const { likeMutation, unLikeMutation } = usePostLikesMutations({ postId });
     const { bookmarkMutation, removeBookmarkMutation } = usePostBookmarkMutations({ postId });
-    const qc = useQueryClient();
-    const { data: session } = useSession();
-    const repostMutation = useMutation({
-      mutationFn: async (nextIsReposted: boolean) => {
-        const response = await fetch(`/api/users/${session?.user.id}/reposts${nextIsReposted ? '' : `/${postId}`}`, {
-          method: nextIsReposted ? 'POST' : 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          ...(nextIsReposted ? { body: JSON.stringify({ postId }) } : {}),
-        });
-        if (!response.ok) throw new Error('转发失败');
-      },
-      onMutate: async (nextReposted) => {
-        await qc.cancelQueries({ queryKey: ['posts', postId] });
-        const previous = qc.getQueryData<GetPost>(['posts', postId]);
-        if (previous)
-          qc.setQueryData<GetPost>(['posts', postId], {
-            ...previous,
-            isReposted: nextReposted,
-            _count: { ...previous._count, reposts: previous._count.reposts + (nextReposted ? 1 : -1) },
-          });
-        return { previous };
-      },
-      onSuccess: (_data, nextReposted) => {
-        qc.invalidateQueries({
-          queryKey: ['users', session?.user.id, 'posts', { type: 'feed' }],
-        });
-        showToast({
-          title: nextReposted ? t('转发成功', 'Reposted') : t('已取消转发', 'Repost removed'),
-          type: 'success',
-        });
-      },
-      onError: (_error, nextReposted, context) => {
-        qc.setQueryData(['posts', postId], context?.previous);
-        showToast({
-          title: nextReposted
-            ? t('转发失败，请重试。', 'Could not repost. Please try again.')
-            : t('取消转发失败，请重试。', 'Could not undo repost. Please try again.'),
-          type: 'error',
-        });
-      },
-      onSettled: () => qc.invalidateQueries({ queryKey: ['posts', postId] }),
-    });
-
     const { data, isPending, isError } = useQuery<GetPost>({
       queryKey: ['posts', postId],
-      queryFn: async () => {
-        const res = await fetch(`/api/posts/${postId}`);
-        if (!res.ok) {
-          throw new Error('Error getting post');
-        }
-        return (await res.json()) as GetPost;
-      },
+      queryFn: () => getPost(postId),
       staleTime: 60000 * 10,
     });
 
@@ -155,7 +93,7 @@ export const Post = memo(
       toggleComments(postId, feedEventKey);
     }, [feedEventKey, postId, toggleComments]);
     const sharePost = async () => {
-      const url = `${window.location.origin}/posts/${postId}`;
+      const url = `${window.location.origin}/p/${postId}`;
       try {
         if (navigator.share) {
           await navigator.share({ url });
@@ -176,24 +114,7 @@ export const Post = memo(
         });
       }
     };
-    const reportPost = () => {
-      prompt({
-        title: t('举报动态', 'Report post'),
-        message: t('请简要说明举报原因，管理员会查看。', 'Briefly explain the reason for your report.'),
-        promptType: 'textarea',
-        onSubmit: async (details) => {
-          const response = await fetch('/api/reports', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ postId, reason: 'OTHER', details }),
-          });
-          showToast({
-            title: response.ok ? t('举报已提交', 'Report submitted') : t('举报失败', 'Could not report'),
-            type: response.ok ? 'success' : 'error',
-          });
-        },
-      });
-    };
+    const reportPost = () => openReport({ targetType: 'post', targetId: postId });
     const variants = useMemo(
       () => ({
         animate: {
@@ -223,16 +144,18 @@ export const Post = memo(
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const {
+      title,
       content,
       createdAt,
       user: author,
+      authorAlias,
       publishedAsClub,
       displayIdentity,
       visualMedia,
       isLiked,
       isBookmarked,
-      isReposted,
       viewCount,
+      progress,
       _count: postCounts,
     } = data;
     const { isOwnPost } = data;
@@ -259,19 +182,6 @@ export const Post = memo(
           }
           handleCommentsToggle();
         }}>
-        {repostedBy && (
-          <div className="mb-2 flex items-center gap-2 pl-[60px] text-xs text-muted-foreground">
-            <RepostIcon className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{t('转发自', 'Reposted by')}</span>
-            {repostedBy.username ? (
-              <Link href={`/${repostedBy.username}`} className="font-medium hover:underline">
-                {repostedBy.name || repostedBy.username}
-              </Link>
-            ) : (
-              <span className="font-medium">{repostedBy.name || t('同学', 'Student')}</span>
-            )}
-          </div>
-        )}
         <div className="relative pl-[60px]">
           <div className="absolute left-0 top-0 h-[48px] w-[48px]">
             {displayIdentity === 'ANONYMOUS' ? (
@@ -297,7 +207,9 @@ export const Post = memo(
             <div className="min-w-0">
               {displayIdentity === 'ANONYMOUS' ? (
                 <div className="flex flex-wrap items-center gap-x-2">
-                  <div className="text-sm font-semibold text-foreground">{t('匿名同学', 'Anonymous student')}</div>
+                  <div className="text-sm font-semibold text-foreground">
+                    {authorAlias || t('匿名同学', 'Anonymous student')}
+                  </div>
                   <span className="text-sm text-muted-foreground">· {postTime}</span>
                 </div>
               ) : displayIdentity === 'CLUB' && publishedAsClub ? (
@@ -319,15 +231,12 @@ export const Post = memo(
             </div>
             <div className="absolute right-0 top-0">
               {isOwnPost && (
-                <PostOptions
-                  postId={postId}
-                  content={content}
-                  visualMedia={visualMedia}
-                  displayIdentity={displayIdentity}
-                />
+                <PostOptions postId={postId} progress={progress} />
               )}
             </div>
           </div>
+          <PostMeta post={data} />
+          {title && <h2 className="mt-1 break-words text-[15px] font-semibold leading-6 text-foreground">{title}</h2>}
           {content && (
             <p className="mb-1.5 mt-1 whitespace-pre-wrap break-words text-sm leading-5 text-foreground">
               <HighlightedMentionsAndHashTags text={content} shouldAddLinks />
@@ -351,16 +260,6 @@ export const Post = memo(
               compact
             />
             <ToggleStepper
-              isSelected={isReposted}
-              aria-label={isReposted ? t('取消转发', 'Undo repost') : t('转发', 'Repost')}
-              isDisabled={repostMutation.isPending}
-              onChange={(nextIsReposted) => repostMutation.mutate(nextIsReposted)}
-              Icon={RepostIcon}
-              quantity={postCounts.reposts}
-              color="accent"
-              compact
-            />
-            <ToggleStepper
               isSelected={isLiked}
               aria-label={isLiked ? t('取消点赞', 'Unlike post') : t('点赞', 'Like post')}
               onChange={handleLikeToggle}
@@ -370,7 +269,7 @@ export const Post = memo(
               compact
             />
             <Link
-              href={`/posts/${postId}`}
+              href={postHref(postId)}
               aria-label={`${formatCount(viewCount)} ${t('次浏览', 'views')}`}
               className="flex min-w-12 items-center gap-2 rounded-full px-2 py-1 text-xs font-medium hover:bg-primary/10 hover:text-primary">
               <AnalyticsIcon className="h-5 w-5" />

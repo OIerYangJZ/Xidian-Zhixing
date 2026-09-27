@@ -6,6 +6,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { GetUser } from '@/types/definitions';
 import { ProfilePhoto } from './ui/ProfilePhoto';
 import { ProfileActionButtons } from './ProfileActionButtons';
+import { profileHref } from '@/lib/profileHref';
 
 export function SuggestedFollows() {
   const { t } = useLanguage();
@@ -29,10 +30,9 @@ export function SuggestedFollows() {
             <ProfilePhoto name={user.name} username={user.username} photoUrl={user.profilePhoto} />
           </div>
           <div className="min-w-0 flex-1">
-            <Link href={`/${user.username}`} className="block truncate text-sm font-semibold hover:underline">
+            <Link href={profileHref(user.username)!} className="block truncate text-sm font-semibold hover:underline">
               {user.name}
             </Link>
-            <span className="block truncate text-xs text-muted-foreground">@{user.username}</span>
           </div>
           <ProfileActionButtons targetUserId={user.id} />
         </div>

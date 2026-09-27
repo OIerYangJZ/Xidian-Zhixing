@@ -27,6 +27,16 @@ type PostsProps =
       type: 'hashtag';
       userId?: undefined;
       hashtag: string;
+      keyword?: undefined;
+      sort?: PostSort;
+      sectionId?: undefined;
+    }
+  | {
+      type: 'search';
+      userId?: undefined;
+      hashtag?: undefined;
+      /** Matched against title, content and tags. */
+      keyword: string;
       sort?: PostSort;
       sectionId?: undefined;
     }
@@ -34,6 +44,7 @@ type PostsProps =
       type: 'feed';
       userId?: string;
       hashtag?: undefined;
+      keyword?: undefined;
       sort?: PostSort;
       /** Restrict the feed to one section (板块). */
       sectionId?: string;
@@ -42,13 +53,14 @@ type PostsProps =
       type: 'profile' | 'bookmarks';
       userId: string;
       hashtag?: undefined;
+      keyword?: undefined;
       sort?: undefined;
       sectionId?: undefined;
     };
 
 type PageParam = number;
 
-function fetchPage({ type, userId, hashtag, sort, sectionId }: PostsProps, page: PageParam) {
+function fetchPage({ type, userId, hashtag, keyword, sort, sectionId }: PostsProps, page: PageParam) {
   if (type === 'bookmarks') return listFavoritePosts();
   return listPosts({
     page,
@@ -56,23 +68,24 @@ function fetchPage({ type, userId, hashtag, sort, sectionId }: PostsProps, page:
     sort: sort || 'latest',
     ...(type === 'profile' && { authorId: userId }),
     ...(type === 'hashtag' && { channel: hashtag }),
+    ...(type === 'search' && { keyword }),
     ...(type === 'feed' && sectionId && { sectionId }),
   });
 }
 
 export function Posts(props: PostsProps) {
-  const { type, hashtag, userId, sort, sectionId } = props;
+  const { type, hashtag, keyword, userId, sort, sectionId } = props;
   const { t } = useLanguage();
   const qc = useQueryClient();
   // Need to memoize `queryKey`, so when used in a dependency array, it won't trigger the `useEffect`/`useCallback`
   const queryKey = useMemo(
     () =>
-      type === 'hashtag'
-        ? ['posts', { hashtag, sort }]
+      type === 'hashtag' || type === 'search'
+        ? ['posts', { hashtag, keyword, sort }]
         : type === 'feed'
           ? ['posts', 'feed', { sort: sort || 'latest', sectionId: sectionId || '' }]
           : ['users', userId, 'posts', { type }],
-    [type, userId, hashtag, sort, sectionId],
+    [type, userId, hashtag, keyword, sort, sectionId],
   );
   const topElRef = useRef<HTMLDivElement>(null);
   const bottomElRef = useRef<HTMLDivElement>(null);

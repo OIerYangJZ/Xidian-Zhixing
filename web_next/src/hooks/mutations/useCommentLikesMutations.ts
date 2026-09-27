@@ -1,112 +1,36 @@
-import { QueryKey, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSession } from '@/lib/backend/session';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { GetComment } from '@/types/definitions';
+import { setCommentLiked } from '@/lib/backend/endpoints';
 
-export function useCommentLikesMutations({ queryKey }: { queryKey: QueryKey }) {
+export function useCommentLikesMutations({ postId }: { postId: string }) {
   const qc = useQueryClient();
-  const { data: session } = useSession();
-  const userId = session?.user.id;
+  const queryKey = ['posts', postId, 'comments'];
 
-  const likeUnlikeOptimisticSetter = ({ commentId, isLiked }: { commentId: string; isLiked: boolean }) => {
-    qc.setQueryData<GetComment[]>(queryKey, (oldComments) => {
-      if (!oldComments) return oldComments;
+  const setLiked = (commentId: string, isLiked: boolean) =>
+    qc.setQueriesData<GetComment[]>({ queryKey }, (oldComments) =>
+      oldComments?.map((comment) =>
+        comment.id === commentId && comment.isLiked !== isLiked
+          ? {
+              ...comment,
+              isLiked,
+              _count: { ...comment._count, commentLikes: comment._count.commentLikes + (isLiked ? 1 : -1) },
+            }
+          : comment,
+      ),
+    );
 
-      // Make a shallow copy of `oldComments`
-      const newComments = [...oldComments];
-
-      // Find the index of the comment to update
-      const index = newComments.findIndex((comment) => comment.id === commentId);
-      const oldComment = newComments[index];
-
-      // Update the comment's `isLiked` property
-      newComments[index] = {
-        ...oldComment,
-        isLiked,
-        _count: {
-          ...oldComment._count,
-          commentLikes: oldComment._count.commentLikes + (isLiked ? 1 : -1),
-        },
-      };
-
-      return newComments;
-    });
-  };
-
-  const likeCommentMutation = useMutation({
-    mutationFn: async ({ commentId }: { commentId: string }) => {
-      const res = await fetch(`/api/users/${userId}/liked-comments`, {
-        method: 'POST',
-        body: JSON.stringify({ commentId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!res.ok) {
-        /**
-         * No need to throw an error when there is a 409 conflict.
-         * Why? Trying to like an already liked post should not
-         * roll back the optimistic LIKE mutation.
-         */
-        if (res.status === 409) return true;
-        throw Error('Error liking post.');
-      }
-
-      return true;
-    },
-    onMutate: async ({ commentId }) => {
-      // Cancel any outgoing refetches
+  const mutationFor = (isLiked: boolean) => ({
+    mutationFn: ({ commentId }: { commentId: string }) => setCommentLiked(commentId, isLiked),
+    onMutate: async ({ commentId }: { commentId: string }) => {
       await qc.cancelQueries({ queryKey });
-
-      // Snapshot the previous value
-      const previousComments = qc.getQueryData(queryKey);
-
-      // Optimistically update posts
-      likeUnlikeOptimisticSetter({ commentId, isLiked: true });
-
-      // Return a context object with the snapshotted value
-      return { previousComments };
+      setLiked(commentId, isLiked);
     },
-    onError: (err, _, context) => {
-      qc.setQueryData(queryKey, context?.previousComments);
-    },
+    // The like response carries no count, so a failure just undoes the toggle.
+    onError: (_error: unknown, { commentId }: { commentId: string }) => setLiked(commentId, !isLiked),
   });
 
-  const unLikeCommentMutation = useMutation({
-    mutationFn: async ({ commentId }: { commentId: string }) => {
-      const res = await fetch(`/api/users/${userId}/liked-comments/${commentId}`, {
-        method: 'DELETE',
-      });
-
-      if (!res.ok) {
-        /**
-         * No need to throw an error when there is a 409 conflict.
-         * Why? Trying to unlike a post that is not liked yet should
-         * NOT roll back the optimistic UNLIKE mutation.
-         */
-        if (res.status === 409) return true;
-        throw Error('Error unliking post.');
-      }
-
-      return true;
-    },
-    onMutate: async ({ commentId }) => {
-      // Cancel any outgoing refetches
-      await qc.cancelQueries({ queryKey });
-
-      // Snapshot the previous value
-      const previousComments = qc.getQueryData(queryKey);
-
-      // Optimistically update posts
-      likeUnlikeOptimisticSetter({ commentId, isLiked: false });
-
-      // Return a context object with the snapshotted value
-      return { previousComments };
-    },
-    onError: (err, _, context) => {
-      qc.setQueryData(queryKey, context?.previousComments);
-    },
-  });
+  const likeCommentMutation = useMutation(mutationFor(true));
+  const unLikeCommentMutation = useMutation(mutationFor(false));
 
   return { likeCommentMutation, unLikeCommentMutation };
 }

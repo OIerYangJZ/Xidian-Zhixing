@@ -4,8 +4,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GetComment } from '@/types/definitions';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getComments } from '@/lib/client_data_fetching/getComments';
-import { useSession } from '@/lib/backend/session';
+import { listComments } from '@/lib/backend/endpoints';
+import { buildCommentThreads } from '@/lib/commentThreads';
 import { useShouldAnimate } from '@/hooks/useShouldAnimate';
 import { useLanguage } from '@/hooks/useLanguage';
 import { commentFramerVariants } from '@/lib/framerVariants';
@@ -17,8 +17,8 @@ export function Comments({ postId }: { postId: string }) {
   const qc = useQueryClient();
   const [sort, setSort] = useState<'hot' | 'time'>('hot');
   const queryKey = useMemo(() => ['posts', postId, 'comments', sort], [postId, sort]);
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
 
-  const { data: session } = useSession();
   const { shouldAnimate } = useShouldAnimate();
 
   const {
@@ -28,32 +28,19 @@ export function Comments({ postId }: { postId: string }) {
     error,
   } = useQuery<GetComment[], Error>({
     queryKey,
-    queryFn: () => getComments({ postId, sort }),
+    queryFn: () => listComments(postId, sort === 'hot' ? 'hot' : 'latest'),
     // staleTime: 60000 * 10,
   });
 
-  const setRepliesVisibility = useCallback(
-    ({ commentId, shown }: { commentId: string; shown: boolean }) => {
-      qc.setQueryData<GetComment[]>(queryKey, (oldComments) => {
-        if (!oldComments) return oldComments;
-        // Make a shallow copy of `oldComments`
-        const newComments = [...oldComments];
-
-        // Find the index of the comment to update
-        const index = newComments.findIndex((comment) => comment.id === commentId);
-
-        const oldComment = newComments[index];
-
-        newComments[index] = {
-          ...oldComment,
-          repliesShown: shown,
-        };
-
-        return newComments;
-      });
-    },
-    [qc, queryKey],
-  );
+  const threads = useMemo(() => buildCommentThreads(comments ?? []), [comments]);
+  const setRepliesVisibility = useCallback(({ commentId, shown }: { commentId: string; shown: boolean }) => {
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (shown) next.add(commentId);
+      else next.delete(commentId);
+      return next;
+    });
+  }, []);
 
   return (
     <div>
@@ -75,8 +62,8 @@ export function Comments({ postId }: { postId: string }) {
           <p className="py-2 text-muted-foreground">{error.message}</p>
         ) : (
           <AnimatePresence>
-            {comments.length > 0 ? (
-              comments?.map((comment) => (
+            {threads.length > 0 ? (
+              threads.map(({ root: comment, replies }) => (
                 <motion.div
                   variants={commentFramerVariants}
                   initial={shouldAnimate ? 'start' : false}
@@ -85,11 +72,9 @@ export function Comments({ postId }: { postId: string }) {
                   key={`posts-${postId}-comments-${comment.id}`}>
                   <Comment
                     {...comment}
-                    {...{
-                      setRepliesVisibility,
-                      queryKey,
-                    }}
-                    isOwnComment={session?.user?.id === comment.user.id}
+                    replies={replies}
+                    repliesShown={expanded.has(comment.id)}
+                    setRepliesVisibility={setRepliesVisibility}
                   />
                 </motion.div>
               ))

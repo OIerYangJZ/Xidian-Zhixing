@@ -1,15 +1,6 @@
-import { getNotificationsCount } from '@/lib/client_data_fetching/getNotificationsCount';
-import { useQuery } from '@tanstack/react-query';
-import { useSession } from '@/lib/backend/session';
+import { useNotificationsQuery } from './useNotificationsQuery';
 
+/** Unread badge; shares the notifications query, so it costs no request of its own. */
 export function useNotificationsCountQuery() {
-  const { data: session } = useSession();
-  const userId = session?.user.id;
-
-  return useQuery<number>({
-    queryKey: ['users', userId, 'notifications', 'count'],
-    queryFn: async () => getNotificationsCount({ userId: userId! }),
-    refetchInterval: 30000,
-    enabled: !!userId,
-  });
+  return useNotificationsQuery((data) => data.unreadCount);
 }

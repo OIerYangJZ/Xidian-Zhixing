@@ -7,6 +7,7 @@ import { useUserQuery } from '@/hooks/queries/useUserQuery';
 import { useSession } from '@/lib/backend/session';
 import Link from 'next/link';
 import { useLanguage } from '@/hooks/useLanguage';
+import { profileHref } from '@/lib/profileHref';
 
 export const DiscoverProfile = memo(
   ({ userId }: { userId: string }) => {
@@ -29,10 +30,9 @@ export const DiscoverProfile = memo(
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-1.5">
-            <Link href={`/${user.username}`} className="truncate text-sm font-semibold hover:underline">
+            <Link href={profileHref(user.username)!} className="truncate text-sm font-semibold hover:underline">
               {user.name}
             </Link>
-            <span className="truncate text-xs text-muted-foreground">@{user.username}</span>
           </div>
           <p className="mt-1 line-clamp-2 text-sm leading-5 text-foreground/85">
             {user.bio || t('还没有填写个人介绍。', 'No bio yet.')}

@@ -1,77 +1,35 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { GetComment } from '@/types/definitions';
+import { GetComment, GetPost } from '@/types/definitions';
+import { createComment } from '@/lib/backend/endpoints';
 import { useErrorNotifier } from '../useErrorNotifier';
 import { useToast } from '../useToast';
 
+/** A comment or, with `parentId`, a reply at any depth. */
 export function useCreateCommentMutations() {
   const qc = useQueryClient();
   const { showToast } = useToast();
   const { notifyError } = useErrorNotifier();
 
   const createCommentMutation = useMutation({
-    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
-      const res = await fetch(`/api/posts/${postId}/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content,
-        }),
-      });
-
-      if (!res.ok) throw new Error(res.statusText);
-      return (await res.json()) as GetComment;
-    },
-    onSuccess: (createdComment) => {
-      qc.setQueriesData<GetComment[]>({ queryKey: ['posts', createdComment.postId, 'comments'] }, (oldComments) => {
-        if (!oldComments) return oldComments;
-        return [...oldComments, createdComment];
-      });
+    mutationFn: ({ postId, content, parentId }: { postId: string; content: string; parentId?: string }) =>
+      createComment(postId, content, parentId),
+    onSuccess: (created) => {
+      // Both sort orders of this post's comments hold the same flat list.
+      qc.setQueriesData<GetComment[]>({ queryKey: ['posts', created.postId, 'comments'] }, (oldComments) =>
+        oldComments ? [created, ...oldComments] : oldComments,
+      );
+      qc.setQueryData<GetPost>(['posts', created.postId], (post) =>
+        post ? { ...post, _count: { ...post._count, comments: post._count.comments + 1 } } : post,
+      );
       showToast({
-        title: 'Success',
-        message: 'Your comment has been created.',
+        title: created.isPending ? '评论已提交审核' : created.parentId ? '回复成功' : '评论成功',
         type: 'success',
       });
     },
     onError: (err) => {
-      notifyError(err);
+      notifyError(err, '评论失败');
     },
   });
 
-  const createReplyMutation = useMutation({
-    mutationFn: async ({ parentId, content }: { parentId: string; content: string }) => {
-      const res = await fetch(`/api/comments/${parentId}/replies`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content,
-        }),
-      });
-
-      if (!res.ok) throw new Error(res.statusText);
-      return (await res.json()) as GetComment;
-    },
-    onSuccess: (createdReply) => {
-      qc.setQueryData<GetComment[]>(['comments', createdReply.parentId, 'replies'], (oldReplies) => {
-        if (!oldReplies) return oldReplies;
-        return [...oldReplies, createdReply];
-      });
-      showToast({
-        title: 'Success',
-        message: 'Your reply has been created.',
-        type: 'success',
-      });
-    },
-    onError: (err) => {
-      notifyError(err);
-    },
-  });
-
-  return {
-    createCommentMutation,
-    createReplyMutation,
-  };
+  return { createCommentMutation };
 }

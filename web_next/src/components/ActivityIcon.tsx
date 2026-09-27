@@ -3,7 +3,7 @@ import SvgAtSign from '@/svg_components/AtSign';
 import SvgComment from '@/svg_components/Comment';
 import SvgHeart from '@/svg_components/Heart';
 import SvgProfile from '@/svg_components/Profile';
-import { ActivityType } from '@prisma/client';
+import type { ActivityType } from '@/types/definitions';
 
 function CreateFollowNotificationIcon() {
   return (
@@ -41,7 +41,7 @@ function CreateReplyNotificationIcon() {
   );
 }
 
-const ActivityIcons = {
+const ActivityIcons: Record<ActivityType, () => JSX.Element> = {
   CREATE_FOLLOW: () => <CreateFollowNotificationIcon />,
 
   POST_LIKE: () => <LikeNotificationIcon />,
@@ -54,6 +54,10 @@ const ActivityIcons = {
   CREATE_REPLY: () => <CreateReplyNotificationIcon />,
   REPLY_LIKE: () => <LikeNotificationIcon />,
   REPLY_MENTION: () => <MentionNotificationIcon />,
+
+  POST_FAVORITE: () => <LikeNotificationIcon />,
+  REPORT_RESULT: () => <MentionNotificationIcon />,
+  SYSTEM: () => <MentionNotificationIcon />,
 };
 
 export function ActivityIcon({ type }: { type: ActivityType }) {
