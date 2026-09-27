@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, timezone, timedelta
 import os
 import threading
 import time
@@ -12,6 +12,26 @@ from qdrant_client import QdrantClient, models as qm
 
 from .lexical import BM25, reciprocal_rank_fusion
 from .store import KnowledgeStore, content_hash, utcnow
+
+
+def date_day(value):
+    if not value:
+        return None
+    try:
+        return int(date.fromisoformat(str(value)[:10]).strftime("%Y%m%d"))
+    except ValueError:
+        return None
+
+
+def matches_scope(row,*,today,campus=None,level=None):
+    if campus and row.get("campuses") and campus not in row["campuses"]:
+        return False
+    if level and row.get("educationLevels") and level not in row["educationLevels"]:
+        return False
+    starts=date_day(row.get("effectiveFrom"))
+    ends=date_day(row.get("effectiveTo"))
+    today_number=date_day(today)
+    return (starts is None or starts<=today_number) and (ends is None or ends>=today_number)
 
 
 def narrow_candidates(rows,*,today,campus=None,level=None,limit=12):
@@ -27,11 +47,44 @@ def narrow_candidates(rows,*,today,campus=None,level=None,limit=12):
     for row in rows:
         distinct.setdefault(row["contentHash"],row)
     kept=[row for row in distinct.values()
-        if (not campus or not row.get("campuses") or campus in row["campuses"])
-        and (not level or not row.get("educationLevels") or level in row["educationLevels"])
-        and (not row.get("effectiveFrom") or row["effectiveFrom"]<=today)
-        and (not row.get("effectiveTo") or row["effectiveTo"]>=today)]
+        if matches_scope(row,today=today,campus=campus,level=level)]
     return kept,kept[:limit]
+
+
+def scope_qdrant_filter(authorities,*,campus=None,level=None,today=None):
+    """Filter Qdrant before top-k so out-of-scope vectors cannot starve recall.
+
+    Empty metadata remains eligible as a corpus-wide source. Existing collections
+    without the scope payload are therefore compatible until their next reindex.
+    """
+    must=[qm.FieldCondition(key="authority",match=qm.MatchAny(any=authorities))]
+    scopes=[]
+    if campus:
+        scopes.append(("campuses",qm.FieldCondition(
+            key="campuses",match=qm.MatchValue(value=campus))))
+    if level:
+        scopes.append(("educationLevels",qm.FieldCondition(
+            key="educationLevels",match=qm.MatchValue(value=level))))
+    today_number=date_day(today)
+    if today_number is not None:
+        scopes.extend([
+            ("effectiveFromDay",qm.FieldCondition(
+                key="effectiveFromDay",range=qm.Range(lte=today_number))),
+            ("effectiveToDay",qm.FieldCondition(
+                key="effectiveToDay",range=qm.Range(gte=today_number))),
+        ])
+    for field,condition in scopes:
+        must.append(qm.Filter(should=[condition,
+            qm.IsEmptyCondition(is_empty=qm.PayloadField(key=field))]))
+    return qm.Filter(must=must)
+
+
+def point_payload(row):
+    return {"chunkId":row["id"],"documentId":row["documentId"],
+        "authority":row["authority"],"campuses":row.get("campuses",[]),
+        "educationLevels":row.get("educationLevels",[]),
+        "effectiveFromDay":date_day(row.get("effectiveFrom")),
+        "effectiveToDay":date_day(row.get("effectiveTo"))}
 
 
 class HybridEngine:
@@ -64,13 +117,18 @@ class HybridEngine:
         version="zhixing_v2_"+uuid.uuid4().hex[:16]
         self.qdrant.create_collection(version,
             vectors_config=qm.VectorParams(size=self.models.dimension,distance=qm.Distance.COSINE))
-        for field in ("authority","documentId"):
-            self.qdrant.create_payload_index(version,field_name=field,field_schema=qm.PayloadSchemaType.KEYWORD)
+        for field,schema in (("authority",qm.PayloadSchemaType.KEYWORD),
+            ("documentId",qm.PayloadSchemaType.KEYWORD),
+            ("campuses",qm.PayloadSchemaType.KEYWORD),
+            ("educationLevels",qm.PayloadSchemaType.KEYWORD),
+            ("effectiveFromDay",qm.PayloadSchemaType.INTEGER),
+            ("effectiveToDay",qm.PayloadSchemaType.INTEGER)):
+            self.qdrant.create_payload_index(version,field_name=field,field_schema=schema)
         for start in range(0,len(rows),32):
             batch=rows[start:start+32]
             vectors=self.models.encode([row["searchText"] for row in batch])
             points=[qm.PointStruct(id=str(uuid.uuid5(uuid.NAMESPACE_URL,row["id"])),vector=vector,
-                payload={"chunkId":row["id"],"documentId":row["documentId"],"authority":row["authority"]})
+                payload=point_payload(row))
                 for row,vector in zip(batch,vectors)]
             self.qdrant.upsert(version,points=points,wait=True)
             if start%320==0:
@@ -93,7 +151,7 @@ class HybridEngine:
                 vectors = self.models.encode([row["searchText"] for row in chunks])
                 self.qdrant.upsert(active["collection"], points=[
                     qm.PointStruct(id=str(uuid.uuid5(uuid.NAMESPACE_URL, row["id"])), vector=vector,
-                        payload={"chunkId":row["id"], "documentId":row["documentId"], "authority":row["authority"]})
+                        payload=point_payload(row))
                     for row,vector in zip(chunks,vectors)
                 ], wait=True)
             with self.lock:
@@ -140,7 +198,12 @@ class HybridEngine:
         authorities=["official","verified","curated"]
         if include_community:
             authorities.append("community")
-        allowed={key for key,row in lexical.rows.items() if row["authority"] in authorities}
+        today=datetime.now(timezone(timedelta(hours=8))).date().isoformat()
+        campus=filters.get("campus")
+        level=filters.get("educationLevel")
+        allowed={key for key,row in lexical.rows.items()
+            if row["authority"] in authorities and matches_scope(row,today=today,campus=campus,level=level)}
+        vector_filter=scope_qdrant_filter(authorities,campus=campus,level=level,today=today)
         encode_started=time.perf_counter()
         vector_queries=self.models.encode(queries)
         encode_ms=round((time.perf_counter()-encode_started)*1000)
@@ -148,7 +211,7 @@ class HybridEngine:
         stages=[]
         for text,vector in zip(queries,vector_queries):
             dense=self.qdrant.query_points(active["collection"],query=vector,limit=30,
-                query_filter=qm.Filter(must=[qm.FieldCondition(key="authority",match=qm.MatchAny(any=authorities))]),
+                query_filter=vector_filter,
                 with_payload=True).points
             dense_rows=[(p.payload["chunkId"],float(p.score)) for p in dense]
             sparse_rows=lexical.search(text,limit=30,allowed=allowed)
@@ -160,8 +223,7 @@ class HybridEngine:
         # ranking survives into narrow_candidates, which relies on it.
         fetched=self.store.get_chunks([key for key,_ in fused])
         filtered,candidates=narrow_candidates(fetched,
-            today=datetime.now(timezone(timedelta(hours=8))).date().isoformat(),
-            campus=filters.get("campus"),level=filters.get("educationLevel"),
+            today=today,campus=campus,level=level,
             limit=int(os.environ.get("KNOWLEDGE_RERANK_CANDIDATES","12")))
         filtered_count=len(filtered)
         rerank_stats={}
@@ -202,6 +264,7 @@ class HybridEngine:
             # visibility or scope, a drop from filtered to reranked is this host's
             # latency budget, and truncatedPairs says whether the budget cost evidence.
             "queryCount":len(queries),"fusedCount":len(fused),"filteredCount":filtered_count,
+            "scopeEligibleCount":len(allowed),
             "rerankedCount":len(ranked),"selectedCount":len(selected),
             **rerank_stats,
             "rerankThreshold":threshold,

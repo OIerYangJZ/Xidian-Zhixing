@@ -9,7 +9,7 @@ export function useNotificationsCountQuery() {
   return useQuery<number>({
     queryKey: ['users', userId, 'notifications', 'count'],
     queryFn: async () => getNotificationsCount({ userId: userId! }),
-    refetchInterval: 5000,
+    refetchInterval: 30000,
     enabled: !!userId,
   });
 }

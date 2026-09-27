@@ -25,13 +25,19 @@ def main():
         raw=raw_object_path(old['rawObjectKey'])
         if raw is None:
             raise FileNotFoundError(f"原始资料不在 KNOWLEDGE_RAW_DIR 中：{old['rawObjectKey']}")
-        title,text,date,pages=parse_html(raw.read_bytes(),old['sourceUrl'])
-        doc,chunks=make_document(title,text,old['sourceUrl'],published_at=date,pages=pages,
+        title,text,published_at,pages=parse_html(raw.read_bytes(),old['sourceUrl'])
+        doc,chunks=make_document(title,text,old['sourceUrl'],published_at=published_at or old.get('publishedAt'),pages=pages,
             doc_id=old['id'],source_id=old['sourceId'],authority=old['authority'])
-        doc['rawObjectKey']=old['rawObjectKey'];doc['parserVersion']='xiaodian-body-2';doc['chunkCount']=len(chunks)
+        for field in ('status','effectiveFrom','effectiveTo','supersedesId','campuses','educationLevels'):
+            doc[field]=old.get(field)
+        for chunk in chunks:
+            for field in ('status','effectiveFrom','effectiveTo','supersedesId','campuses','educationLevels'):
+                chunk[field]=old.get(field)
+        doc['createdAt']=old.get('createdAt',doc['createdAt'])
+        doc['rawObjectKey']=old['rawObjectKey'];doc['parserVersion']='xiaodian-body-3';doc['chunkCount']=len(chunks)
         store.put_document(doc,chunks)
         print(json.dumps({'parsed':doc['id'],'chunks':len(chunks)},ensure_ascii=False),flush=True)
-        return {'id':doc['id'],'title':title,'chunks':len(chunks),'date':date}
+        return {'id':doc['id'],'title':title,'chunks':len(chunks),'date':published_at}
     report={'published':[],'failed':[]}
     with ThreadPoolExecutor(args.workers) as pool:
         tasks={pool.submit(parse,doc):doc for doc in docs}

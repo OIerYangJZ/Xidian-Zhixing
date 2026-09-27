@@ -3,8 +3,6 @@ from __future__ import annotations
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from io import BytesIO
-from email.message import Message
 import json
 from pathlib import Path
 import re
@@ -13,12 +11,22 @@ import uuid
 import hashlib
 from urllib.parse import urlsplit, unquote
 
-import requests
-import trafilatura
-from pypdf import PdfReader
-
 from .store import KnowledgeStore, content_hash, utcnow
-from .attachments import office_text, ocr_pdf
+
+
+SERVICE_TITLE_TERMS = (
+    "指南", "办事", "流程", "常见问题", "faq", "借阅", "续借", "开放时间",
+    "上网申请", "远程访问", "网接入", "校园网", "无线网络", "无线网",
+    "使用手册", "使用说明", "就诊时间", "门诊", "校医院", "就医", "医保", "预约",
+    "报修", "维修", "一卡通", "校园卡", "学籍", "学位", "成绩", "选课", "考务", "考试须知",
+    "课表", "班车", "资助", "奖学金", "宿舍", "住宿", "迎新", "离校",
+    "缴费", "证明", "补办", "请假", "心理咨询", "通办", "图书服务",
+    "图书馆", "馆藏", "自习室", "座位预约", "食堂", "餐饮", "饮食", "水电", "热水", "浴室",
+    "统一身份认证", "学生邮件认证", "正版软件", "自助打印", "服务器申请",
+    "高算资源", "教室运维", "会议中心", "固话业务", "出访指南",
+)
+
+SERVICE_PATH_PREFIXES = ("/f_w/", "/fwzn", "/bszn", "/bslc", "/ssfw/", "/bmfw/", "/cyfw/")
 
 
 def official_url(url: str) -> bool:
@@ -26,7 +34,25 @@ def official_url(url: str) -> bool:
     return host == "xidian.edu.cn" or host.endswith(".xidian.edu.cn") or host == "moe.gov.cn" or host.endswith(".moe.gov.cn")
 
 
-def split_text(text: str, size=750, overlap=80) -> list[str]:
+def knowledge_source_url(url: str, title: str = "") -> bool:
+    """Keep official articles, attachments, and clearly named service pages."""
+    url=str(url or "")
+    title=str(title or "")
+    if not official_url(url):
+        return False
+    path=urlsplit(url).path.lower()
+    if "/info/" in path or path.endswith((".pdf", ".doc", ".docx", ".xls", ".xlsx")):
+        return True
+    lowered=title.casefold()
+    if any(token in path for token in ("/login", "slogin", "showpublic")):
+        return False
+    if path in ("", "/") and not any(token in lowered for token in ("服务指南", "学生服务指南")):
+        return False
+    return (bool(title.strip()) and path.startswith(SERVICE_PATH_PREFIXES)) or any(
+        term.casefold() in lowered for term in SERVICE_TITLE_TERMS)
+
+
+def split_text(text: str, size=240, overlap=48) -> list[str]:
     """Keep paragraphs intact when possible; even a single long paragraph is bounded."""
     paragraphs = [p.strip() for p in re.split(r"\n+", text) if p.strip()]
     output, current = [], ""
@@ -41,7 +67,7 @@ def split_text(text: str, size=750, overlap=80) -> list[str]:
             para = para[max(1,cut-overlap):]
         if current and len(current)+len(para)+1 > size:
             output.append(current)
-            current = current[-overlap:] + "\n" + para if len(para)+overlap+1 <= size else para
+            current = para
         else:
             current = (current+"\n"+para).strip()
     if current:
@@ -59,7 +85,7 @@ def make_document(title: str, text: str, url: str, *, published_at=None,
         "title":title, "content":text, "sourceUrl":url, "authority":authority,
         "publishedAt":published_at, "fetchedAt":fetched, "createdAt":fetched,
         "updatedAt":fetched, "contentHash":revision, "status":"published",
-        "parserVersion":"xiaodian-body-1", "effectiveFrom":None, "effectiveTo":None,
+        "parserVersion":"xiaodian-body-3", "effectiveFrom":None, "effectiveTo":None,
         "supersedesId":None, "campuses":[], "educationLevels":[],
     }
     chunks=[]
@@ -89,6 +115,10 @@ def make_document(title: str, text: str, url: str, *, published_at=None,
 
 
 def fetch_document(url: str, raw_dir: Path) -> tuple[dict,list[dict]]:
+    from email.message import Message
+    from io import BytesIO
+    import requests
+
     if not official_url(url):
         raise ValueError("只摄取配置范围内的官方来源")
     response=requests.get(url,timeout=(10,30),headers={"User-Agent":"ZhixingKnowledge/2.0 (+https://zhixing.xidian.edu.cn)"})
@@ -105,6 +135,9 @@ def fetch_document(url: str, raw_dir: Path) -> tuple[dict,list[dict]]:
     suffix=Path(filename).suffix.lower()
     pages=None
     if "pdf" in content_type or suffix==".pdf":
+        from pypdf import PdfReader
+        from .attachments import ocr_pdf
+
         reader=PdfReader(BytesIO(response.content))
         pages=[(i+1,(page.extract_text(extraction_mode="layout") or "").strip()) for i,page in enumerate(reader.pages)]
         scanned=[number-1 for number,body in pages if len(body)<80]
@@ -117,6 +150,8 @@ def fetch_document(url: str, raw_dir: Path) -> tuple[dict,list[dict]]:
         title=filename if suffix=='.pdf' else str((reader.metadata or {}).get("/Title") or 'PDF 文档')
         published_at=None
     elif suffix in {".docx",".xlsx",".doc",".xls"}:
+        from .attachments import office_text
+
         text=office_text(response.content,suffix)
         title=filename
         published_at=None
@@ -133,18 +168,73 @@ def existing_urls(app_db: str) -> list[str]:
     uri=Path(app_db).resolve().as_uri()+"?mode=ro"
     with sqlite3.connect(uri,uri=True) as con:
         row=con.execute("SELECT value_text FROM settings WHERE setting_key='radioState'").fetchone()
+    if row is None:
+        raise ValueError("应用数据库中没有 radioState")
     data=json.loads(row[0])
     urls=[]
     for doc in data.get("knowledgeDocuments",[]):
         url=doc.get("sourceUrl","")
-        if not official_url(url):
-            continue
-        path=urlsplit(url).path
-        # List/index pages discover documents; they are not answer evidence.
-        if "/info/" not in path and not path.endswith(".pdf"):
+        if not knowledge_source_url(url,doc.get("title", "")):
             continue
         urls.append(url)
     return list(dict.fromkeys(urls))
+
+
+def import_app_snapshot(db_path: str, app_db: str, report_path: str, limit: int | None = None) -> dict:
+    """Restore already-captured official bodies without depending on live websites.
+
+    The app snapshot is read only. Existing URLs are left untouched so disabled,
+    curated, or newer canonical records keep their current state. The resulting
+    corpus must be reindexed before search resumes.
+    """
+    uri=Path(app_db).resolve().as_uri()+"?mode=ro"
+    with sqlite3.connect(uri,uri=True) as con:
+        row=con.execute("SELECT value_text,updated_at FROM settings WHERE setting_key='radioState'").fetchone()
+    if row is None:
+        raise ValueError("应用数据库中没有 radioState")
+    state=json.loads(row[0])
+    snapshot_at=row[1]
+    store=KnowledgeStore(db_path)
+    before_docs=store.documents()
+    existing={doc.get("sourceUrl") for doc in before_docs if doc.get("sourceUrl")}
+    before_chunks=store.chunks(published_only=False)
+    candidates=[doc for doc in state.get("knowledgeDocuments",[])
+        if knowledge_source_url(doc.get("sourceUrl", ""),doc.get("title", ""))]
+    if limit is not None:
+        candidates=candidates[:limit]
+    report={"snapshotAt":snapshot_at,"requested":len(candidates),
+        "documentsBefore":len(before_docs),"chunksBefore":len(before_chunks),"imported":[],
+        "skippedExisting":0,"skippedInvalid":0}
+    for old in candidates:
+        url=old.get("sourceUrl", "")
+        if url in existing:
+            report["skippedExisting"]+=1
+            continue
+        title=str(old.get("title") or "").strip()
+        body=str(old.get("content") or "").strip()
+        if old.get("status", "published")!="published" or not title or len(body)<80:
+            report["skippedInvalid"]+=1
+            continue
+        doc,chunks=make_document(title,body,url,authority="official",source_id=old.get("sourceId"))
+        doc.update({"parserVersion":"radio-state-snapshot-1","sourceSnapshotAt":snapshot_at,
+            "sourceSnapshotRecordId":old.get("id"),"chunkCount":len(chunks)})
+        for chunk in chunks:
+            chunk["parserVersion"]="radio-state-snapshot-1"
+        store.put_document(doc,chunks)
+        existing.add(url)
+        report["imported"].append({"id":doc["id"],"url":url,"title":title,"chunks":len(chunks)})
+    active_index=store.setting("activeIndex")
+    if report["imported"]:
+        store.set_setting("activeIndex",None)
+    report["reindexRequired"]=bool(report["imported"]) or active_index is None
+    after_docs=store.documents()
+    after_chunks=store.chunks(published_only=False)
+    report.update({"documentsAfter":len(after_docs),
+        "publishedDocumentsAfter":sum(doc.get("status")=="published" for doc in after_docs),
+        "chunksAfter":len(after_chunks),
+        "chunksImported":len(after_chunks)-len(before_chunks)})
+    Path(report_path).write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
+    return report
 
 
 def main():
@@ -152,11 +242,24 @@ def main():
     parser.add_argument("--db",required=True)
     parser.add_argument("--app-db")
     parser.add_argument("--urls")
-    parser.add_argument("--raw-dir",required=True)
+    parser.add_argument("--raw-dir")
+    parser.add_argument("--from-app-snapshot",action="store_true",
+        help="从 KNOWLEDGE_APP_DB 已保存的正文补充官方页面，不访问学校网站")
     parser.add_argument("--workers",type=int,default=8)
     parser.add_argument("--limit",type=int)
     parser.add_argument("--report",required=True)
     args=parser.parse_args()
+    if args.from_app_snapshot:
+        if not args.app_db:
+            parser.error("--from-app-snapshot 需要 --app-db")
+        if args.urls:
+            parser.error("--from-app-snapshot 不能与 --urls 同时使用")
+        report=import_app_snapshot(args.db,args.app_db,args.report,args.limit)
+        print(json.dumps({"imported":len(report["imported"]),"skippedExisting":report["skippedExisting"],
+            "skippedInvalid":report["skippedInvalid"],"reindexRequired":report["reindexRequired"]},ensure_ascii=False))
+        return
+    if not args.raw_dir:
+        parser.error("在线采集需要 --raw-dir")
     urls=existing_urls(args.app_db) if args.app_db else []
     if args.urls:
         urls += json.loads(Path(args.urls).read_text(encoding="utf-8"))

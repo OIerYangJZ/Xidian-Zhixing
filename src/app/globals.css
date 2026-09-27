@@ -27,7 +27,7 @@
     --content-width: 640px;
     --sidebar-width: 240px;
     --right-rail-width: 320px;
-    --font-family-ui: Arial, Helvetica, sans-serif;
+    --font-family-ui: '华文中宋', 'STZhongsong', 'Songti SC', serif;
 
     --background: var(--page-bg);
     --foreground: var(--text-primary);

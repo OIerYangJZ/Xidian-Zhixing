@@ -3,11 +3,10 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
-import re
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urljoin
 import requests
 from lxml import html
-from .ingest import official_url
+from .ingest import knowledge_source_url
 
 
 def links(url):
@@ -18,12 +17,7 @@ def links(url):
     for anchor in tree.xpath('//a[@href]'):
         target = urljoin(response.url, anchor.get('href')).split('#')[0]
         title = ''.join(anchor.itertext()).strip()
-        if not official_url(target):
-            continue
-        path = urlsplit(target).path
-        if '/info/' in path or re.search(r'\.(pdf|docx|xlsx)$',path,re.I) or (
-            title and any(t in title for t in ['指南','借阅','续借','开放时间','上网申请','远程访问','网接入','就诊时间'])
-        ):
+        if knowledge_source_url(target,title):
             found.append(target)
     return list(dict.fromkeys(found))
 

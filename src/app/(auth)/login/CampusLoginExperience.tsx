@@ -1,7 +1,8 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { PointerEvent as ReactPointerEvent, useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 
 const campusImages: Array<{ src: string; alt: [string, string]; title: [string, string]; place: [string, string] }> = [
@@ -33,8 +34,7 @@ const campusImages: Array<{ src: string; alt: [string, string]; title: [string, 
 
 export function CampusLoginExperience() {
   const { t } = useLanguage();
-  const frameRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(2);
   const [paused, setPaused] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -112,23 +112,6 @@ export function CampusLoginExperience() {
     setActiveIndex((index) => (index + amount + campusImages.length) % campusImages.length);
   }, []);
 
-  const onPointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.pointerType !== 'mouse' || !frameRef.current) return;
-    const bounds = frameRef.current.getBoundingClientRect();
-    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
-    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
-    const image = frameRef.current.querySelector<HTMLElement>('.is-active');
-    image?.style.setProperty('--pan-x', `${x * -10}px`);
-    image?.style.setProperty('--pan-y', `${y * -8}px`);
-  }, []);
-
-  const resetPointer = useCallback(() => {
-    frameRef.current?.querySelectorAll<HTMLElement>('.campus-login__image').forEach((image) => {
-      image.style.setProperty('--pan-x', '0px');
-      image.style.setProperty('--pan-y', '0px');
-    });
-  }, []);
-
   const login = useCallback(async () => {
     setLoading(true);
     setAuthError('');
@@ -172,10 +155,10 @@ export function CampusLoginExperience() {
   return (
     <main className="campus-login">
       <header className="campus-login__topbar">
-        <a className="campus-login__brand" href="/feed" aria-label={t('进入知行信息流', 'Open the Zhixing feed')}>
+        <Link className="campus-login__brand" href="/" aria-label={t('西电知行首页', 'Xidian Zhixing home')}>
           <img className="campus-login__brand-logo" src="/campus-login/zhixing-logo.jpg" alt="" />
           <span>{t('西电知行', 'Xidian Zhixing')}</span>
-        </a>
+        </Link>
         <nav className="campus-login__top-links" aria-label={t('登录页导航', 'Sign-in navigation')}>
           <a href="#campus-gallery">{t('认识校园', 'Explore campus')}</a>
           <a href="#campus-auth">{t('统一认证', 'Sign in')}</a>
@@ -184,21 +167,17 @@ export function CampusLoginExperience() {
 
       <div className="campus-login__layout">
         <section
-          ref={frameRef}
           className="campus-login__story"
           aria-labelledby="campus-login-title"
+          aria-label={t(activeImage.alt[0], activeImage.alt[1])}
           onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onPointerMove={onPointerMove}
-          onPointerLeave={resetPointer}>
+          onMouseLeave={() => setPaused(false)}>
           {campusImages.map((image, index) => (
-            <img
+            <div
               key={image.src}
-              className={`campus-login__image${activeIndex === index ? 'is-active' : ''}`}
-              src={image.src}
-              alt={t(image.alt[0], image.alt[1])}
-              aria-hidden={index !== activeIndex}
-              loading={index === 0 ? 'eager' : 'lazy'}
+              className={`campus-login__photo-layer${activeIndex === index ? 'is-active' : ''}`}
+              style={{ backgroundImage: `url("${image.src}")` }}
+              aria-hidden="true"
             />
           ))}
           <div className="campus-login__story-grid" aria-hidden="true" />
@@ -258,6 +237,12 @@ export function CampusLoginExperience() {
               <br />
               <span>{t('知行。', 'Zhixing.')}</span>
             </h2>
+            <p className="campus-login__auth-description">
+              {t(
+                '用校园身份开启今天。登录后，课程、校园服务与同学社区都在这里。',
+                'Sign in with your campus account to access courses, campus services, and the student community.',
+              )}
+            </p>
 
             <button type="button" className="campus-login__submit" onClick={login} disabled={loading}>
               <span>{loading ? t('正在登录…', 'Signing in…') : t('一站式登录', 'Sign in with Xidian')}</span>

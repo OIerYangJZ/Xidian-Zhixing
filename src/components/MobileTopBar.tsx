@@ -45,7 +45,7 @@ export function MobileTopBar() {
           href="/settings"
           aria-label={t('设置', 'Settings')}
           className="grid h-10 w-10 place-items-center rounded-full text-foreground transition hover:bg-secondary">
-          <Settings className="h-5 w-5 stroke-current" />
+          <Settings className="h-5 w-5 shrink-0 stroke-current" />
         </Link>
         <Link
           href="/notifications"

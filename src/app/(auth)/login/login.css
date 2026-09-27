@@ -14,7 +14,7 @@
   overflow: hidden;
   color: var(--ink);
   background: var(--paper);
-  font-family: 'Aptos', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  font-family: var(--font-family-ui);
   text-rendering: optimizeLegibility;
 }
 
@@ -108,16 +108,15 @@
   pointer-events: none;
 }
 
-.campus-login__image {
+.campus-login__photo-layer {
   position: absolute;
   z-index: -2;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  background-position: center;
+  background-size: cover;
   opacity: 0;
   filter: saturate(0.84) contrast(1.04);
-  transform: translate3d(var(--pan-x, 0), var(--pan-y, 0), 0) scale(1.08);
+  transform: scale(1.035);
   transition:
     opacity 850ms ease,
     transform 5.2s cubic-bezier(0.2, 0.75, 0.2, 1),
@@ -125,10 +124,10 @@
   pointer-events: none;
 }
 
-.campus-login__image.is-active {
+.campus-login__photo-layer.is-active {
   opacity: 1;
   filter: saturate(1) contrast(1.05);
-  transform: translate3d(var(--pan-x, 0), var(--pan-y, 0), 0) scale(1.015);
+  transform: scale(1.015);
 }
 
 .campus-login__story-grid {
@@ -187,7 +186,7 @@
 .campus-login__gallery-wrap {
   display: flex;
   min-height: 0;
-  align-items: end;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
   margin-top: auto;
@@ -338,6 +337,13 @@
   color: var(--signal);
 }
 
+.campus-login__auth-description {
+  margin: 18px 0 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
 .campus-login__submit,
 .campus-login__test-login {
   display: flex;
@@ -360,7 +366,7 @@
 .campus-login__submit {
   position: relative;
   overflow: hidden;
-  margin-top: 8px;
+  margin-top: 36px;
   border: 1px solid var(--blue-deep);
   color: var(--white);
   background: var(--blue-deep);

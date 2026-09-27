@@ -1,4 +1,6 @@
 import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+import { getServerUser } from '@/lib/getServerUser';
+import { redirect } from 'next/navigation';
 
 export const metadata = {
   title: '西电知行 · Xidian University',
@@ -6,6 +8,9 @@ export const metadata = {
 };
 
 export default async function Page() {
+  const [user] = await getServerUser();
+  if (user) redirect('/feed');
+
   const language = await getInterfaceLanguage();
   return (
     <iframe

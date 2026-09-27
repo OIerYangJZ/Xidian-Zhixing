@@ -71,7 +71,7 @@ export function Notifications({ userId }: { userId: string }) {
   }, [isBottomOnScreen, hasNextPage, fetchNextPage]);
 
   useEffect(() => {
-    const interval = setInterval(fetchPreviousPage, 5000);
+    const interval = setInterval(fetchPreviousPage, 30000);
     return () => clearInterval(interval);
   }, [fetchPreviousPage]);
 

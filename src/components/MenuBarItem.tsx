@@ -57,8 +57,8 @@ export function MenuBarItem({
           !isActive && 'scale-y-0 opacity-0',
         )}
       />
-      <span className={cn('relative grid h-8 w-8 place-items-center rounded-full', mobileTab && 'h-6 w-7')}>
-        <Icon className={cn('h-[22px] w-[22px] stroke-current', isActive && 'stroke-[2.4px]')} />
+      <span className={cn('relative grid h-8 w-8 shrink-0 place-items-center rounded-full', mobileTab && 'h-6 w-7')}>
+        <Icon className={cn('h-[22px] w-[22px] shrink-0 stroke-current', isActive && 'stroke-[2.4px]')} />
         {badge !== undefined && badge !== 0 ? (
           <span className="absolute -right-2 -top-1">
             <Badge>{badge}</Badge>
@@ -66,7 +66,7 @@ export function MenuBarItem({
         ) : null}
       </span>
       <span
-        className={cn('hidden text-[15px] leading-5 xl:block', mobileTab && 'block text-[10px] leading-3 md:hidden')}>
+        className={cn('hidden text-[17px] leading-6 xl:block', mobileTab && 'block text-[10px] leading-3 md:hidden')}>
         {children}
       </span>
     </ButtonNaked>

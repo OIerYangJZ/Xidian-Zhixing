@@ -19,7 +19,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   const [session, cookieStore] = await Promise.all([auth(), cookies()]);
   const initialLanguage = cookieStore.get('zhixing-language')?.value === 'en' ? 'en' : 'zh';
   return (
-    <html lang={initialLanguage === 'zh' ? 'zh-CN' : 'en'} className="overflow-y-scroll">
+    <html lang={initialLanguage === 'zh' ? 'zh-CN' : 'en'} className="overflow-y-scroll" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
       </head>

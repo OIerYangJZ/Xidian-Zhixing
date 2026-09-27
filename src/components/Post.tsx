@@ -24,6 +24,7 @@ import { ToggleStepper } from './ui/ToggleStepper';
 import { Comments } from './Comments';
 import { PostVisualMediaContainer } from './PostVisualMediaContainer';
 import ProfileBlock from './ProfileBlock';
+import { ProfilePhoto } from './ui/ProfilePhoto';
 import { HighlightedMentionsAndHashTags } from './HighlightedMentionsAndHashTags';
 import { PostOptions } from './PostOptions';
 
@@ -222,9 +223,9 @@ export const Post = memo(
     });
 
     return (
-      <article className="feed-separator border-b px-4 py-3 transition-colors hover:bg-foreground/[0.012] sm:px-4">
+      <article className="feed-separator border-b px-4 py-4 transition-colors hover:bg-foreground/[0.012] sm:px-5">
         {repostedBy && (
-          <div className="mb-2 flex items-center gap-2 pl-[52px] text-xs text-muted-foreground">
+          <div className="mb-2 flex items-center gap-2 pl-[60px] text-xs text-muted-foreground">
             <RepostIcon className="h-3.5 w-3.5" aria-hidden="true" />
             <span>{t('转发自', 'Reposted by')}</span>
             {repostedBy.username ? (
@@ -236,57 +237,61 @@ export const Post = memo(
             )}
           </div>
         )}
-        <div className="flex items-start gap-3">
-          {displayIdentity === 'ANONYMOUS' ? (
-            <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-base font-semibold text-muted-foreground">
+        <div className="relative pl-[60px]">
+          <div className="absolute left-0 top-0 h-12 w-12">
+            {displayIdentity === 'ANONYMOUS' ? (
+              <div className="grid h-12 w-12 place-items-center rounded-full bg-secondary text-base font-semibold text-muted-foreground">
                 {t('匿', 'A')}
               </div>
-              <div className="flex flex-wrap items-center gap-x-2">
-                <div className="text-[15px] font-semibold text-foreground">{t('匿名同学', 'Anonymous student')}</div>
-                <span className="text-sm text-muted-foreground">· {postTime}</span>
-              </div>
-            </div>
-          ) : displayIdentity === 'CLUB' && publishedAsClub ? (
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 overflow-hidden rounded-full bg-secondary">
+            ) : displayIdentity === 'CLUB' && publishedAsClub ? (
+              <div className="h-12 w-12 overflow-hidden rounded-full bg-secondary">
                 {publishedAsClub.avatar ? (
                   <img src={publishedAsClub.avatar} alt="" className="h-full w-full object-cover" />
                 ) : null}
               </div>
-              <div className="min-w-0">
+            ) : author ? (
+              <ProfilePhoto photoUrl={author.profilePhoto || ''} username={author.username} name={author.name} />
+            ) : null}
+          </div>
+          <div className="relative pr-10">
+            <div className="min-w-0 pt-0.5">
+              {displayIdentity === 'ANONYMOUS' ? (
                 <div className="flex flex-wrap items-center gap-x-2">
-                  <div className="text-[15px] font-semibold text-foreground">{publishedAsClub.name}</div>
+                  <div className="text-sm font-semibold text-foreground">{t('匿名同学', 'Anonymous student')}</div>
+                  <span className="text-sm text-muted-foreground">· {postTime}</span>
+                </div>
+              ) : displayIdentity === 'CLUB' && publishedAsClub ? (
+                <div className="flex flex-wrap items-center gap-x-2">
+                  <div className="text-sm font-semibold text-foreground">{publishedAsClub.name}</div>
                   <span className="text-sm text-muted-foreground">
                     {t('社团', 'Club')} · {postTime}
                   </span>
                 </div>
-              </div>
+              ) : author ? (
+                <ProfileBlock
+                  name={author.name}
+                  username={author.username}
+                  time={postTime}
+                  photoUrl={author.profilePhoto || ''}
+                  hideAvatar
+                />
+              ) : null}
             </div>
-          ) : author ? (
-            <ProfileBlock
-              name={author.name}
-              username={author.username}
-              time={postTime}
-              photoUrl={author.profilePhoto || ''}
-            />
-          ) : null}
-          <div className="ml-auto shrink-0">
-            {isOwnPost && <PostOptions postId={postId} content={content} visualMedia={visualMedia} />}
+            <div className="absolute right-0 top-0">
+              {isOwnPost && <PostOptions postId={postId} content={content} visualMedia={visualMedia} />}
+            </div>
           </div>
-        </div>
-        <div className="ml-[52px] min-w-0">
           {content && (
-            <p className="mb-3 mt-1 whitespace-pre-wrap break-words text-[15px] leading-6 text-foreground">
+            <p className="mb-1.5 mt-1 whitespace-pre-wrap break-words text-sm leading-5 text-foreground">
               <HighlightedMentionsAndHashTags text={content} shouldAddLinks />
             </p>
           )}
           {visualMedia.length > 0 && (
-            <div className="mb-3 mt-2 overflow-hidden rounded-xl border border-border bg-secondary/30">
+            <div className="mb-1 mt-1 overflow-hidden rounded-xl border border-border bg-secondary/30">
               <PostVisualMediaContainer visualMedia={visualMedia} />
             </div>
           )}
-          <div className="-ml-2 flex items-center justify-between pt-1 text-muted-foreground">
+          <div className="flex items-center justify-between text-muted-foreground">
             <ToggleStepper
               isSelected={commentsShown || false}
               aria-label={commentsShown ? t('隐藏评论', 'Hide replies') : t('显示评论', 'Show replies')}
@@ -294,6 +299,7 @@ export const Post = memo(
               Icon={SvgComment}
               quantity={postCounts.comments}
               color="accent"
+              compact
             />
             <ToggleStepper
               isSelected={isReposted}
@@ -303,6 +309,7 @@ export const Post = memo(
               Icon={RepostIcon}
               quantity={postCounts.reposts}
               color="accent"
+              compact
             />
             <ToggleStepper
               isSelected={isLiked}
@@ -311,11 +318,12 @@ export const Post = memo(
               Icon={SvgHeart}
               quantity={numberOfLikes}
               color="accent"
+              compact
             />
             <Link
               href={`/posts/${postId}`}
               aria-label={`${formatCount(viewCount)} ${t('次浏览', 'views')}`}
-              className="flex min-w-12 items-center gap-2 rounded-full px-2 py-2 text-xs font-medium hover:bg-primary/10 hover:text-primary">
+              className="flex min-w-12 items-center gap-2 rounded-full px-2 py-1 text-xs font-medium hover:bg-primary/10 hover:text-primary">
               <AnalyticsIcon className="h-5 w-5" />
               {formatCount(viewCount)}
             </Link>
@@ -325,7 +333,7 @@ export const Post = memo(
               aria-pressed={isBookmarked}
               onClick={() => (isBookmarked ? removeBookmarkMutation.mutate() : bookmarkMutation.mutate())}
               disabled={bookmarkMutation.isPending || removeBookmarkMutation.isPending}
-              className="flex h-10 min-w-10 items-center justify-center gap-1 rounded-full px-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50">
+              className="flex h-8 min-w-10 items-center justify-center gap-1 rounded-full px-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50">
               <SvgBookmark className={cn('h-5 w-5', isBookmarked && 'fill-primary stroke-primary')} />
               <span className="text-xs font-medium">{formatCount(postCounts.bookmarks)}</span>
             </button>
@@ -333,7 +341,7 @@ export const Post = memo(
               type="button"
               aria-label={t('分享帖子', 'Share post')}
               onClick={sharePost}
-              className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
+              className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
               <ShareIcon className="h-5 w-5" />
             </button>
           </div>

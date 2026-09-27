@@ -131,9 +131,9 @@ export function SettingsPanel() {
                   value={visualTheme}
                   onChange={(event) => handleVisualThemeChange(event.target.value as 'zhixing' | 'editorial')}
                   className="min-h-11 border border-border bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                  <option value="zhixing">{t('知行首页风格（默认）', 'Zhixing home (default)')}</option>
+                  <option value="zhixing">{t('极简', 'Minimal')}</option>
                   <option value="editorial">
-                    {t('暖纸红棕风格（参考图）', 'Warm paper and red-brown (reference-inspired)')}
+                    {t('人本·初创', 'Human-centered · Startup')}
                   </option>
                 </select>
               </label>

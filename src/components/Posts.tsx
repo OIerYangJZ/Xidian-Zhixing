@@ -145,19 +145,18 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
   });
 
   useEffect(() => {
-    // Reset the queries when the page has just been pushed, this is to account
-    // for changes in the user's follows, e.g. if they start following people,
-    // their posts must be shown in the user's feed
+    // Refresh pushed-to pages without clearing the cached timeline, so returning
+    // to the feed keeps its content visible while the latest posts load.
     if (shouldAnimate) {
-      // Need to manually reset as the `staleTime` is set to `Infinity`
-      qc.resetQueries({ queryKey, exact: true });
+      // The query uses an infinite stale time, so explicitly mark it stale on a push.
+      qc.invalidateQueries({ queryKey, exact: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    // Check for new posts every 5 seconds, this allows for bidirectional infinite queries
-    const interval = setInterval(fetchPreviousPage, 5000);
+    // Poll less often to avoid repeated feed queries while reading.
+    const interval = setInterval(fetchPreviousPage, 30000);
     return () => clearInterval(interval);
   }, [fetchPreviousPage]);
 

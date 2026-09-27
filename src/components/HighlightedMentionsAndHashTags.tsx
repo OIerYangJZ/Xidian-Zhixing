@@ -6,11 +6,11 @@ export function HighlightedMentionsAndHashTags({ text, shouldAddLinks }: { text:
   /**
    * Define a regex pattern to match words that begin with `@` or `#`
    *
-   * * The first group matches either the start of a line (^) or a whitespace character (\s)
+   * * The first group matches a line start, whitespace, or punctuation before the marker
    * * The second group matches either the `@` or `#`
-   * * The third group matches the word after the `@` or `#`
+   * * The third group matches Unicode letters, numbers, and underscores after the `@` or `#`
    */
-  const pattern = /(^|\s)(@|#)(\w+|\w+)/g;
+  const pattern = /(^|[\s\p{P}\p{S}])(@|#)([\p{L}\p{N}_]+)/gu;
   const cleanText = DOMPurify.sanitize(text.replace(/</g, '&lt;').replace(/>/, '&gt;'));
 
   // Use replace() method to surround the matches' word with the <span> tag
