@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="西电知行：连接西安电子科技大学的学习、研究与校园生活。">
+  <title>西电知行 · Xidian University</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%232b55ff'/%3E%3Cpath d='M13 32h38M32 13v38' stroke='white' stroke-width='5'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;900&family=Libre+Baskerville:wght@400;700&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-lang="zh">
+  <div class="scroll-progress" aria-hidden="true"><span></span></div>
+
+  <header class="site-header" id="siteHeader">
+    <a class="brand" href="#home" aria-label="西电知行首页" data-i18n-aria-label="a11y.home">
+      <img class="brand-logo" src="/campus-login/zhixing-logo.jpg" alt="">
+      <span class="brand-wordmark">知行<span>ZHIXING</span></span>
+    </a>
+
+    <nav class="primary-nav" aria-label="主导航" data-i18n-aria-label="a11y.primaryNav">
+      <a class="nav-link is-active" href="#home" data-i18n="nav.home">Home</a>
+      <a class="nav-link" href="https://www.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="nav.xidian">西电主页 ↗</a>
+      <a class="nav-link" href="https://www.xidian.cc/#photo" target="_blank" rel="noopener noreferrer" data-i18n="nav.common">常用网站</a>
+      <a class="nav-link" href="https://www.xidian.cc/#web" target="_blank" rel="noopener noreferrer" data-i18n="nav.system">网络系统</a>
+      <a class="nav-link" href="https://www.xidian.cc/#jiaocheng" target="_blank" rel="noopener noreferrer" data-i18n="nav.schools">学院导航</a>
+      <a class="nav-link" href="https://www.xidian.cc/#design" target="_blank" rel="noopener noreferrer" data-i18n="nav.admin">行政部门</a>
+      <a class="nav-link" href="https://www.xidian.cc/#inspiration" target="_blank" rel="noopener noreferrer" data-i18n="nav.related">相关网站</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="language-switch" id="languageSwitch" type="button" aria-label="切换到英文" data-i18n-aria-label="a11y.switchLanguage">EN</button>
+      <button class="icon-button" id="searchToggle" type="button" aria-label="打开搜索" data-i18n-aria-label="a11y.openSearch"><span class="search-icon" aria-hidden="true"></span><span class="action-label" data-i18n="action.search">搜索</span></button>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="menuPanel"><span class="menu-icon"><i></i><i></i><i></i></span><span class="action-label" data-i18n="action.menu">菜单</span></button>
+      <a class="login-link" href="/login" target="_top"><span data-i18n="nav.login">知行登录</span><b>↗</b></a>
+    </div>
+  </header>
+
+  <aside class="search-panel" id="searchPanel" aria-hidden="true">
+    <form class="search-form" id="searchForm">
+      <label for="searchInput" data-i18n="search.label">搜索西电站内内容</label>
+      <div class="search-row">
+        <input id="searchInput" name="q" type="search" autocomplete="off" data-i18n-placeholder="search.placeholder" placeholder="输入关键词">
+        <button type="submit" class="text-arrow" data-i18n="search.submit">搜索 ↗</button>
+      </div>
+      <button class="panel-close" id="searchClose" type="button" data-i18n="action.close">关闭</button>
+    </form>
+  </aside>
+
+  <aside class="menu-panel" id="menuPanel" aria-hidden="true">
+    <div class="menu-panel-inner">
+      <div class="menu-heading">
+        <span class="eyebrow" data-i18n="menu.eyebrow">XIDIAN / ZHIXING</span>
+        <h2 data-i18n="menu.title">从问题出发，<br>向真实世界抵达。</h2>
+      </div>
+      <div class="menu-columns">
+        <div>
+          <span class="menu-label" data-i18n="menu.explore">探索西电</span>
+          <a href="#identity" data-i18n="menu.identity">知行的起点</a>
+          <a href="#question" data-i18n="menu.question">问题与方法</a>
+          <a href="#disciplines" data-i18n="menu.disciplines">学科与实验室</a>
+          <a href="#news" data-i18n="menu.news">校园现场</a>
+        </div>
+        <div>
+          <span class="menu-label" data-i18n="menu.quick">常用入口</span>
+          <a href="https://ywtb.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="quick.one">一网通办 ↗</a>
+          <a href="https://jwc.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="quick.jwc">教务处 ↗</a>
+          <a href="https://gr.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="quick.gr">研究生院 ↗</a>
+          <a href="https://zsb.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="quick.zsb">本科招生 ↗</a>
+        </div>
+      </div>
+      <button class="panel-close panel-close-light" id="menuClose" type="button" data-i18n="action.close">关闭</button>
+    </div>
+  </aside>
+
+  <main>
+    <section class="hero section-light" id="home" data-tone="light">
+      <div class="hero-topline reveal-on-load">
+        <span data-i18n="hero.kicker">XIDIAN UNIVERSITY / 西安</span>
+        <span data-i18n="hero.edition">1931 — 2026</span>
+      </div>
+      <div class="hero-content">
+        <h1 class="hero-title reveal-on-load" data-i18n="hero.title">在西电，<br>从问题出发，<br><em>让知行发生。</em></h1>
+        <p class="hero-lead reveal-on-load" data-i18n="hero.lead">一所从信息与电子学科出发的大学，把好奇心带进课堂、实验室与真实世界。</p>
+      </div>
+      <div class="hero-art" aria-label="西电校园影像" data-i18n-aria-label="a11y.campusImages">
+        <figure class="hero-photo hero-photo-main reveal-on-load"><img src="assets/login-bg-1.png" alt="西电长安校区教学区俯瞰" data-i18n-alt="alt.heroMain"></figure>
+        <figure class="hero-photo hero-photo-small reveal-on-load"><img src="assets/login-bg-2.png" alt="西电长安校区校名石" data-i18n-alt="alt.heroSmall"></figure>
+        <span class="hero-stamp" data-i18n="hero.stamp">知行<br>合一</span>
+      </div>
+      <a class="scroll-cue" href="#identity"><span data-i18n="hero.scroll">向下探索</span><i aria-hidden="true"></i></a>
+    </section>
+
+    <section class="identity section-dark" id="identity" data-tone="dark">
+      <div class="section-index reveal"><span>01</span><span data-i18n="identity.label">THE STARTING POINT</span></div>
+      <div class="identity-layout">
+        <h2 class="display-title reveal" data-i18n="identity.title">西电是一所把<br><span>电子信息</span>变成<br>现实的大学。</h2>
+        <div class="identity-copy reveal">
+          <p class="large-copy" data-i18n="identity.lead">从红色电波到智能世界，西电始终在回答同一个问题：知识如何真正改变生活。</p>
+          <p data-i18n="identity.body">这里有面向国家战略的科研，也有从一张草图开始的第一次实验。每一门课、每一间实验室、每一次协作，都是把“知道”推进到“做到”的练习。</p>
+          <a class="underlined-link" href="https://www.xidian.edu.cn/xxgk.htm" target="_blank" rel="noopener noreferrer"><span data-i18n="identity.link">认识西电</span><b>↗</b></a>
+        </div>
+      </div>
+      <div class="identity-media reveal"><img src="assets/login-bg-3.png" alt="西电长安校区教学楼与校园绿地" data-i18n-alt="alt.identity"><span data-i18n="identity.caption">长安校区 · 教学区与校园绿地</span></div>
+      <div class="identity-foot reveal"><span data-i18n="identity.quote">“厚德、求真、励学、笃行”</span><span data-i18n="identity.note">每一次登录，都是新的出发。</span></div>
+    </section>
+
+    <section class="question section-light" id="question" data-tone="light">
+      <div class="section-index reveal"><span>02</span><span data-i18n="question.label">A QUESTION BECOMES A PRACTICE</span></div>
+      <div class="question-grid">
+        <div class="question-copy">
+          <h2 class="display-title reveal" data-i18n="question.title">真正的学习，<br>从一个好问题开始。</h2>
+          <p class="section-intro reveal" data-i18n="question.body">在西电，学科彼此连接。你可以从一段代码进入通信，从一束光走向芯片，也可以把一次实验变成服务社会的方案。</p>
+          <div class="link-stack reveal">
+            <a class="underlined-link" href="https://www.xidian.edu.cn/jyjx.htm" target="_blank" rel="noopener noreferrer"><span data-i18n="question.undergrad">本科生教育</span><b>↗</b></a>
+            <a class="underlined-link" href="https://gr.xidian.edu.cn/" target="_blank" rel="noopener noreferrer"><span data-i18n="question.grad">研究生教育</span><b>↗</b></a>
+            <a class="underlined-link" href="https://www.xidian.edu.cn/2016zhuzhanxin/kxyj.jsp?urltype=tree.TreeTempUrl&wbtreeid=1786" target="_blank" rel="noopener noreferrer"><span data-i18n="question.research">科学研究</span><b>↗</b></a>
+          </div>
+        </div>
+        <figure class="question-photo reveal"><img src="assets/login-bg-2.png" alt="西电长安校区校名石与教学楼" data-i18n-alt="alt.question"><button class="pause-button" type="button" id="pauseMotion" aria-label="暂停图片动效" data-i18n-aria-label="a11y.pauseMotion">Ⅱ</button><figcaption data-i18n="question.caption">把抽象的知识，做成看得见的答案。</figcaption></figure>
+      </div>
+      <div class="question-marquee" aria-hidden="true"><span>ASK / MAKE / TEST / SHARE / ASK / MAKE / TEST / SHARE / </span><span>ASK / MAKE / TEST / SHARE / ASK / MAKE / TEST / SHARE / </span></div>
+    </section>
+
+    <section class="campus section-blue" id="campus" data-tone="dark">
+      <div class="section-index reveal"><span>03</span><span data-i18n="campus.label">A CAMPUS IN MOTION</span></div>
+      <div class="campus-heading reveal">
+        <h2 class="display-title" data-i18n="campus.title">从太白山下，<br>到下一次发射。</h2>
+        <p data-i18n="campus.body">校园不是背景，它是每天发生的实验。走过图书馆、操场和实验楼，新的想法总会在路上相遇。</p>
+      </div>
+      <div class="campus-gallery">
+        <figure class="campus-card campus-card-large reveal"><img src="assets/login-bg-1.png" alt="西电长安校区教学区与中央步道" data-i18n-alt="alt.campusMain"><figcaption><span data-i18n="campus.card1">长安校区 · 教学区俯瞰</span><b>01</b></figcaption></figure>
+        <figure class="campus-card campus-card-small reveal"><img src="assets/campus-library-aerial.jpg" alt="西电图书馆及周边校园建筑航拍" data-i18n-alt="alt.campusLibrary"><figcaption><span data-i18n="campus.card2">图书馆 · 校园全景</span><b>02</b></figcaption></figure>
+        <figure class="campus-card campus-card-tall reveal"><img src="assets/login-bg-3.png" alt="西电长安校区教学楼与绿地" data-i18n-alt="alt.campusBuildings"><figcaption><span data-i18n="campus.card3">长安校区 · 教学楼与绿地</span><b>03</b></figcaption></figure>
+      </div>
+      <a class="underlined-link underlined-link-light reveal" href="https://www.xidian.edu.cn/xxgk.htm#E" target="_blank" rel="noopener noreferrer"><span data-i18n="campus.link">校园导览</span><b>↗</b></a>
+    </section>
+
+    <section class="disciplines section-light" id="disciplines" data-tone="light">
+      <div class="section-index reveal"><span>04</span><span data-i18n="discipline.label">FIELDS OF PRACTICE</span></div>
+      <div class="discipline-head">
+        <h2 class="display-title reveal" data-i18n="discipline.title">把好奇心，<br><em>送进实验室。</em></h2>
+        <p class="section-intro reveal" data-i18n="discipline.body">信息与通信、电子科学、计算机、人工智能与空间科学，在同一张校园地图上彼此回应。</p>
+      </div>
+      <div class="discipline-grid">
+        <a class="discipline-item reveal" href="https://www.xidian.edu.cn/jyjx.htm" target="_blank" rel="noopener noreferrer"><span>01</span><strong data-i18n="discipline.item1">信息与通信</strong><small data-i18n="discipline.item1s">连接人与世界的信号</small><b>↗</b></a>
+        <a class="discipline-item reveal" href="https://www.xidian.edu.cn/2016zhuzhanxin/kxyj.jsp?urltype=tree.TreeTempUrl&wbtreeid=1786" target="_blank" rel="noopener noreferrer"><span>02</span><strong data-i18n="discipline.item2">电子科学</strong><small data-i18n="discipline.item2s">让微小尺度拥有巨大能量</small><b>↗</b></a>
+        <a class="discipline-item reveal" href="https://www.xidian.edu.cn/jyjx.htm" target="_blank" rel="noopener noreferrer"><span>03</span><strong data-i18n="discipline.item3">计算与智能</strong><small data-i18n="discipline.item3s">把复杂世界变成可理解的模型</small><b>↗</b></a>
+        <a class="discipline-item reveal" href="https://www.xidian.edu.cn/2016zhuzhanxin/kxyj.jsp?urltype=tree.TreeTempUrl&wbtreeid=1786" target="_blank" rel="noopener noreferrer"><span>04</span><strong data-i18n="discipline.item4">空间与探测</strong><small data-i18n="discipline.item4s">把目光投向更远的地方</small><b>↗</b></a>
+      </div>
+    </section>
+
+    <section class="news section-paper" id="news" data-tone="light">
+      <div class="section-index reveal"><span>05</span><span data-i18n="news.label">ON CAMPUS / NOW</span></div>
+      <div class="news-head reveal"><h2 class="display-title" data-i18n="news.title">最近，西电正在发生什么？</h2><a class="underlined-link" href="https://news.xidian.edu.cn/" target="_blank" rel="noopener noreferrer"><span data-i18n="news.all">查看全部新闻</span><b>↗</b></a></div>
+      <div class="news-grid">
+        <article class="news-card news-card-feature reveal"><img src="assets/login-bg-1.png" alt="西电长安校区教学区俯瞰" data-i18n-alt="alt.heroMain"><div class="news-meta"><span data-i18n="news.tag1">校园现场</span><span>01</span></div><h3 data-i18n="news.card1">让每一次探索，都有真实的回声。</h3><p data-i18n="news.card1p">从课堂到实验室，从校园到社会，西电人的问题意识一直在生长。</p></article>
+        <article class="news-card reveal"><img src="assets/login-bg-3.png" alt="西电长安校区教学楼与绿地" data-i18n-alt="alt.campusBuildings"><div class="news-meta"><span data-i18n="news.tag2">研究与创新</span><span>02</span></div><h3 data-i18n="news.card2">把新想法，交给下一次实验。</h3><a class="underlined-link" href="https://www.xidian.edu.cn/2016zhuzhanxin/kxyj.jsp?urltype=tree.TreeTempUrl&wbtreeid=1786" target="_blank" rel="noopener noreferrer"><span data-i18n="news.read">继续阅读</span><b>↗</b></a></article>
+        <article class="news-card reveal"><img src="assets/campus-library-aerial.jpg" alt="西电图书馆及周边校园建筑航拍" data-i18n-alt="alt.campusLibrary"><div class="news-meta"><span data-i18n="news.tag3">学生生活</span><span>03</span></div><h3 data-i18n="news.card3">在同一片校园里，遇见不同的答案。</h3><a class="underlined-link" href="https://www.xidian.edu.cn/" target="_blank" rel="noopener noreferrer"><span data-i18n="news.read">继续阅读</span><b>↗</b></a></article>
+      </div>
+    </section>
+
+    <section class="entry section-dark" id="login" data-tone="dark">
+      <div class="section-index reveal"><span>06</span><span data-i18n="entry.label">YOUR NEXT STEP</span></div>
+      <div class="entry-layout">
+        <h2 class="display-title reveal" data-i18n="entry.title">每一次登录，<br><span>都是新的开始。</span></h2>
+        <div class="entry-copy reveal">
+          <p data-i18n="entry.body">西电知行连接学习、研究、事务与校园生活。现在进入统一身份认证，继续你的下一段探索。</p>
+          <a class="solid-button" href="/login" target="_top"><span data-i18n="entry.button">进入知行登录</span><b>↗</b></a>
+          <div class="entry-links"><a href="https://www.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="entry.home">西电主页 ↗</a><a href="https://ywtb.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="entry.one">一网通办 ↗</a><a href="https://news.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="entry.news">新闻与活动 ↗</a></div>
+        </div>
+      </div>
+      <div class="entry-loop" aria-hidden="true"><span>ZHIXING / 知行 / ZHIXING / 知行 / </span><span>ZHIXING / 知行 / ZHIXING / 知行 / </span></div>
+    </section>
+  </main>
+
+  <footer class="site-footer section-blue" data-tone="dark">
+    <div class="footer-top">
+      <a class="brand brand-footer" href="#home"><img class="brand-logo" src="/campus-login/zhixing-logo.jpg" alt=""><span class="brand-wordmark">知行<span>ZHIXING</span></span></a>
+      <p data-i18n="footer.statement">从西安出发，和世界一起把问题做成答案。</p>
+      <a class="footer-top-link" href="#home" data-i18n="footer.top">返回顶部 ↑</a>
+    </div>
+    <div class="footer-columns">
+      <div><span class="footer-label" data-i18n="footer.contact">联系西电</span><a href="https://www.xidian.edu.cn/" target="_blank" rel="noopener noreferrer">www.xidian.edu.cn ↗</a><a href="mailto:xxgk@xidian.edu.cn">xxgk@xidian.edu.cn</a></div>
+      <div><span class="footer-label" data-i18n="footer.visit">校园地址</span><span data-i18n="footer.address1">陕西省西安市长安区西沣路兴隆段266号</span><span data-i18n="footer.address2">太白北路2号 · 西安 710126</span></div>
+      <div><span class="footer-label" data-i18n="footer.links">快速入口</span><a href="https://jwc.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="quick.jwc">教务处 ↗</a><a href="https://gr.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="quick.gr">研究生院 ↗</a><a href="https://zsb.xidian.edu.cn/" target="_blank" rel="noopener noreferrer" data-i18n="quick.zsb">本科招生 ↗</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 Xidian University</span><span data-i18n="footer.credit">Xidian Zhixing · A campus entrance for learning and making.</span></div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
