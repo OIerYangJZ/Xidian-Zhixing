@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/theme/app_theme.dart';
 import '../../repositories/app_repositories.dart';
 import '../auth/login_page.dart';
 import 'admin_console_page.dart';
+import 'admin_login_page.dart';
 
 class AdminPortalPage extends StatelessWidget {
   const AdminPortalPage({super.key});
@@ -24,7 +26,11 @@ class AdminPortalPage extends StatelessWidget {
             return;
           }
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute<void>(builder: (_) => const LoginPage()),
+            MaterialPageRoute<void>(
+              builder: (_) => AppConfig.adminOnly
+                  ? const AdminLoginPage()
+                  : const LoginPage(),
+            ),
             (Route<dynamic> route) => false,
           );
         },

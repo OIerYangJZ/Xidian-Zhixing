@@ -9,25 +9,25 @@ import { useLanguage } from '@/hooks/useLanguage';
 
 const campusImages: Array<{ src: string; alt: [string, string]; title: [string, string]; place: [string, string] }> = [
   {
-    src: '/campus-login/campus-courtyard.png',
+    src: '/campus-login/campus-courtyard.jpg',
     alt: ['长安校区中心广场与教学楼', 'Central plaza and teaching buildings at Chang’an Campus'],
     title: ['把目光放远', 'Look further'],
     place: ['长安校区 · 中心广场', 'Chang’an Campus · Central Plaza'],
   },
   {
-    src: '/campus-login/campus-stone.png',
+    src: '/campus-login/campus-stone.jpg',
     alt: ['西电校名石与校园松林', 'Xidian name stone and campus pines'],
     title: ['从这里出发', 'Start from here'],
     place: ['西电校名石', 'Xidian name stone'],
   },
   {
-    src: '/campus-login/campus-clock.png',
+    src: '/campus-login/campus-clock.jpg',
     alt: ['校园主楼与远山', 'The main campus building and distant hills'],
     title: ['让时间留下回响', 'Let time leave an echo'],
     place: ['校园主楼 · 晨光', 'Main Building · Morning light'],
   },
   {
-    src: '/campus-login/campus-library.png',
+    src: '/campus-login/campus-library.jpg',
     alt: ['图书馆与校园秋色', 'The library in autumn'],
     title: ['在书页之间相遇', 'Meet between the pages'],
     place: ['图书馆 · 秋日', 'Library · Autumn'],
@@ -40,6 +40,22 @@ const consumedAttempts = new Set<string>();
 function safeNextPath(from: string | null): string {
   if (!from || !from.startsWith('/') || from.startsWith('//') || from.startsWith('/login')) return '/feed';
   return from;
+}
+
+/**
+ * Where to go after signing in.  The app sends `from` URL-encoded; Nginx's
+ * page gate cannot encode, so it sends `next=<path>` and leaves that page's
+ * own query parameters beside it (/login?next=/post&id=p1&comment=cm3).
+ */
+function requestedPath(query: URLSearchParams): string {
+  const from = query.get('from');
+  if (from) return safeNextPath(from);
+  const next = query.get('next');
+  if (!next) return '/feed';
+  const rest = new URLSearchParams(query);
+  ['next', 'from', 'xidianAuthAttempt', 'xidianError'].forEach((key) => rest.delete(key));
+  const search = rest.toString();
+  return safeNextPath(search ? `${next}?${search}` : next);
 }
 
 const campusImageStyles = campusImages.map((image) => ({ backgroundImage: `url("${image.src}")` }));
@@ -80,7 +96,7 @@ export function CampusLoginExperience() {
       if (!active) return;
       setAuthError(message);
       setLoading(false);
-      window.history.replaceState(null, '', loginUrl(safeNextPath(query.get('from'))));
+      window.history.replaceState(null, '', loginUrl(requestedPath(query)));
     };
     const poll = async () => {
       try {
@@ -98,7 +114,7 @@ export function CampusLoginExperience() {
           return;
         }
         const me = await signInWithToken(result.token);
-        const target = me?.banned || result.banned ? '/settings/account' : safeNextPath(query.get('from'));
+        const target = me?.banned || result.banned ? '/settings/account' : requestedPath(query);
         window.location.replace(target);
       } catch (error) {
         fail(
@@ -118,7 +134,7 @@ export function CampusLoginExperience() {
   useEffect(() => {
     // Already signed in (and not in the middle of an IDS return): go on.
     if (status === 'authenticated' && !new URLSearchParams(window.location.search).get('xidianAuthAttempt')) {
-      window.location.replace(safeNextPath(new URLSearchParams(window.location.search).get('from')));
+      window.location.replace(requestedPath(new URLSearchParams(window.location.search)));
     }
   }, [status]);
 
@@ -135,7 +151,7 @@ export function CampusLoginExperience() {
   const login = useCallback(async () => {
     setLoading(true);
     setAuthError('');
-    const from = safeNextPath(new URLSearchParams(window.location.search).get('from'));
+    const from = requestedPath(new URLSearchParams(window.location.search));
     try {
       // IDS returns to this page; the backend appends xidianAuthAttempt=<id>.
       const attempt = await createXidianAttempt(loginUrl(from));

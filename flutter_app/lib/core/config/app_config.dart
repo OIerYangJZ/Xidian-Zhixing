@@ -83,6 +83,14 @@ class AppConfig {
     defaultValue: false,
   );
 
+  /// Build the console on its own: the app opens on admin sign-in instead of
+  /// the student login.  Used for the bundle published under /admin/ next to
+  /// the static web frontend (scripts/package_release.sh).
+  static const bool adminOnly = bool.fromEnvironment(
+    'ADMIN_ONLY',
+    defaultValue: false,
+  );
+
   static const Duration requestTimeout = Duration(seconds: 15);
 
   // 生产/现网不再展示本地 mock 卡片，空数据时直接显示真实空状态。

@@ -8,6 +8,7 @@ import 'core/auth/auth_store.dart';
 import 'core/config/app_config.dart';
 import 'core/state/app_locale_store.dart';
 import 'core/state/app_theme_store.dart';
+import 'features/admin/admin_login_page.dart';
 import 'features/admin/admin_portal_page.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/banned_account_page.dart';
@@ -143,6 +144,11 @@ class _XduTreeholeAppState extends State<XduTreeholeApp> {
   }
 
   static Widget _initialPage() {
+    if (AppConfig.adminConsoleEnabled && AppConfig.adminOnly) {
+      return AdminAuthStore.instance.isAuthenticated
+          ? const AdminPortalPage()
+          : const AdminLoginPage();
+    }
     if (AuthStore.instance.isAuthenticated) {
       // A banned session can reach only the appeal endpoints, so building the
       // shell would render a screen whose every request comes back 403.

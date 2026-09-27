@@ -17,19 +17,53 @@ fi
 ARCHIVE_VERSION="${FULL_VERSION}"
 SAFE_ARCHIVE_VERSION="$(printf '%s' "$ARCHIVE_VERSION" | tr -c 'A-Za-z0-9._+-' '_')"
 ARCHIVE_PATH="$DIST_DIR/treehole-${SAFE_ARCHIVE_VERSION}.tar.gz"
+# WEB_FRONTEND=next (default): web/ is the Next.js static export (web_next/out)
+# and the Flutter admin console is published beside it under web/admin/.
+# WEB_FRONTEND=flutter: the previous layout, Flutter Web at web/ — kept so an
+# emergency build of the old frontend is still one command away.
+WEB_FRONTEND="${WEB_FRONTEND:-next}"
+WEB_NEXT_DIR="$ROOT_DIR/web_next"
+NEXT_OUT_DIR="$WEB_NEXT_DIR/out"
+ADMIN_WEB_DIR="$ROOT_DIR/build/web-admin"
 WEB_DIR="$ROOT_DIR/build/web"
 
-if [ "${SKIP_WEB_BUILD:-0}" != "1" ]; then
-  echo "[package] rebuilding Flutter Web for this release"
-  FLUTTER_BIN="$FLUTTER_BIN" bash "$SCRIPT_DIR/build_web_production.sh"
-else
-  echo "[package] SKIP_WEB_BUILD=1: using the existing explicitly prebuilt Web directory"
-fi
-
-if [ ! -f "$WEB_DIR/index.html" ] || [ ! -f "$WEB_DIR/main.dart.js" ]; then
-  echo "[package] incomplete Web release in $WEB_DIR" >&2
-  exit 1
-fi
+case "$WEB_FRONTEND" in
+  next)
+    if [ "${SKIP_WEB_BUILD:-0}" != "1" ]; then
+      echo "[package] building the static web frontend (web_next)"
+      (cd "$WEB_NEXT_DIR" && npm ci --no-audit --no-fund && npx next build)
+      echo "[package] building the Flutter admin console for /admin/"
+      ADMIN_BASE_HREF=/admin/ ADMIN_ONLY=true FLUTTER_BIN="$FLUTTER_BIN" bash "$SCRIPT_DIR/build_web_admin.sh"
+    else
+      echo "[package] SKIP_WEB_BUILD=1: using the existing web_next/out and build/web-admin"
+    fi
+    if [ ! -f "$NEXT_OUT_DIR/index.html" ] || [ ! -d "$NEXT_OUT_DIR/_next/static" ] || [ ! -f "$NEXT_OUT_DIR/feed.html" ]; then
+      echo "[package] incomplete static export in $NEXT_OUT_DIR" >&2
+      exit 1
+    fi
+    if [ ! -f "$ADMIN_WEB_DIR/index.html" ] || [ ! -f "$ADMIN_WEB_DIR/main.dart.js" ] \
+      || ! grep -qE '<base href="/admin/" ?/?>' "$ADMIN_WEB_DIR/index.html"; then
+      echo "[package] admin console in $ADMIN_WEB_DIR is missing or not built for /admin/" >&2
+      exit 1
+    fi
+    ;;
+  flutter)
+    if [ "${SKIP_WEB_BUILD:-0}" != "1" ]; then
+      echo "[package] rebuilding Flutter Web for this release"
+      FLUTTER_BIN="$FLUTTER_BIN" bash "$SCRIPT_DIR/build_web_production.sh"
+    else
+      echo "[package] SKIP_WEB_BUILD=1: using the existing explicitly prebuilt Web directory"
+    fi
+    if [ ! -f "$WEB_DIR/index.html" ] || [ ! -f "$WEB_DIR/main.dart.js" ]; then
+      echo "[package] incomplete Web release in $WEB_DIR" >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo "[package] WEB_FRONTEND must be next or flutter, got: $WEB_FRONTEND" >&2
+    exit 1
+    ;;
+esac
 
 STAGING_DIR="$(mktemp -d "${TMPDIR:-/tmp}/treehole-release.XXXXXX")"
 trap 'rm -rf "$STAGING_DIR"' EXIT
@@ -53,12 +87,27 @@ tar -C "$ROOT_DIR/backend" \
   -cf - handlers helpers services \
   | tar -C "$STAGING_DIR/backend" -xf -
 
-cp -R "$WEB_DIR"/. "$STAGING_DIR/web/"
+if [ "$WEB_FRONTEND" = "next" ]; then
+  cp -R "$NEXT_OUT_DIR"/. "$STAGING_DIR/web/"
+  install -d "$STAGING_DIR/web/admin"
+  cp -R "$ADMIN_WEB_DIR"/. "$STAGING_DIR/web/admin/"
+  # The server runs the verifier of the release that is live at deploy time
+  # (deploy-treehole.sh prefers it over the packaged one), and releases up to
+  # 0.1.0+32 require web/main.dart.js.  This stub only exists so the first
+  # static-web package passes that older check; the verifier shipped from here
+  # on accepts the static layout, so the stub can go once a static-web
+  # release is live.
+  printf '%s\n' "/* Placeholder for the pre-static-web release verifier; not loaded by any page. */" \
+    > "$STAGING_DIR/web/main.dart.js"
+else
+  cp -R "$WEB_DIR"/. "$STAGING_DIR/web/"
+fi
 
 for file in backend.env.example nginx-xdu-whisperbox.conf xdu-whisperbox.service; do
   install -m 0644 "$ROOT_DIR/deploy/tencent/$file" "$STAGING_DIR/deploy/tencent/$file"
 done
-for file in .env.example nginx-cache.conf nginx-container.conf nginx-treehole-https.conf.template; do
+for file in .env.example nginx-cache.conf nginx-container.conf nginx-treehole-https.conf.template \
+  nginx-treehole-http.static-web.conf; do
   install -m 0644 "$ROOT_DIR/deploy/production/$file" "$STAGING_DIR/deploy/production/$file"
 done
 for file in \

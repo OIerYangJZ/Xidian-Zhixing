@@ -62,9 +62,16 @@ def main() -> int:
             "backend/requirements-storage.txt",
             "backend/requirements-auth.txt",
             "web/index.html",
-            "web/main.dart.js",
         }
         missing_required = sorted(required_members - actual_names)
+        # Either frontend layout: Flutter Web at the root, or the static
+        # export with the Flutter admin console under web/admin/.
+        flutter_web = "web/main.dart.js" in actual_names and "web/admin/index.html" not in actual_names
+        static_web = {"web/feed.html", "web/admin/index.html", "web/admin/main.dart.js"} <= actual_names and any(
+            name.startswith("web/_next/static/") for name in actual_names
+        )
+        if not (flutter_web or static_web):
+            missing_required.append("web/main.dart.js (Flutter Web) or web/feed.html + web/_next/static/ + web/admin/ (static web)")
         if missing_required:
             print(
                 f"[verify] required release files are missing: {missing_required}",

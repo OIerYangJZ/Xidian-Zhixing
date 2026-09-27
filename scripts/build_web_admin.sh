@@ -28,6 +28,10 @@ ADMIN_DIST_DIR="$ROOT_DIR/build/web-admin"
 # 后台一般部署在独立域名/独立路径下，因此 API 地址需要显式指定绝对地址；
 # 留空则沿用同源 /api。
 ADMIN_API_BASE_URL="${ADMIN_API_BASE_URL:-/api}"
+# 发布在同域的子路径下（例如静态前端旁边的 /admin/）时，Flutter 需要对应的
+# base href，资源才会从子路径加载。ADMIN_ONLY=true 让应用直接进入管理员登录。
+ADMIN_BASE_HREF="${ADMIN_BASE_HREF:-/}"
+ADMIN_ONLY="${ADMIN_ONLY:-false}"
 
 if ! command -v "$FLUTTER_BIN" >/dev/null 2>&1; then
   echo "[admin-build] Flutter not found: $FLUTTER_BIN" >&2
@@ -41,7 +45,9 @@ echo "[admin-build] API_BASE_URL : $ADMIN_API_BASE_URL"
 (cd "$FLUTTER_PROJECT_DIR" && "$FLUTTER_BIN" pub get --enforce-lockfile)
 (cd "$FLUTTER_PROJECT_DIR" && "$FLUTTER_BIN" build web --release \
     --no-web-resources-cdn \
+    --base-href="$ADMIN_BASE_HREF" \
     --dart-define=ENABLE_ADMIN_CONSOLE=true \
+    --dart-define=ADMIN_ONLY="$ADMIN_ONLY" \
     --dart-define=API_BASE_URL="$ADMIN_API_BASE_URL" \
     --dart-define=APP_VERSION="$FULL_VERSION" \
     --dart-define=APP_BUILD_TYPE="$BUILD_TYPE")
