@@ -27,6 +27,7 @@ import ProfileBlock from './ProfileBlock';
 import { ProfilePhoto } from './ui/ProfilePhoto';
 import { HighlightedMentionsAndHashTags } from './HighlightedMentionsAndHashTags';
 import { PostOptions } from './PostOptions';
+import { useDialogs } from '@/hooks/useDialogs';
 
 function formatCount(count: number) {
   return count >= 10000 ? `${(count / 10000).toFixed(1).replace(/\.0$/, '')}万` : count.toLocaleString();
@@ -80,6 +81,7 @@ export const Post = memo(
   }) => {
     const { t, language } = useLanguage();
     const { showToast } = useToast();
+    const { prompt } = useDialogs();
     const { likeMutation, unLikeMutation } = usePostLikesMutations({ postId });
     const { bookmarkMutation, removeBookmarkMutation } = usePostBookmarkMutations({ postId });
     const qc = useQueryClient();
@@ -173,6 +175,21 @@ export const Post = memo(
           type: 'error',
         });
       }
+    };
+    const reportPost = () => {
+      prompt({
+        title: t('举报动态', 'Report post'),
+        message: t('请简要说明举报原因，管理员会查看。', 'Briefly explain the reason for your report.'),
+        promptType: 'textarea',
+        onSubmit: async (details) => {
+          const response = await fetch('/api/reports', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ postId, reason: 'OTHER', details }),
+          });
+          showToast({ title: response.ok ? t('举报已提交', 'Report submitted') : t('举报失败', 'Could not report'), type: response.ok ? 'success' : 'error' });
+        },
+      });
     };
     const variants = useMemo(
       () => ({
@@ -296,7 +313,14 @@ export const Post = memo(
               ) : null}
             </div>
             <div className="absolute right-0 top-0">
-              {isOwnPost && <PostOptions postId={postId} content={content} visualMedia={visualMedia} />}
+              {isOwnPost && (
+                <PostOptions
+                  postId={postId}
+                  content={content}
+                  visualMedia={visualMedia}
+                  displayIdentity={displayIdentity}
+                />
+              )}
             </div>
           </div>
           {content && (
@@ -364,6 +388,9 @@ export const Post = memo(
               className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
               <ShareIcon className="h-5 w-5" />
             </button>
+            {!isOwnPost && <button type="button" onClick={reportPost} className="px-2 py-1 text-xs hover:text-destructive" aria-label={t('举报动态', 'Report post')}>
+              {t('举报', 'Report')}
+            </button>}
           </div>
         </div>
 

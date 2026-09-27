@@ -7,6 +7,7 @@ import { useDialogs } from '@/hooks/useDialogs';
 import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
 import { ToEditValues } from '@/lib/createPost';
 import { useLanguage } from '@/hooks/useLanguage';
+import type { DisplayIdentity } from '@prisma/client';
 import { TextAreaWithMentionsAndHashTags } from './TextAreaWithMentionsAndHashTags';
 import { GenericDialog } from './GenericDialog';
 import { CreatePostSort } from './CreatePostSort';
@@ -26,10 +27,14 @@ export function CreatePostDialog({
   const mode: 'create' | 'edit' = toEditValues === null ? 'create' : 'edit';
   const [content, setContent] = useState(toEditValues?.initialContent || '');
   const [visualMedia, setVisualMedia] = useState<GetVisualMedia[]>(toEditValues?.initialVisualMedia ?? []);
+  const [displayIdentity, setDisplayIdentity] = useState<DisplayIdentity>(
+    toEditValues?.initialDisplayIdentity ?? 'USER',
+  );
   const exitCreatePostModal = useCallback(() => setShown(false), [setShown]);
   const { createPostMutation, updatePostMutation } = useWritePostMutations({
     content,
     visualMedia,
+    displayIdentity,
     exitCreatePostModal,
   });
   const { confirm } = useDialogs();
@@ -143,6 +148,29 @@ export function CreatePostDialog({
             {mode === 'create' ? t('发布', 'Post') : t('保存', 'Save')}
           </Button>
         </div>
+      </div>
+      <div className="border-t border-border px-4 py-3">
+        <label className="flex items-center justify-between gap-3 text-sm">
+          <span>{t('发布身份', 'Post as')}</span>
+          <select
+            aria-label={t('发布身份', 'Post as')}
+            value={displayIdentity}
+            disabled={mode === 'edit'}
+            onChange={(event) => setDisplayIdentity(event.target.value as DisplayIdentity)}
+            className="min-h-10 border border-border bg-background px-3 text-foreground">
+            <option value="USER">{t('本人', 'Yourself')}</option>
+            <option value="ANONYMOUS">{t('匿名同学', 'Anonymous student')}</option>
+            {displayIdentity === 'CLUB' && <option value="CLUB">{t('社团', 'Club')}</option>}
+          </select>
+        </label>
+        {displayIdentity === 'ANONYMOUS' && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {t(
+              '其他同学看不到作者身份；管理员仍可处理违规内容。发布后不能更改身份。',
+              'Other students cannot see the author. Moderators can still review reports. The identity cannot change after posting.',
+            )}
+          </p>
+        )}
       </div>
       <CreatePostOptions handleVisualMediaChange={handleVisualMediaChange} ref={inputFileRef} />
       <AnimatePresence>

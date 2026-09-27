@@ -15,7 +15,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'feed-separator border-b px-4 py-3.5 sm:px-5',
+        'page-header feed-separator border-b px-4 py-3.5 sm:px-5',
         sticky && 'sticky top-14 z-20 bg-background/90 backdrop-blur-xl md:top-0',
         className,
       )}>

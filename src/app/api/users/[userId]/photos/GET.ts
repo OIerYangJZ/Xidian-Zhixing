@@ -27,6 +27,17 @@ export async function GET(request: Request, props: { params: Promise<{ userId: s
   const res = await prisma.visualMedia.findMany({
     where: {
       userId: params.userId,
+      ...(user?.id === params.userId
+        ? {}
+        : {
+            post: {
+              is: {
+                displayIdentity: 'USER' as const,
+                status: 'PUBLISHED' as const,
+                moderationCases: { none: { status: 'OPEN' as const } },
+              },
+            },
+          }),
     },
     orderBy: {
       id: 'desc',

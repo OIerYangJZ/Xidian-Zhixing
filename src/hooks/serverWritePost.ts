@@ -23,7 +23,7 @@ type Props =
 
 function fileNameFromUrl(value: string) {
   try {
-    const path = new URL(value).pathname;
+    const path = new URL(value, 'http://local').pathname;
     const encodedName = path.slice(path.lastIndexOf('/') + 1);
     return decodeURIComponent(encodedName);
   } catch {
@@ -44,7 +44,10 @@ export async function serverWritePost({ formData, type, postId }: Props) {
 
   try {
     const body = postWriteSchema.parse(formDataToObject(formData));
-    const { content, files } = body;
+    const { content, files, displayIdentity } = body;
+    if (type === 'create' && displayIdentity === 'CLUB') {
+      return NextResponse.json({ error: 'Club publishing is not available here.' }, { status: 400 });
+    }
     const filesArr = !files ? [] : Array.isArray(files) ? files : [files];
     const existingPost =
       type === 'edit'
@@ -52,6 +55,7 @@ export async function serverWritePost({ formData, type, postId }: Props) {
             where: { id: postId },
             select: {
               visualMedia: { select: { fileName: true, userId: true } },
+              displayIdentity: true,
               moderationCases: {
                 where: { status: 'OPEN' },
                 select: { id: true, reportId: true, commentId: true, notes: true },
@@ -77,6 +81,7 @@ export async function serverWritePost({ formData, type, postId }: Props) {
     }
 
     const { str, usersMentioned } = await convertMentionUsernamesToIds({ str: content || '' });
+    const postIdentity = type === 'create' ? displayIdentity ?? 'USER' : existingPost!.displayIdentity;
     const newFiles = filesArr.filter((file): file is Blob => typeof file !== 'string');
     const moderation = await reviewPostSubmission(content || '', newFiles);
     if (moderation.decision === 'reject') {
@@ -115,6 +120,7 @@ export async function serverWritePost({ formData, type, postId }: Props) {
           const created = await tx.post.create({
             data: {
               content: str,
+              displayIdentity: postIdentity,
               status: postStatus,
               ...(files !== undefined && { visualMedia: { create: mediaToCreate } }),
               ...(pendingReview && {
@@ -175,7 +181,7 @@ export async function serverWritePost({ formData, type, postId }: Props) {
 
     await Promise.allSettled(filesToDelete.map(({ fileName }) => deleteObject(fileName)));
 
-    if (!pendingReview) {
+    if (!pendingReview && postIdentity === 'USER') {
       await mentionsActivityLogger({
         usersMentioned,
         activity: { type: 'POST_MENTION', sourceUserId: userId, sourceId: res.id },

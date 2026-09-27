@@ -12,6 +12,7 @@ import { useCreateCommentMutations } from '@/hooks/mutations/useCreateCommentMut
 import { useUpdateDeleteComments } from '@/hooks/useUpdateDeleteComments';
 import { useLikeUnlikeComments } from '@/hooks/useLikeUnlikeComments';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useToast } from '@/hooks/useToast';
 import { QueryKey } from '@tanstack/react-query';
 import { ProfilePhoto } from './ui/ProfilePhoto';
 import { ButtonNaked } from './ui/ButtonNaked';
@@ -42,6 +43,7 @@ export const Comment = memo(
     const { t } = useLanguage();
     const numberOfReplies = _count.replies;
     const { prompt } = useDialogs();
+    const { showToast } = useToast();
     const { createReplyMutation } = useCreateCommentMutations();
     const { handleEdit, handleDelete } = useUpdateDeleteComments({ queryKey });
     const { likeComment, unLikeComment } = useLikeUnlikeComments({ queryKey });
@@ -76,6 +78,21 @@ export const Comment = memo(
       (isSelected: boolean) => (isSelected ? likeComment({ commentId }) : unLikeComment({ commentId })),
       [commentId, likeComment, unLikeComment],
     );
+    const reportComment = () => {
+      prompt({
+        title: t('举报评论', 'Report comment'),
+        message: t('请简要说明举报原因，管理员会查看。', 'Briefly explain the reason for your report.'),
+        promptType: 'textarea',
+        onSubmit: async (details) => {
+          const response = await fetch('/api/reports', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ commentId, reason: 'OTHER', details }),
+          });
+          showToast({ title: response.ok ? t('举报已提交', 'Report submitted') : t('举报失败', 'Could not report'), type: response.ok ? 'success' : 'error' });
+        },
+      });
+    };
     const onDropdownAction = useCallback(
       (key: Key) => {
         if (key === 'edit') {
@@ -125,6 +142,9 @@ export const Comment = memo(
               loading={createReplyMutation.isPending}
               mode="ghost"
             />
+            {!isOwnComment && <button type="button" onClick={reportComment} className="px-2 text-xs text-muted-foreground hover:text-destructive">
+              {t('举报', 'Report')}
+            </button>}
 
             {isOwnComment && (
               <DropdownMenuButton

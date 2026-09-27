@@ -93,14 +93,14 @@
   }
 
   :root[data-visual-theme='editorial'] {
-    --page-bg: 247 244 237;
+    --page-bg: 247 246 242;
     --surface: 255 254 250;
-    --surface-elevated: 244 239 229;
-    --text-primary: 37 35 31;
+    --surface-elevated: 244 240 231;
+    --text-primary: 24 24 22;
     --text-secondary: 112 106 95;
     --separator: 225 219 207;
-    --accent-brand: 164 62 51;
-    --primary-accent: 137 47 39;
+    --accent-brand: 164 59 50;
+    --primary-accent: 126 41 36;
     --secondary-accent: 233 225 210;
     --muted: 233 227 215;
     --input: 225 219 207;
@@ -109,13 +109,13 @@
   }
 
   :root.dark[data-visual-theme='editorial'] {
-    --page-bg: 31 30 27;
-    --surface: 31 30 27;
+    --page-bg: 23 23 20;
+    --surface: 32 32 28;
     --surface-elevated: 43 41 36;
-    --text-primary: 244 240 231;
+    --text-primary: 244 241 232;
     --text-secondary: 177 170 157;
     --separator: 75 71 63;
-    --accent-brand: 220 125 111;
+    --accent-brand: 224 128 117;
     --primary-accent: 194 98 83;
     --secondary-accent: 58 55 49;
     --muted: 65 61 54;
@@ -179,6 +179,17 @@
     border: 1px solid rgb(var(--separator));
     border-radius: var(--radius-lg);
     background: rgb(var(--surface-elevated));
+  }
+
+  :root[data-visual-theme='editorial'] .page-header h1 {
+    font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', serif;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  :root[data-visual-theme='editorial'] .quiet-surface {
+    background: rgb(var(--surface));
+    border-radius: 0.25rem;
   }
 
   .x-input {

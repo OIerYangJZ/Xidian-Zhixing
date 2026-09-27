@@ -531,6 +531,7 @@ model ModerationCase {
   assignedTo   User?                @relation("caseAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
   assignedToId String?
   notes        String?              @db.Text
+  removedCommentContent String?     @db.Text
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
   resolvedAt   DateTime?

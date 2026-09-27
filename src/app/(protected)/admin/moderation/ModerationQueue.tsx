@@ -5,16 +5,20 @@ import { useLanguage } from '@/hooks/useLanguage';
 
 type ModerationCaseItem = {
   id: string;
+  status: 'OPEN' | 'APPEALED';
   notes: string | null;
+  report: { reason: string; details: string | null } | null;
+  appeal: { id: string; reason: string; createdAt: string } | null;
   createdAt: string;
   openedBy: { id: string; username: string | null; name: string | null } | null;
   post: {
     id: number;
     content: string | null;
     createdAt: string;
-    user: { id: string; username: string | null; name: string | null };
+    user: { id: string; username: string | null; name: string | null; status: string };
     visualMedia: Array<{ type: 'PHOTO' | 'VIDEO'; url: string | null }>;
-  };
+  } | null;
+  comment: { id: number; content: string; user: { id: string; username: string | null; name: string | null; status: string } } | null;
 };
 
 export function ModerationQueue() {
@@ -39,7 +43,7 @@ export function ModerationQueue() {
       .finally(() => setLoading(false));
   }, [reload]);
 
-  async function decide(caseId: string, decision: 'approve' | 'remove') {
+  async function decide(caseId: string, decision: 'approve' | 'remove' | 'suspend' | 'restore' | 'reject_appeal') {
     setWorkingId(caseId);
     try {
       const response = await fetch(`/api/admin/moderation/cases/${caseId}`, {
@@ -65,7 +69,7 @@ export function ModerationQueue() {
   if (items.length === 0)
     return (
       <p className="px-5 py-10 text-sm text-muted-foreground">
-        {t('当前没有待审核动态。', 'There are no posts to review.')}
+        {t('当前没有待审核内容。', 'There is no content to review.')}
       </p>
     );
 
@@ -77,21 +81,21 @@ export function ModerationQueue() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold">
-                {item.post.user.name || item.post.user.username || t('用户', 'User')}
+                {item.post?.user.name || item.post?.user.username || item.comment?.user.name || item.comment?.user.username || t('用户', 'User')}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {new Date(item.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')} · {t('帖子', 'Post')} #
-                {item.post.id}
+                {new Date(item.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')} · {item.post ? t('帖子', 'Post') : t('评论', 'Comment')} #
+                {item.post?.id || item.comment?.id}
               </p>
             </div>
             <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
-              {t('待审核', 'Pending review')}
+              {item.status === 'APPEALED' ? t('待处理申诉', 'Appeal pending') : t('待审核', 'Pending review')}
             </span>
           </div>
           <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6">
-            {item.post.content || t('（仅含附件）', '(Media only)')}
+            {item.post?.content || item.comment?.content || t('（仅含附件）', '(Media only)')}
           </p>
-          {item.post.visualMedia.length > 0 && (
+          {item.post && item.post.visualMedia.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-3">
               {item.post.visualMedia.map((media) =>
                 media.type === 'PHOTO' && media.url ? (
@@ -115,10 +119,12 @@ export function ModerationQueue() {
             </div>
           )}
           <p className="mt-4 rounded-md bg-secondary/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
-            {item.notes || t('没有附加审核说明。', 'No additional review notes.')}
+            {item.report && <span className="mr-2 font-semibold">{item.report.reason}</span>}
+            {item.report?.details || item.notes || t('没有附加审核说明。', 'No additional review notes.')}
           </p>
+          {item.appeal && <p className="mt-2 rounded-md bg-primary/10 px-3 py-2 text-xs leading-5">{t('申诉理由：', 'Appeal: ')}{item.appeal.reason}</p>}
           <div className="mt-4 flex gap-2">
-            <button
+            {item.status === 'OPEN' ? <><button
               type="button"
               disabled={workingId === item.id}
               onClick={() => decide(item.id, 'approve')}
@@ -130,8 +136,15 @@ export function ModerationQueue() {
               disabled={workingId === item.id}
               onClick={() => decide(item.id, 'remove')}
               className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground disabled:opacity-50">
-              {t('移除动态', 'Remove post')}
+              {t('移除内容', 'Remove content')}
             </button>
+            <button type="button" disabled={workingId === item.id} onClick={() => decide(item.id, 'suspend')} className="rounded-full border border-destructive px-4 py-2 text-sm text-destructive disabled:opacity-50">
+              {t('移除并停用账号', 'Remove and suspend account')}
+            </button></> : <><button type="button" disabled={workingId === item.id} onClick={() => decide(item.id, 'restore')} className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">
+              {t('接受申诉并恢复', 'Accept appeal and restore')}
+            </button><button type="button" disabled={workingId === item.id} onClick={() => decide(item.id, 'reject_appeal')} className="rounded-full border border-border px-4 py-2 text-sm disabled:opacity-50">
+              {t('驳回申诉', 'Reject appeal')}
+            </button></>}
           </div>
         </article>
       ))}

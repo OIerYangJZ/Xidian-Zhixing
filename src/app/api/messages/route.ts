@@ -1,6 +1,7 @@
 import { getServerUser } from '@/lib/getServerUser';
 import prisma from '@/lib/prisma/prisma';
 import { NextResponse } from 'next/server';
+import { fileNameToUrl } from '@/lib/s3/fileNameToUrl';
 
 export async function GET() {
   const [user] = await getServerUser();
@@ -41,17 +42,18 @@ export async function GET() {
   );
 
   const conversations = memberships
-    .map(({ conversation }) => {
+    .map(({ conversation, lastReadAt }) => {
       const participant = conversation.participants[0];
       if (!participant || participant.user.status !== 'ACTIVE' || blockedIds.has(participant.user.id)) return null;
       return {
         id: conversation.id,
         updatedAt: conversation.updatedAt,
+        unread: Boolean(conversation.messages[0] && conversation.messages[0].senderId !== user.id && (!lastReadAt || conversation.messages[0].createdAt > lastReadAt)),
         participant: {
           id: participant.user.id,
           username: participant.user.username,
           name: participant.user.name,
-          profilePhoto: participant.user.profilePhoto,
+          profilePhoto: fileNameToUrl(participant.user.profilePhoto),
         },
         lastMessage: conversation.messages[0] || null,
       };

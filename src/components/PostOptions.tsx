@@ -7,16 +7,19 @@ import { Key, useCallback } from 'react';
 import { useCreatePostModal } from '@/hooks/useCreatePostModal';
 import { useDeletePostMutation } from '@/hooks/mutations/useDeletePostMutation';
 import { useLanguage } from '@/hooks/useLanguage';
+import type { DisplayIdentity } from '@prisma/client';
 import { DropdownMenuButton } from './ui/DropdownMenuButton';
 
 export function PostOptions({
   postId,
   content,
   visualMedia,
+  displayIdentity,
 }: {
   postId: number;
   content: string | null;
   visualMedia?: GetVisualMedia[];
+  displayIdentity: DisplayIdentity;
 }) {
   const { confirm } = useDialogs();
   const { launchEditPost } = useCreatePostModal();
@@ -40,8 +43,9 @@ export function PostOptions({
       postId,
       initialContent: content ?? '',
       initialVisualMedia: visualMedia ?? [],
+      initialDisplayIdentity: displayIdentity,
     });
-  }, [launchEditPost, postId, content, visualMedia]);
+  }, [launchEditPost, postId, content, visualMedia, displayIdentity]);
 
   const handleOptionClick = useCallback(
     (key: Key) => {

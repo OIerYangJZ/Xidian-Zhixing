@@ -1,6 +1,7 @@
 import { getServerUser } from '@/lib/getServerUser';
 import prisma from '@/lib/prisma/prisma';
 import { NextResponse } from 'next/server';
+import { fileNameToUrl } from '@/lib/s3/fileNameToUrl';
 
 export async function GET(_request: Request, props: { params: Promise<{ conversationId: string }> }) {
   const params = await props.params;
@@ -19,7 +20,7 @@ export async function GET(_request: Request, props: { params: Promise<{ conversa
           },
           messages: {
             where: { deletedAt: null },
-            orderBy: { createdAt: 'asc' },
+            orderBy: { createdAt: 'desc' },
             take: 100,
           },
         },
@@ -47,8 +48,20 @@ export async function GET(_request: Request, props: { params: Promise<{ conversa
         id: participantUser.id,
         username: participantUser.username,
         name: participantUser.name,
-        profilePhoto: participantUser.profilePhoto,
+        profilePhoto: fileNameToUrl(participantUser.profilePhoto),
       })),
-    messages: participant.conversation.messages,
+    messages: participant.conversation.messages.reverse(),
   });
+}
+
+export async function PATCH(_request: Request, props: { params: Promise<{ conversationId: string }> }) {
+  const { conversationId } = await props.params;
+  const [user] = await getServerUser();
+  if (!user?.id) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  const result = await prisma.conversationParticipant.updateMany({
+    where: { conversationId, userId: user.id, archivedAt: null },
+    data: { archivedAt: new Date() },
+  });
+  if (!result.count) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  return NextResponse.json({ archived: true });
 }
