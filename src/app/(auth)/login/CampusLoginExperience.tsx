@@ -129,10 +129,12 @@ export function CampusLoginExperience() {
   const login = useCallback(async () => {
     setLoading(true);
     setAuthError('');
-    const callbackUrl = new URLSearchParams(window.location.search).get('from') || '/feed';
+    const requestedPath = new URLSearchParams(window.location.search).get('from') || '/feed';
+    const callbackPath = requestedPath.startsWith('/') && !requestedPath.startsWith('//') ? requestedPath : '/feed';
     const useLocalAccount = process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_LOCAL_TEST_AUTH === 'true';
     if (useLocalAccount) {
       try {
+        const callbackUrl = new URL(callbackPath, window.location.origin).toString();
         const result = await signIn('local-test', { callbackUrl, redirect: false });
         if (!result?.ok || !result.url) throw new Error('local_login_failed');
         window.location.assign(result.url);
@@ -146,7 +148,7 @@ export function CampusLoginExperience() {
       const response = await fetch('/api/auth/xidian/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ callbackUrl }),
+        body: JSON.stringify({ callbackUrl: callbackPath }),
       });
       const result = await response.json();
       if (!response.ok || !result?.data?.authorizeUrl) throw new Error('auth_setup_failed');
