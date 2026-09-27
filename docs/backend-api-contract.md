@@ -499,3 +499,17 @@ Admin auth uses `POST /api/admin/auth/login`, which returns an admin token (a se
 ## 13. Rate-limit buckets (all 429 + `data.retryAfterSeconds`)
 
 `post, comment, message, report, upload, interaction (like/favorite/comment-like), view + view_hourly (with force-logout escalation), pin_request, feedback, appeal (per email), club_application, auth_login (IDS session create, per IP), campus_auth, dorm_water_sms (per phone, 3), ai_chat, ai_search`. The limits are admin-configurable (`/api/admin/config`), with defaults in `_globals.DEFAULT_SETTINGS`.
+
+---
+
+## 14. Reposts, edits, mentions, activity (added 2026-09-27)
+
+- `POST /api/posts/<id>/repost` `{reposted?: bool}` (omit to toggle) → `{reposted, repostCount}`. 400 for one's own anonymous post (the repost would name the author) and for private posts; 404 if the viewer cannot see the post. Notifies the author (`type:"repost"`), rate-limited as `interaction`.
+- Post objects gain `repostCount:int`, `reposted:bool`, `mentions:[{userId, nickname}]`, `editedAt:str` (`""` = never edited). Comments gain `mentions` and `editedAt`.
+- `GET /api/users/<id>/timeline?page&limit` → `{items, page, limit, total, hasMore}`; each item is a Post plus `repostedBy: {userId, nickname}|null`, `eventKey` (unique per item: one post can appear as written and as reposted) and `eventAt`. Anonymous posts never appear under their author except to the author.
+- `PATCH /api/posts/<id>` now also takes `title`, `content`, `imageUploadIds` (the full new list; dropped uploads are deleted) and `mentionUserIds`, alone or with `status`. Author only. Text is moderated again; a risky edit returns the post to `reviewStatus:"pending"`.
+- `PATCH /api/comments/<id>` `{content, mentionUserIds?}` → Comment. Author only, moderated again.
+- Mentions: `POST /api/posts` and `POST /api/posts/<id>/comments` accept `mentionUserIds:[str]` (max 10). A mention counts only if `@<nickname>` is in the text, the account exists, is not the author, and neither side blocks the other. Each gets a `type:"mention"` notification once the content is visible; anonymous writing sends no `actorId`. Edits notify only newly added mentions.
+- `GET /api/users/me/activity?page&limit` → paged `{items}` of the signed-in user's own actions, newest first: `type` ∈ `post | comment | like_post | like_comment | favorite | repost | follow`; post-related items carry `post:{id, title}` (plus `commentId`, `content` for comment ones), `follow` carries `user:{userId, nickname}`.
+- Notification categories are now `comment, reply, like, favorite, repost, mention, report_result, system`. `repost` follows the `notifyLike` switch, `mention` follows `notifyReply`.
+- Likes and favorites now keep their real `created_at` across saves (they used to be restamped on every rewrite).

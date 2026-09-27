@@ -1420,6 +1420,26 @@ def get_setting_int(db: dict[str, Any], key: str, default: int, *, minimum: int 
 
 
 # Serialize helpers for post/comment handlers
+def visible_mentions(db: dict[str, Any], mentions: Any) -> list[dict[str, str]]:
+    """Stored @-mentions minus accounts that are gone, with current nicknames."""
+    from services._user_service import user_nickname
+
+    rows: list[dict[str, str]] = []
+    for mention in mentions if isinstance(mentions, list) else []:
+        if not isinstance(mention, dict):
+            continue
+        user_id = str(mention.get("userId", "")).strip()
+        user = next(
+            (row for row in db.get("users", []) if str(row.get("id", "")).strip() == user_id),
+            None,
+        )
+        if user is None or user.get("deleted"):
+            continue
+        # The text keeps the nickname as typed; the link follows the account.
+        rows.append({"userId": user_id, "nickname": str(mention.get("nickname", "")) or user_nickname(user)})
+    return rows
+
+
 def serialize_post(
     db: dict[str, Any],
     post: dict[str, Any],
@@ -1501,6 +1521,17 @@ def serialize_post(
         )
     )
 
+    repost_count = sum(
+        1 for row in db.get("reposts", []) if str(row.get("postId", "")).strip() == post_id
+    )
+    reposted = bool(
+        viewer_user_id
+        and any(
+            row for row in db.get("reposts", [])
+            if row.get("userId") == viewer_user_id and row.get("postId") == post_id
+        )
+    )
+
     image_urls: list[str] = []
     uploaded_image_ids: list[str] = []
     for upload in db.get("mediaUploads", []):
@@ -1571,6 +1602,10 @@ def serialize_post(
         "publisherClubId": str(post.get("publisherClubId", "")),
         "liked": liked,
         "favorited": favorited,
+        "repostCount": repost_count,
+        "reposted": reposted,
+        "mentions": visible_mentions(db, post.get("mentions")),
+        "editedAt": str(post.get("editedAt", "") or ""),
         "status": post.get("status", "ongoing"),
         # pending / rejected are only ever seen on one's own posts, where the
         # card shows 待审核 / 未通过审核.
@@ -3270,6 +3305,7 @@ def default_db() -> dict[str, Any]:
         "comments": [],
         "likes": [],
         "favorites": [],
+        "reposts": [],
         "reports": [],
         "userBlocks": [],
         "userFollows": [],

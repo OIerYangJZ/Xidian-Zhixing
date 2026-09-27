@@ -117,7 +117,7 @@ def test_list_reports_unread_counts_per_type(monkeypatch):
     data = handler.payload()["data"]
     assert data["unreadCount"] == 4
     assert data["unreadByType"] == {"comment": 1, "reply": 2, "like": 0, "favorite": 0,
-                                    "report_result": 0, "system": 1}
+                                    "repost": 0, "mention": 0, "report_result": 0, "system": 1}
 
 
 def _read_all(monkeypatch, db, user, body):

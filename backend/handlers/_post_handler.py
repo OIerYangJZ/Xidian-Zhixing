@@ -52,6 +52,7 @@ from helpers import (
     send_json,
     verify_password,
 )
+from handlers._social_handler import notify_mentions, resolve_mentions
 from services import (
     add_audit_log,
     apply_post_pin,
@@ -88,6 +89,7 @@ from services import (
     is_post_pin_active,
     user_avatar_url,
     user_nickname,
+    visible_mentions,
 )
 
 _MAX_POST_TITLE_CHARS = 200
@@ -316,6 +318,8 @@ def _serialize_comment(
         "authorAvatar": author_avatar_url,
         "authorUserId": public_author_id,
         "isOwnComment": bool(viewer_user_id and viewer_user_id == author_id),
+        "mentions": visible_mentions(db, comment.get("mentions")),
+        "editedAt": str(comment.get("editedAt", "") or ""),
         # 洞主. Only the flag is exposed; on an anonymous post the comment is
         # anonymous too, so it names no one.
         "isPostAuthor": is_post_author,
@@ -1019,6 +1023,7 @@ def handle_create_post(
         if str(upload.get("status", "approved")).strip().lower() != "rejected":
             has_image = True
 
+    mentions = resolve_mentions(db, user["id"], f"{title}\n{raw_content}", body.get("mentionUserIds"))
     post = {
         "id": next_id(db, "post", "p"),
         "title": title,
@@ -1050,6 +1055,8 @@ def handle_create_post(
         "publisherType": publisher_type,
         "publisherClubId": publisher_club_id if publisher_type == "club" else "",
         "shareCount": 0,
+        "mentions": mentions,
+        "editedAt": "",
     }
     if risk_marked:
         from handlers._radio_handler import add_moderation_task
@@ -1072,6 +1079,18 @@ def handle_create_post(
     for upload in picked_uploads:
         upload["postId"] = post["id"]
     recalc_post_has_image(db, post["id"])
+    # Only once others can read it: a pending or private post would notify
+    # people about something they cannot open.
+    if not risk_marked and visibility != "private":
+        notify_mentions(
+            db,
+            mentions,
+            author=user,
+            anonymous=use_anonymous_alias,
+            actor_alias=post["authorAlias"],
+            snippet=title or content,
+            post_id=post["id"],
+        )
     add_audit_log(db, user["id"], "create_post", f"发布帖子 {post['id']}")
     save_db(db)
     send_json(
@@ -1200,6 +1219,8 @@ def handle_create_comment(
         "riskMarked": risk_marked,
         "isAnonymous": comment_anonymous,
         "parentId": parent_id,
+        "mentions": resolve_mentions(db, user["id"], comment_content, body.get("mentionUserIds")),
+        "editedAt": "",
     }
     if risk_marked:
         from handlers._radio_handler import add_moderation_task
@@ -1260,6 +1281,18 @@ def handle_create_comment(
             actor_alias=author_alias,
         )
 
+    if not risk_marked:
+        already_told = {parent_author_id, post_author_id}
+        notify_mentions(
+            db,
+            [m for m in comment["mentions"] if m["userId"] not in already_told],
+            author=user,
+            anonymous=comment_anonymous,
+            actor_alias=author_alias,
+            snippet=comment_content,
+            post_id=post_id,
+            comment_id=comment["id"],
+        )
     add_audit_log(db, user["id"], "create_comment", f"在帖子 {post_id} 下发表评论 {comment['id']}")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": _serialize_comment(db, comment, viewer_user_id=user["id"], post=post)})
@@ -2006,16 +2039,252 @@ def handle_update_post(
         return
 
     body = read_json_body(handler)
-    new_status = str(body.get("status", "")).strip().lower()
-    if new_status not in {"ongoing", "open", "resolved", "closed"}:
+    edits_text = any(key in body for key in ("title", "content", "imageUploadIds"))
+    if "status" in body:
+        new_status = str(body.get("status", "")).strip().lower()
+        if new_status not in {"ongoing", "open", "resolved", "closed"}:
+            json_error(handler, HTTPStatus.BAD_REQUEST, "无效的帖子状态")
+            return
+        post["status"] = "ongoing" if new_status == "open" else new_status
+    elif not edits_text:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的帖子状态")
         return
-    post["status"] = "ongoing" if new_status == "open" else new_status
-    post["updatedAt"] = now_iso()
-    add_audit_log(db, user["id"], "update_post_status", f"更新帖子状态为 {new_status}")
-    save_db(db)
 
-    send_json(handler, HTTPStatus.OK, {"data": serialize_post(db, post, viewer_user_id=user["id"])})
+    removed_object_keys: list[str] = []
+    if edits_text:
+        result = _apply_post_edit(handler, db, user, post, body)
+        if result is None:
+            return
+        removed_object_keys = result
+    post["updatedAt"] = now_iso()
+    add_audit_log(
+        db,
+        user["id"],
+        "edit_post" if edits_text else "update_post_status",
+        f"编辑帖子 {post_id}" if edits_text else f"更新帖子状态为 {post['status']}",
+    )
+    save_db(db)
+    # After the save: a failure here only leaves unreachable files behind
+    # (their uploads are already marked deleted), never a post pointing at
+    # images that are gone.
+    if removed_object_keys:
+        try:
+            delete_objects_with_backups(_globals.OBJECT_STORAGE, removed_object_keys)
+        except Exception:
+            logger.warning("could not delete images removed from post %s", post_id, exc_info=True)
+
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {"data": serialize_post(db, post, viewer_user_id=user["id"], include_unapproved_images=True)},
+    )
+
+
+def _apply_post_edit(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    user: dict[str, Any],
+    post: dict[str, Any],
+    body: dict[str, Any],
+) -> list[str] | None:
+    """Title, text and images of an existing post, with the same checks as
+    creating one.  Returns the storage keys of images taken off the post
+    (to delete once saved), or None after sending the error response.
+
+    The edited text goes through moderation again: a risky edit sends the
+    post back to review, where only its author can see it.
+    """
+    title = str(body.get("title", post.get("title", ""))).strip()
+    raw_content = str(body.get("content", post.get("content", ""))).strip()
+    if not raw_content:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "帖子内容不能为空")
+        return None
+    if len(title) > _MAX_POST_TITLE_CHARS:
+        json_error(handler, HTTPStatus.BAD_REQUEST, f"帖子标题不能超过 {_MAX_POST_TITLE_CHARS} 个字符")
+        return None
+    if len(raw_content) > _MAX_POST_CONTENT_CHARS:
+        json_error(handler, HTTPStatus.BAD_REQUEST, f"帖子正文不能超过 {_MAX_POST_CONTENT_CHARS} 个字符")
+        return None
+
+    current_uploads = [
+        u for u in db.get("mediaUploads", [])
+        if str(u.get("postId", "")).strip() == post["id"] and not u.get("deleted")
+    ]
+    image_ids: list[str] | None = None
+    if "imageUploadIds" in body:
+        raw_ids = body.get("imageUploadIds")
+        if not isinstance(raw_ids, list):
+            json_error(handler, HTTPStatus.BAD_REQUEST, "imageUploadIds 必须是数组")
+            return None
+        image_ids = [str(i).strip() for i in raw_ids if str(i).strip()]
+        if len(image_ids) > _MAX_POST_IMAGES:
+            json_error(handler, HTTPStatus.BAD_REQUEST, f"每条帖子最多 {_MAX_POST_IMAGES} 张图片")
+            return None
+        for img_id in image_ids:
+            upload = next((u for u in db.get("mediaUploads", []) if u.get("id") == img_id), None)
+            if upload is None or upload.get("deleted"):
+                json_error(handler, HTTPStatus.BAD_REQUEST, f"图片不存在: {img_id}")
+                return None
+            if upload.get("uploaderId") != user["id"]:
+                json_error(handler, HTTPStatus.FORBIDDEN, f"图片无权限绑定: {img_id}")
+                return None
+            if upload.get("postId") and upload.get("postId") != post["id"]:
+                json_error(handler, HTTPStatus.BAD_REQUEST, f"图片已绑定帖子: {img_id}")
+                return None
+
+    tags = [tag for tag in post.get("tags", []) if tag not in _extract_inline_tags(post.get("title"), post.get("content"))]
+    for tag in _extract_inline_tags(title, raw_content):
+        if tag not in tags:
+            tags.append(tag)
+    if len(tags) > _MAX_TAGS or any(len(tag) > _MAX_TAG_CHARS for tag in tags):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "标签数量或长度超出限制")
+        return None
+
+    risk_marked, high_risk, risk_reasons = assess_text_risk(
+        db,
+        "\n字段分隔\n".join([title, raw_content, " ".join(tags)]),
+        block_on_match=True,
+    )
+    if high_risk:
+        json_error(
+            handler,
+            HTTPStatus.BAD_REQUEST,
+            "内容命中敏感词，禁止发布，请修改后重试",
+            data={"code": "POST_CONTENT_REJECTED", "categories": []},
+        )
+        add_audit_log(db, user["id"], "risk_block_post_edit", ";".join(risk_reasons))
+        save_db(db)
+        return None
+
+    old_mentioned = {m.get("userId") for m in post.get("mentions", []) if isinstance(m, dict)}
+    mentions = resolve_mentions(db, user["id"], f"{title}\n{raw_content}", body.get("mentionUserIds", [
+        m.get("userId") for m in post.get("mentions", []) if isinstance(m, dict)
+    ]))
+    post["title"] = title
+    post["content"] = raw_content
+    post["contentFormat"] = "plain"
+    post["markdownSource"] = ""
+    post["tags"] = tags
+    post["mentions"] = mentions
+    post["editedAt"] = now_iso()
+    if risk_marked:
+        post["reviewStatus"] = "pending"
+        post["riskMarked"] = True
+        from handlers._radio_handler import add_moderation_task
+
+        add_moderation_task(
+            db,
+            target_type="post",
+            target_id=post["id"],
+            title=title or raw_content[:40],
+            content=raw_content,
+            risk_reasons=risk_reasons,
+        )
+
+    removed_object_keys: list[str] = []
+    if image_ids is not None:
+        kept = set(image_ids)
+        for upload in db.get("mediaUploads", []):
+            if upload.get("id") in kept:
+                upload["postId"] = post["id"]
+        # Same treatment as deleting a post's images: the objects go too.
+        for upload in current_uploads:
+            if upload.get("id") in kept:
+                continue
+            upload["deleted"] = True
+            key = str(upload.get("objectKey", "")).strip()
+            if key:
+                removed_object_keys.append(key)
+        post["imageIds"] = image_ids
+        recalc_post_has_image(db, post["id"])
+
+    if not risk_marked and str(post.get("visibility", "public")) != "private":
+        notify_mentions(
+            db,
+            [m for m in mentions if m["userId"] not in old_mentioned],
+            author=user,
+            anonymous=is_post_anonymous(db, post),
+            actor_alias=str(post.get("authorAlias", "")),
+            snippet=title or raw_content,
+            post_id=post["id"],
+        )
+    return removed_object_keys
+
+
+def handle_update_comment(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    comment_id: str,
+) -> None:
+    """PATCH /api/comments/<id> — the author edits the text."""
+    user = _require_auth(handler, db)
+    if user is None:
+        return
+    comment = next(
+        (c for c in db.get("comments", []) if c.get("id") == comment_id and not c.get("deleted")),
+        None,
+    )
+    if comment is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "评论不存在或已被删除")
+        return
+    if str(comment.get("userId", "")).strip() != user["id"]:
+        json_error(handler, HTTPStatus.FORBIDDEN, "只能编辑自己的评论")
+        return
+    post = next(
+        (p for p in db.get("posts", []) if p.get("id") == comment.get("postId") and not p.get("deleted")),
+        None,
+    )
+    if post is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+        return
+
+    body = read_json_body(handler)
+    content = str(body.get("content", "")).strip()
+    if not content:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "评论内容不能为空")
+        return
+    if len(content) > _MAX_COMMENT_CHARS:
+        json_error(handler, HTTPStatus.BAD_REQUEST, f"评论内容不能超过 {_MAX_COMMENT_CHARS} 个字符")
+        return
+    risk_marked, high_risk, risk_reasons = assess_text_risk(db, content)
+    if high_risk:
+        json_error(handler, HTTPStatus.BAD_REQUEST, f"评论触发高风险风控：{'; '.join(risk_reasons)}")
+        add_audit_log(db, user["id"], "risk_block_comment_edit", ";".join(risk_reasons))
+        save_db(db)
+        return
+
+    old_mentioned = {m.get("userId") for m in comment.get("mentions", []) if isinstance(m, dict)}
+    mentions = resolve_mentions(db, user["id"], content, body.get("mentionUserIds", list(old_mentioned)))
+    comment["content"] = content
+    comment["mentions"] = mentions
+    comment["editedAt"] = now_iso()
+    if risk_marked:
+        comment["reviewStatus"] = "pending"
+        comment["riskMarked"] = True
+        from handlers._radio_handler import add_moderation_task
+
+        add_moderation_task(
+            db,
+            target_type="comment",
+            target_id=comment["id"],
+            title="疑似敏感评论",
+            content=content,
+            risk_reasons=risk_reasons,
+        )
+    else:
+        notify_mentions(
+            db,
+            [m for m in mentions if m["userId"] not in old_mentioned],
+            author=user,
+            anonymous=bool(comment.get("isAnonymous")),
+            actor_alias=str(comment.get("authorAlias", "")),
+            snippet=content,
+            post_id=str(post["id"]),
+            comment_id=comment["id"],
+        )
+    add_audit_log(db, user["id"], "edit_comment", f"编辑评论 {comment_id}")
+    save_db(db)
+    send_json(handler, HTTPStatus.OK, {"data": _serialize_comment(db, comment, viewer_user_id=user["id"], post=post)})
 
 
 # ===========================================================================

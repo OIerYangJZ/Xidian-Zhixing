@@ -35,6 +35,7 @@ import handlers._notification_handler as _notification_handler
 import handlers._post_handler as _post_handler
 import handlers._radio_handler as _radio_handler
 import handlers._web_session_handler as _web_session_handler
+import handlers._social_handler as _social_handler
 import handlers._static_handler as _static_handler
 import handlers._upload_handler as _upload_handler
 import handlers._user_handler as _user_handler
@@ -717,6 +718,13 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/users/search":
                 _user_handler.handle_search_users(self, db, query)
                 return
+            if path == "/api/users/me/activity":
+                _social_handler.handle_get_my_activity(self, db, query)
+                return
+            match_timeline = re.fullmatch(r"/api/users/([^/]+)/timeline", path)
+            if match_timeline:
+                _social_handler.handle_get_timeline(self, db, match_timeline.group(1), query)
+                return
 
             _xidian_auth_session_match = re.fullmatch(r"/api/auth/xidian/session/([^/]+)", path)
             if _xidian_auth_session_match:
@@ -1213,6 +1221,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _post_handler.handle_toggle_like(self, db, match_like.group(1))
                 return
 
+            match_repost = re.fullmatch(r"/api/posts/([^/]+)/repost", path)
+            if match_repost:
+                _social_handler.handle_toggle_repost(self, db, match_repost.group(1))
+                return
+
             match_comment_like = re.fullmatch(r"/api/comments/([^/]+)/like", path)
             if match_comment_like:
                 _post_handler.handle_toggle_comment_like(self, db, match_comment_like.group(1))
@@ -1341,6 +1354,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             match_post = re.fullmatch(r"/api/posts/([^/]+)", path)
             if match_post:
                 _post_handler.handle_update_post(self, db, match_post.group(1))
+                return
+
+            match_comment = re.fullmatch(r"/api/comments/([^/]+)", path)
+            if match_comment:
+                _post_handler.handle_update_comment(self, db, match_comment.group(1))
                 return
 
             match_tag = re.fullmatch(r"/api/admin/tags/(.+)", path)

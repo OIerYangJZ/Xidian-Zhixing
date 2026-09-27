@@ -60,6 +60,7 @@ TABLE_SOURCE_KEYS: dict[str, tuple[str, ...]] = {
     "comments": ("comments",),
     "likes": ("likes",),
     "favorites": ("favorites",),
+    "reposts": ("reposts",),
     "reports": ("reports",),
     "user_follows": ("userFollows",),
     "user_blocks": ("userBlocks",),
@@ -169,6 +170,21 @@ def _to_str(value: Any, default: str = "") -> str:
     return str(value)
 
 
+def _json_list(value: Any) -> list[Any]:
+    """A JSON array column (mentions); anything unreadable is an empty list."""
+    if isinstance(value, list):
+        return value
+    try:
+        parsed = json.loads(_to_str(value) or "[]")
+    except ValueError:
+        return []
+    return parsed if isinstance(parsed, list) else []
+
+
+def _json_list_text(value: Any) -> str:
+    return json.dumps(value if isinstance(value, list) else [], ensure_ascii=False)
+
+
 def _to_optional_bool(value: Any) -> bool | None:
     if value is None:
         return None
@@ -268,6 +284,7 @@ class SqliteTreeholeRepository:
                 "comments",
                 "likes",
                 "favorites",
+                "reposts",
                 "user_follows",
                 "reports",
                 "user_blocks",
@@ -542,6 +559,15 @@ class SqliteTreeholeRepository:
             );
 
             CREATE TABLE IF NOT EXISTS favorites (
+              user_id TEXT NOT NULL,
+              post_id TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              PRIMARY KEY (user_id, post_id),
+              FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+              FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS reposts (
               user_id TEXT NOT NULL,
               post_id TEXT NOT NULL,
               created_at TEXT NOT NULL,
@@ -838,6 +864,11 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "posts", "publisher_club_id", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "posts", "share_count", "INTEGER NOT NULL DEFAULT 0")
         self._ensure_column(conn, "comments", "is_anonymous", "INTEGER NOT NULL DEFAULT 1")
+        # @-mentions as [{"userId", "nickname"}] and the last author edit.
+        self._ensure_column(conn, "posts", "mentions", "TEXT NOT NULL DEFAULT '[]'")
+        self._ensure_column(conn, "posts", "edited_at", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "comments", "mentions", "TEXT NOT NULL DEFAULT '[]'")
+        self._ensure_column(conn, "comments", "edited_at", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "email_codes", "record_id", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(
             conn,
@@ -952,6 +983,7 @@ class SqliteTreeholeRepository:
             "comments": [],
             "likes": [],
             "favorites": [],
+            "reposts": [],
             "userFollows": [],
             "reports": [],
             "userBlocks": [],
@@ -1138,7 +1170,7 @@ class SqliteTreeholeRepository:
                    visibility, is_anonymous,
                    author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
                    view_count, section_type, section_id, section_name, publisher_type, publisher_club_id, share_count,
-                   created_at, updated_at, deleted, review_status, risk_marked
+                   created_at, updated_at, deleted, review_status, risk_marked, mentions, edited_at
             FROM posts
             ORDER BY created_at DESC, id DESC
             """
@@ -1181,13 +1213,15 @@ class SqliteTreeholeRepository:
                     "deleted": _to_bool(row["deleted"]),
                     "reviewStatus": row["review_status"],
                     "riskMarked": _to_bool(row["risk_marked"]),
+                    "mentions": _json_list(row["mentions"]),
+                    "editedAt": _to_str(row["edited_at"]),
                 }
             )
 
         for row in conn.execute(
             """
             SELECT id, post_id, user_id, author_alias, content, created_at, deleted,
-                   like_count, review_status, risk_marked, is_anonymous, parent_id
+                   like_count, review_status, risk_marked, is_anonymous, parent_id, mentions, edited_at
             FROM comments
             ORDER BY created_at DESC, id DESC
             """
@@ -1206,14 +1240,36 @@ class SqliteTreeholeRepository:
                     "riskMarked": _to_bool(row["risk_marked"]),
                     "isAnonymous": _to_bool(row["is_anonymous"]),
                     "parentId": _to_str(row["parent_id"]),
+                    "mentions": _json_list(row["mentions"]),
+                    "editedAt": _to_str(row["edited_at"]),
                 }
             )
 
-        for row in conn.execute("SELECT user_id, post_id, comment_id FROM likes ORDER BY user_id, post_id, comment_id"):
-            db["likes"].append({"userId": row["user_id"], "postId": row["post_id"], "commentId": row["comment_id"]})
+        # created_at travels with the row: save_state rewrites these tables
+        # whole, and stamping "now" each time made every like look fresh.
+        for row in conn.execute(
+            "SELECT user_id, post_id, comment_id, created_at FROM likes ORDER BY user_id, post_id, comment_id"
+        ):
+            db["likes"].append({
+                "userId": row["user_id"],
+                "postId": row["post_id"],
+                "commentId": row["comment_id"],
+                "createdAt": _to_str(row["created_at"]),
+            })
 
-        for row in conn.execute("SELECT user_id, post_id FROM favorites ORDER BY user_id, post_id"):
-            db["favorites"].append({"userId": row["user_id"], "postId": row["post_id"]})
+        for row in conn.execute("SELECT user_id, post_id, created_at FROM favorites ORDER BY user_id, post_id"):
+            db["favorites"].append({
+                "userId": row["user_id"],
+                "postId": row["post_id"],
+                "createdAt": _to_str(row["created_at"]),
+            })
+
+        for row in conn.execute("SELECT user_id, post_id, created_at FROM reposts ORDER BY created_at DESC, user_id"):
+            db["reposts"].append({
+                "userId": row["user_id"],
+                "postId": row["post_id"],
+                "createdAt": _to_str(row["created_at"]),
+            })
 
         for row in conn.execute(
             """
@@ -1607,6 +1663,7 @@ class SqliteTreeholeRepository:
                 "user_blocks",
                 "user_follows",
                 "reports",
+                "reposts",
                 "favorites",
                 "likes",
                 "comments",
@@ -1859,8 +1916,8 @@ class SqliteTreeholeRepository:
                       visibility, is_anonymous,
                       author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
                       view_count, section_type, section_id, section_name, publisher_type, publisher_club_id, share_count,
-                      created_at, updated_at, deleted, review_status, risk_marked
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      created_at, updated_at, deleted, review_status, risk_marked, mentions, edited_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         post_id,
@@ -1894,6 +1951,8 @@ class SqliteTreeholeRepository:
                         _to_bool_int(post.get("deleted")),
                         _to_str(post.get("reviewStatus"), "pending"),
                         _to_bool_int(post.get("riskMarked")),
+                        _json_list_text(post.get("mentions")),
+                        _to_str(post.get("editedAt")),
                     ),
                 )
                 for tag_name in post.get("tags", []):
@@ -1936,8 +1995,8 @@ class SqliteTreeholeRepository:
                     """
                     INSERT INTO comments (
                       id, post_id, user_id, author_alias, content, created_at, deleted,
-                      like_count, review_status, risk_marked, is_anonymous, parent_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      like_count, review_status, risk_marked, is_anonymous, parent_id, mentions, edited_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         comment_id,
@@ -1952,6 +2011,8 @@ class SqliteTreeholeRepository:
                         _to_bool_int(comment.get("riskMarked")),
                         _to_bool_int(comment.get("isAnonymous", True)),
                         None,
+                        _json_list_text(comment.get("mentions")),
+                        _to_str(comment.get("editedAt")),
                     ),
                 )
                 parent_id = _to_str(comment.get("parentId")).strip()
@@ -1973,7 +2034,12 @@ class SqliteTreeholeRepository:
                 if user_id and (post_id or comment_id):
                     conn.execute(
                         "INSERT OR IGNORE INTO likes (user_id, post_id, comment_id, created_at) VALUES (?, ?, ?, ?)",
-                        (user_id, post_id if post_id else None, comment_id if comment_id else None, created_now),
+                        (
+                            user_id,
+                            post_id if post_id else None,
+                            comment_id if comment_id else None,
+                            _to_str(row.get("createdAt")) or created_now,
+                        ),
                     )
 
             for row in db.get("favorites", []):
@@ -1984,7 +2050,18 @@ class SqliteTreeholeRepository:
                 if user_id and post_id:
                     conn.execute(
                         "INSERT OR IGNORE INTO favorites (user_id, post_id, created_at) VALUES (?, ?, ?)",
-                        (user_id, post_id, created_now),
+                        (user_id, post_id, _to_str(row.get("createdAt")) or created_now),
+                    )
+
+            for row in db.get("reposts", []):
+                if not isinstance(row, dict):
+                    continue
+                user_id = _to_str(row.get("userId")).strip()
+                post_id = _to_str(row.get("postId")).strip()
+                if user_id and post_id:
+                    conn.execute(
+                        "INSERT OR IGNORE INTO reposts (user_id, post_id, created_at) VALUES (?, ?, ?)",
+                        (user_id, post_id, _to_str(row.get("createdAt")) or created_now),
                     )
 
             for row in db.get("reports", []):

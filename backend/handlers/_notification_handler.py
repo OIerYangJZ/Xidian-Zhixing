@@ -38,7 +38,9 @@ def _serialize_notification_with_actor_avatar(
 
 
 # Categories the clients filter by. Every stored type maps onto one of them.
-NOTIFICATION_CATEGORIES = ("comment", "reply", "like", "favorite", "report_result", "system")
+NOTIFICATION_CATEGORIES = (
+    "comment", "reply", "like", "favorite", "repost", "mention", "report_result", "system",
+)
 
 
 def notification_category(notification_type: Any) -> str:
