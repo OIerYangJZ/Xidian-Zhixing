@@ -235,6 +235,17 @@ export const normalizePost = (raw = {}) => {
   };
 };
 
+// A post for a list: drops what only the post page shows (full text and its
+// segments, Markdown source) so long lists stay far under setData's 1 MB.
+export const listRow = (post) => {
+  const row = { ...post };
+  delete row.content;
+  delete row.contentSegments;
+  delete row.markdownSource;
+  delete row.displayTitleSegments;
+  return row;
+};
+
 export const normalizeComment = (raw = {}) => {
   if (!isRecord(raw)) {
     throw responseContractError('评论数据格式错误');

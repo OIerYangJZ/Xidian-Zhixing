@@ -1,3 +1,5 @@
+import { baseUrl } from '../config/env';
+
 // Post content is user-supplied.  A markdown link may carry any scheme, so only
 // let plain http(s) and in-app paths through; anything else renders as inert
 // text rather than a live href.
@@ -28,7 +30,10 @@ const inlineNodes = (text) => {
     const boldMatch = /\*\*([^*]+)\*\*/.exec(rest);
     // 3. Italic: *italic* or _italic_
     const italicMatch = /(\*([^*]+)\*)|(_([^_]+)_)/.exec(rest);
-    // 4. Link: [text](url)
+    // 4. Image: ![alt](/api/storage/...) — the backend only accepts its own
+    // uploads in Markdown, so nothing else is loaded.
+    const imageMatch = /!\[([^\]]*)\]\(([^)\s]*)\)/.exec(rest);
+    // 5. Link: [text](url)
     const linkMatch = /\[([^\]]*)\]\(([^)]*)\)/.exec(rest);
     // 5. Inline tag: #tag
     const tagMatch = /#[\w\u4e00-\u9fff-]{1,30}/.exec(rest);
@@ -47,6 +52,10 @@ const inlineNodes = (text) => {
     if (italicMatch && (earliest === null || italicMatch.index < earliest.index)) {
       earliest = italicMatch;
       matchType = 'italic';
+    }
+    if (imageMatch && (earliest === null || imageMatch.index < earliest.index)) {
+      earliest = imageMatch;
+      matchType = 'image';
     }
     if (linkMatch && (earliest === null || linkMatch.index < earliest.index)) {
       earliest = linkMatch;
@@ -87,6 +96,16 @@ const inlineNodes = (text) => {
         name: 'em',
         children: inlineNodes(italicText)
       });
+    } else if (matchType === 'image') {
+      const src = String(earliest[2] || '').trim();
+      if (src.startsWith('/api/storage/')) {
+        nodes.push({
+          name: 'img',
+          attrs: { style: 'display:block;max-width:100%;height:auto;margin:8px 0;border-radius:8px;', src: `${baseUrl.replace(/\/$/, '')}${src}`, alt: earliest[1] || '图片' },
+        });
+      } else {
+        nodes.push({ type: 'text', text: earliest[1] || '图片' });
+      }
     } else if (matchType === 'link') {
       const linkText = earliest[1];
       const linkUrl = safeLinkUrl(earliest[2]);

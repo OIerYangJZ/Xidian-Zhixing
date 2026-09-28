@@ -14,8 +14,8 @@
       <text>{{item.label}}</text><view wx:if="{{activeSort === item.value}}" class="zx-i zx-i--sm zx-i-check"></view>
     </view>
     <view class="zx-section-title filter-title">分区</view>
-    <view wx:for="{{sectionTree.sections}}" wx:key="id" data-section="{{item}}" class="filter-item {{activeSection && activeSection.id === item.id ? 'filter-item--on' : ''}}" bindtap="selectSection">
-      <text>{{item.sectionName}}</text><view wx:if="{{activeSection && activeSection.id === item.id}}" class="zx-i zx-i--sm zx-i-check"></view>
+    <view wx:for="{{sectionTree.sections}}" wx:key="sectionId" data-section="{{item}}" class="filter-item {{activeSection && activeSection.sectionId === item.sectionId ? 'filter-item--on' : ''}}" bindtap="selectSection">
+      <text>{{item.sectionName}}</text><view wx:if="{{activeSection && activeSection.sectionId === item.sectionId}}" class="zx-i zx-i--sm zx-i-check"></view>
     </view>
   </view>
 

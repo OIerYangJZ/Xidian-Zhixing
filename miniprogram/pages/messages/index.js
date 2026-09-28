@@ -37,9 +37,9 @@ Page({
         getNotifications().catch(() => ({ items: [], unreadCount: 0 }))
       ]);
       const commentUnread = notifications.items.filter((item) => !item.isRead
-        && ['comment', 'reply'].includes(notificationCategory(item.type))).length;
+        && ['comment', 'reply', 'mention'].includes(notificationCategory(item.type))).length;
       const likeUnread = notifications.items.filter((item) => !item.isRead
-        && ['like', 'favorite'].includes(notificationCategory(item.type))).length;
+        && ['like', 'favorite', 'repost'].includes(notificationCategory(item.type))).length;
       const conversationUnread = conversations
         .reduce((sum, item) => sum + (Number(item.unreadCount) || 0), 0);
       this.setData({
@@ -69,11 +69,11 @@ Page({
   },
 
   openLikes() {
-    wx.navigateTo({ url: '/pages/profile/notifications/index?category=like,favorite' });
+    wx.navigateTo({ url: '/pages/profile/notifications/index?category=like,favorite,repost' });
   },
 
   openComments() {
-    wx.navigateTo({ url: '/pages/profile/notifications/index?category=comment,reply' });
+    wx.navigateTo({ url: '/pages/profile/notifications/index?category=comment,reply,mention' });
   },
 
   openChat(event) {

@@ -74,11 +74,17 @@ Page({
     if (options.q || options.prefill) {
       this.setData({ inputVal: decodeURIComponent(options.q || options.prefill) });
     }
-    if (options.answer) {
+    // An answer handed over by another page (问 AI on a post); it comes
+    // through globalData because a long answer does not fit in a page URL.
+    const app = getApp();
+    const handedOver = options.handoff && app.globalData.aiHandoffAnswer;
+    if (handedOver) app.globalData.aiHandoffAnswer = '';
+    const answer = handedOver || (options.answer ? decodeURIComponent(options.answer) : '');
+    if (answer) {
       this.setData({
         messages: [
           ...this.data.messages,
-          { id: `answer-${Date.now()}`, role: 'assistant', content: decodeURIComponent(options.answer) }
+          { id: `answer-${Date.now()}`, role: 'assistant', content: answer }
         ]
       });
     }

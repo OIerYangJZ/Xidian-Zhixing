@@ -438,15 +438,27 @@ Page({
       success: async (modal) => {
         if (!modal.confirm) return;
         const selectedText = String(modal.content || '').trim() || `${this.data.post.title || ''}\n${this.data.post.content || ''}`;
-        const response = await askAiWithPostSelection({
-          postId: this.data.post.id,
-          selectedText,
-          question: '请解释这段内容并给出相关校园信息线索'
-        });
-        const data = response.data || response || {};
-        wx.navigateTo({
-          url: `/pages/ai/chat/index?answer=${encodeURIComponent(data.answer || selectedText)}`
-        });
+        wx.showLoading({ title: 'AI 思考中' });
+        let data;
+        try {
+          const response = await askAiWithPostSelection({
+            postId: this.data.post.id,
+            selectedText,
+            question: '请解释这段内容并给出相关校园信息线索'
+          });
+          data = response.data || response || {};
+        } catch (error) {
+          // AI not configured (503), rate-limited (429) or offline.
+          wx.hideLoading();
+          wx.showToast({
+            title: (error && error.data && error.data.message) || 'AI 暂时不可用，请稍后再试',
+            icon: 'none'
+          });
+          return;
+        }
+        wx.hideLoading();
+        getApp().globalData.aiHandoffAnswer = data.answer || selectedText;
+        wx.navigateTo({ url: '/pages/ai/chat/index?handoff=1' });
       }
     });
   },
@@ -508,6 +520,11 @@ Page({
   setReplyTarget(event) {
     const item = this.data.comments[Number(event.currentTarget.dataset.index)];
     if (!item) return;
+    // The server refuses replies to a comment still in review.
+    if (item.reviewStatus === 'pending') {
+      wx.showToast({ title: '这条评论还在审核中，暂时不能回复', icon: 'none' });
+      return;
+    }
     this.setData({
       editingCommentId: '',
       replyToId: item.id,
@@ -563,7 +580,7 @@ Page({
         await this.loadDetail();
         wx.showToast({ title: saved.reviewStatus === 'pending' ? '已提交审核' : '已保存', icon: 'success' });
       } else {
-        await createComment(this.data.postId, {
+        const created = await createComment(this.data.postId, {
           content,
           isAnonymous: false,
           parentId: this.data.replyToId,
@@ -578,7 +595,8 @@ Page({
           showEmojiPanel: false
         });
         await this.loadDetail();
-        wx.showToast({ title: '评论成功', icon: 'success' });
+        if (created.reviewStatus === 'pending') wx.showToast({ title: '评论已提交审核，通过后公开', icon: 'none' });
+        else wx.showToast({ title: '评论成功', icon: 'success' });
       }
     } catch (error) {}
     this.setData({

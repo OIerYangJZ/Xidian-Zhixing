@@ -65,10 +65,16 @@ Page({
   },
 
   onLoad() {
-    this._didInitialShow = false;
+    // Set once a full load has actually run: a load skipped for the login
+    // page (after 退出登录, say) must still happen when the user comes back.
+    this._loaded = false;
+    this._skipNextShow = false;
     applyThemeAndLanguage(this);
     this.initCustomNav();
     if (!requireLoginPage()) return;
+    this._loaded = true;
+    // onShow follows onLoad straight away; it need not load again.
+    this._skipNextShow = true;
     this.loadInitialData().catch((error) => {
       console.error('[profile initial load failed]', error);
     });
@@ -78,8 +84,15 @@ Page({
     applyThemeAndLanguage(this);
     this.initCustomNav();
     if (!requireLoginPage()) return;
-    if (!this._didInitialShow) {
-      this._didInitialShow = true;
+    if (!this._loaded) {
+      this._loaded = true;
+      this.loadInitialData().catch((error) => {
+        console.error('[profile initial load failed]', error);
+      });
+      return;
+    }
+    if (this._skipNextShow) {
+      this._skipNextShow = false;
       return;
     }
     this.refreshProfile().catch((error) => {

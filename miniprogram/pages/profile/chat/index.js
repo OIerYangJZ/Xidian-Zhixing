@@ -19,6 +19,9 @@ const FORWARD_PREFIX = '[转发] ';
 // wx.request rejects with the response ({ statusCode, data }) or a fail object ({ errMsg }).
 const errorText = (error) => (error && error.data && error.data.message) || (error && error.errMsg) || '网络异常';
 
+// How often an open chat looks for new messages.
+const POLL_INTERVAL_MS = 8000;
+
 Page({
   data: {
     conversationId: '',
@@ -82,6 +85,64 @@ Page({
     const app = getApp();
     this.setData({ navTop: app.globalData.navTop || 44, navHeight: app.globalData.navHeight || 32 });
     applyThemeAndLanguage(this);
+    // Replies arrive while the chat is open (and while it was hidden).
+    if (this._shownOnce) this.refreshMessages();
+    this._shownOnce = true;
+    this.startPolling();
+  },
+
+  onHide() {
+    this.stopPolling();
+  },
+
+  onUnload() {
+    this.stopPolling();
+  },
+
+  startPolling() {
+    this.stopPolling();
+    if (!this.data.conversationId) return;
+    this._pollTimer = setInterval(() => this.refreshMessages(), POLL_INTERVAL_MS);
+  },
+
+  stopPolling() {
+    if (this._pollTimer) clearInterval(this._pollTimer);
+    this._pollTimer = null;
+  },
+
+  // A quiet reload: the server's messages plus those still sending or
+  // failed here, applied only if something changed.  Skipped while the
+  // user is selecting messages, so the list does not move under them.
+  async refreshMessages() {
+    if (!this.data.conversationId || this.data.loading || this.data.selectMode || this._refreshing) return;
+    this._refreshing = true;
+    try {
+      const [messages, conversations] = await Promise.all([
+        getConversationMessages(this.data.conversationId),
+        getConversations().catch(() => null)
+      ]);
+      const local = this.data.messages.filter((item) => ['sending', 'failed'].includes(item.deliveryStatus));
+      const next = messages.concat(local);
+      const signature = (list) => list.map((item) => `${item.id}:${item.recalled ? 1 : 0}:${item.deliveryStatus || ''}`).join('|');
+      if (signature(next) === signature(this.data.messages)) return;
+      const conversation = (conversations || []).find((item) => item.id === this.data.conversationId);
+      const peerWrote = messages.some((item) => !item.fromMe);
+      const hadPeerMessages = this.data.messages.filter((item) => !item.fromMe).length;
+      this.setData({
+        openedByPeer: this.data.openedByPeer || peerWrote,
+        ...(conversation ? {
+          blockedByMe: Boolean(conversation.blockedByMe),
+          blockedByPeer: Boolean(conversation.blockedByPeer),
+          serverSaysWait: Boolean(conversation.awaitingReply)
+        } : {})
+      });
+      this.setMessages(next);
+      if (messages.filter((item) => !item.fromMe).length > hadPeerMessages) this.scrollToBottom();
+    } catch (error) {
+      // Polling is best-effort; the next tick tries again.
+    } finally {
+      this._refreshing = false;
+    }
   },
 
   async loadCurrentUser() {

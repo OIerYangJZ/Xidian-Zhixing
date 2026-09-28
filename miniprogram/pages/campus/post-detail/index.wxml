@@ -103,6 +103,7 @@
             <text wx:if="{{item.isPostAuthor}}" class="zx-badge zx-badge--seal" style="margin-left: 8rpx;">洞主</text>
             <text class="comment-time">{{item.timeText || item.createdAt}}</text>
             <text wx:if="{{item.isEdited}}" class="comment-time">已编辑</text>
+            <text wx:if="{{item.reviewStatus === 'pending'}}" class="zx-badge zx-badge--warning" style="margin-left: 8rpx;">审核中，仅自己可见</text>
           </view>
           <view class="comment-text">
             <block wx:for="{{item.contentSegments}}" wx:for-item="segment" wx:for-index="segmentIndex" wx:key="segmentIndex">
@@ -164,7 +165,7 @@
     </view>
     <view class="comment-compose">
       <view class="emoji-toggle" bindtap="toggleEmojiPanel">☺</view>
-      <input class="comment-input" maxlength="2000" placeholder="温柔地回应一下，@ 可以提到同学" placeholder-class="comment-placeholder" value="{{commentContent}}" cursor="{{composeCursor}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="submitComment" cursor-spacing="20" />
+      <input class="comment-input" maxlength="2000" placeholder="温柔地回应一下" placeholder-class="comment-placeholder" value="{{commentContent}}" cursor="{{composeCursor}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="submitComment" cursor-spacing="20" />
       <button class="send-btn" bindtap="submitComment" disabled="{{isSending || !canSendComment}}">{{editingCommentId ? '保存' : '发送'}}</button>
     </view>
   </view>

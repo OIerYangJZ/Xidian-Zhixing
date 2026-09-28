@@ -52,7 +52,11 @@ export const getPostsPage = async (params = {}) => {
   if (!payload || !Array.isArray(payload.items) || typeof payload.hasMore !== 'boolean') {
     throw responseContractError('帖子分页响应格式错误');
   }
-  return { items: payload.items.map(normalizePost), hasMore: payload.hasMore };
+  return {
+    items: payload.items.map(normalizePost),
+    hasMore: payload.hasMore,
+    total: typeof payload.total === 'number' ? payload.total : payload.items.length
+  };
 };
 
 export const getPost = async (postId) => {

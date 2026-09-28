@@ -98,7 +98,11 @@
     </view>
 
     <view class="zx-card card">
-      <view class="setting">
+      <view wx:if="{{editingPostId}}" class="setting">
+        <view class="setting-title">分区</view>
+        <view class="zx-caption">{{editingSectionName}} · 编辑时不能更换分区</view>
+      </view>
+      <view wx:else class="setting">
         <view class="setting-title">分区<text class="required">*</text></view>
         <view class="chips {{sectionError ? 'chips--error' : ''}}">
           <view wx:for="{{sections}}" wx:key="sectionId" class="chip chip--section zx-tone-{{item.tone}} {{sectionIndex === index ? 'chip--on' : ''}}" data-index="{{index}}" bindtap="onSectionTap">

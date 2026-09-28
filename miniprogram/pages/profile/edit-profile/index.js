@@ -5,6 +5,27 @@ import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { avatarInitial } from '../../../utils/format';
 
+// One photo from the album or camera.  wx.chooseMedia where available
+// (wx.chooseImage is deprecated), with the old API as a fallback.
+const pickOneImage = ({ success }) => {
+  if (wx.chooseMedia) {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => success(((res.tempFiles || [])[0] || {}).tempFilePath || '')
+    });
+    return;
+  }
+  wx.chooseImage({
+    count: 1,
+    sizeType: ['compressed'],
+    sourceType: ['album', 'camera'],
+    success: (res) => success((res.tempFilePaths || [])[0] || '')
+  });
+};
+
 Page({
   data: {
     loading: true,
@@ -93,12 +114,8 @@ Page({
 
   chooseAvatar() {
     if (this.data.uploadingAvatar) return;
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: async (res) => {
-        const tempPath = res.tempFilePaths[0];
+    pickOneImage({
+      success: async (tempPath) => {
         if (!tempPath) return;
         this.setData({ uploadingAvatar: true });
         wx.showLoading({ title: '上传中' });
@@ -120,12 +137,8 @@ Page({
 
   chooseBackground() {
     if (this.data.uploadingBackground) return;
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: async (res) => {
-        const tempPath = res.tempFilePaths[0];
+    pickOneImage({
+      success: async (tempPath) => {
         if (!tempPath) return;
         this.setData({ uploadingBackground: true });
         wx.showLoading({ title: '上传中' });

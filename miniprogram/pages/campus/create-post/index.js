@@ -216,6 +216,13 @@ Page({
         this.loadClubs(),
         this.loadUserLevel()
       ]);
+      // Of the colleges only one's own (from the school identity mapping)
+      // takes one's posts, so the others are not offered.
+      if (!this.data.editingPostId) {
+        const sections = this.data.sections.filter((item) => item.sectionType !== 'college'
+          || (this.data.userCollege && item.sectionName === this.data.userCollege));
+        this.setData({ sections });
+      }
       // After both lists: a draft's section and identity name one of each.
       if (this.data.editingPostId) await this.loadEditingPost();
       else this.restoreDraft();
@@ -260,6 +267,7 @@ Page({
       markdown,
       images,
       sectionIndex: this.data.sections.findIndex((item) => item.sectionId === post.sectionId),
+      editingSectionName: post.sectionName || '综合',
       postStatusIndex: statusIndex,
       selectedStatus: STATUS_OPTIONS[statusIndex],
       tagChips: extractInlineTags(post.title, content)
@@ -920,7 +928,12 @@ Page({
       clearTimeout(this._draftTimer);
       wx.removeStorageSync(DRAFT_KEY);
       const isCampus = payload.sectionType === 'college';
-      wx.showToast({ title: isCampus ? '已发布到校园' : '已悄悄放进树洞', icon: 'success' });
+      // Flagged text waits for a moderator and is not in any list yet.
+      if (createdPost.reviewStatus === 'pending') {
+        wx.showToast({ title: '已提交审核，通过后公开', icon: 'none' });
+      } else {
+        wx.showToast({ title: isCampus ? '已发布到校园' : '已悄悄放进树洞', icon: 'success' });
+      }
       setTimeout(() => {
         wx.navigateBack();
       }, 250);

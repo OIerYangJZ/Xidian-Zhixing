@@ -1,9 +1,12 @@
-import { getPosts } from '../../../api/posts';
+import { getPostsPage } from '../../../api/posts';
+import { listRow } from '../../../utils/format';
 import { followUser, searchUsers, unfollowUser } from '../../../api/user';
 import { getHotTopics, getHotTopicSummary } from '../../../api/hot';
 import { attachDisplayImages, hydrateDisplayImages, applyHydratedDisplayImages } from '../../../utils/feed_images';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
+
+const PAGE_SIZE = 20;
 
 // Offered when nothing matches (handoff S3).
 const SUGGESTED_TOPICS = ['图书馆', '组队', '二手', '考研', '失物招领'];
@@ -20,6 +23,9 @@ Page({
     tab: 'posts',
     sort: 'latest',
     posts: [],
+    postTotal: 0,
+    hasMore: false,
+    loadingMore: false,
     users: [],
     suggestedTopics: SUGGESTED_TOPICS,
     history: [],
@@ -91,16 +97,25 @@ Page({
       isTopic,
       topicName: isTopic ? keyword : ''
     });
+    // A topic is the exact tag; anything else matches title, text and tags.
+    this._searchParams = { ...(isTopic ? { tag: keyword } : { keyword }), sort: this.data.sort, limit: PAGE_SIZE };
+    this._searchSeq = (this._searchSeq || 0) + 1;
+    const seq = this._searchSeq;
     try {
-      const [posts, users] = await Promise.all([
-        getPosts({ keyword, sort: this.data.sort }),
+      const [page, users] = await Promise.all([
+        getPostsPage({ ...this._searchParams, page: 1 }),
         searchUsers(keyword).catch(() => [])
       ]);
+      if (seq !== this._searchSeq) return;
+      const posts = page.items.map(listRow);
+      this._searchPage = 1;
       const history = [raw, ...this.data.history.filter((item) => item !== raw)].slice(0, 8);
       wx.setStorageSync('searchHistory', history);
       const shown = posts.map(attachDisplayImages);
       this.setData({
         posts: shown,
+        postTotal: page.total,
+        hasMore: page.hasMore,
         users: users.map(this.decorateUser),
         history,
         loading: false
@@ -109,6 +124,33 @@ Page({
       this.setData({ posts: applyHydratedDisplayImages(this.data.posts, hydrated) });
     } catch (error) {
       this.setData({ loading: false, errorMessage: '搜索失败，请重试' });
+    }
+  },
+
+  async onReachBottom() {
+    if (this.data.tab !== 'posts' || !this.data.hasMore || this.data.loadingMore || !this._searchParams) return;
+    const seq = this._searchSeq;
+    this.setData({ loadingMore: true });
+    try {
+      const page = await getPostsPage({ ...this._searchParams, page: this._searchPage + 1 });
+      if (seq !== this._searchSeq) return;
+      this._searchPage += 1;
+      const known = new Set(this.data.posts.map((post) => post.id));
+      const rows = page.items.map(listRow).filter((post) => !known.has(post.id)).map(attachDisplayImages);
+      // New rows only, by path: the list is never re-sent whole.
+      const patch = { hasMore: page.hasMore };
+      rows.forEach((row, offset) => { patch[`posts[${this.data.posts.length + offset}]`] = row; });
+      this.setData(patch);
+      const hydrated = await hydrateDisplayImages(rows);
+      const start = this.data.posts.length - rows.length;
+      const imagePatch = {};
+      rows.forEach((row, offset) => {
+        if (hydrated[row.id]) imagePatch[`posts[${start + offset}].displayImages`] = hydrated[row.id];
+      });
+      if (Object.keys(imagePatch).length) this.setData(imagePatch);
+    } catch (error) {
+    } finally {
+      this.setData({ loadingMore: false });
     }
   },
 

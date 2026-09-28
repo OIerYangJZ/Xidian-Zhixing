@@ -55,7 +55,7 @@
 
   <block wx:else>
     <view class="tabs">
-      <view class="tab {{tab === 'posts' ? 'tab--on' : ''}}" data-tab="posts" bindtap="onTabTap">帖子<text class="tab-count">{{posts.length}}</text></view>
+      <view class="tab {{tab === 'posts' ? 'tab--on' : ''}}" data-tab="posts" bindtap="onTabTap">帖子<text class="tab-count">{{postTotal}}</text></view>
       <view class="tab {{tab === 'users' ? 'tab--on' : ''}}" data-tab="users" bindtap="onTabTap">用户<text class="tab-count">{{users.length}}</text></view>
     </view>
 
@@ -81,7 +81,7 @@
         <view class="topic-mark">#</view>
         <view class="topic-main">
           <view class="zx-display topic-name">{{topicName}}</view>
-          <view class="zx-caption">{{posts.length}} 条帖子</view>
+          <view class="zx-caption">{{postTotal}} 条帖子</view>
         </view>
         <view class="sort">
           <view class="sort-option {{sort === 'latest' ? 'sort-option--on' : ''}}" data-sort="latest" bindtap="onSortTap">最新</view>
@@ -94,6 +94,7 @@
           <template is="post-row" data="{{item, index}}" />
         </block>
       </view>
+      <view wx:if="{{loadingMore}}" class="zx-caption" style="padding: 24rpx; text-align: center;">加载中…</view>
     </view>
 
     <view wx:else class="results">
