@@ -89,7 +89,8 @@
           <text class="comment-sort-arrow">⌄</text>
         </view>
       </view>
-      <view class="empty-state" wx:if="{{comments.length === 0}}">暂无评论，快来抢沙发~</view>
+      <view class="empty-state" wx:if="{{post.allowComment === false}}">作者已关闭评论</view>
+      <view class="empty-state" wx:elif="{{comments.length === 0}}">暂无评论，快来抢沙发~</view>
 
       <view id="{{item.anchorId}}" class="comment-item {{item.isTarget ? 'target' : ''}}" wx:for="{{comments}}" wx:key="id" style="{{item.indentStyle}}" data-index="{{index}}" bindlongpress="showCommentMenu">
         <view wx:if="{{item.isAnonymous}}" class="comment-avatar comment-avatar-text">{{item.authorInitial || '匿'}}</view>

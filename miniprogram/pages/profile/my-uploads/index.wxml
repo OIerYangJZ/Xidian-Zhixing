@@ -1,0 +1,23 @@
+<view class="zx-page list-page {{themeClass}}">
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="load">重试</view>
+  </view>
+  <view wx:elif="{{!items.length}}" class="zx-empty">
+    <view class="zx-i zx-i-image empty-icon"></view>
+    <view class="zx-empty__title">还没有上传过图片</view>
+    <view class="zx-empty__message">发帖时上传的图片会出现在这里</view>
+  </view>
+  <block wx:else>
+    <view class="zx-caption list-count">共 {{items.length}} 张 · 点一下打开所在的帖子</view>
+    <view class="grid">
+      <view wx:for="{{items}}" wx:key="id" class="tile" data-index="{{index}}" bindtap="onItemTap">
+        <image src="{{item.displayUrl}}" mode="aspectFill" class="tile-image"></image>
+        <view class="zx-badge zx-badge--{{item.tone}} tile-status">{{item.label}}</view>
+        <view wx:if="{{!item.postId}}" class="tile-unused">未使用</view>
+      </view>
+    </view>
+  </block>
+</view>

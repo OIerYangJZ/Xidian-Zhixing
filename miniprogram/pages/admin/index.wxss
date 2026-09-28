@@ -147,3 +147,6 @@
 
 .knowledge-source-row { padding: 20rpx 0; border-top: 2rpx solid var(--zx-line); }
 .knowledge-source-row .action-row { border-top: none; padding-top: 0; margin-top: 16rpx; }
+
+/* Export scopes: more chips than fit one line. */
+.filter-row.filter-wrap { flex-wrap: wrap; white-space: normal; gap: 12rpx 0; }

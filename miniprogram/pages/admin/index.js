@@ -1,6 +1,17 @@
 import {
+  actAdminAccount,
   addTag,
+  createAdminAccount,
   createKnowledgeSource,
+  createSection,
+  exportAdminData,
+  getAdminAccounts,
+  getAdminAnnouncements,
+  getAiTrace,
+  getSections,
+  publishAnnouncement,
+  rebuildHotTopics,
+  updateSection,
   deleteKnowledgeSource,
   deleteTag,
   getAdminAppeals,
@@ -85,12 +96,43 @@ const REQUEST_STATUSES = [
 const SYSTEM_TYPES = [
   { key: 'config', label: '配置' },
   { key: 'tags', label: '标签' },
+  { key: 'announcements', label: '公告' },
+  { key: 'sections', label: '分区' },
+  { key: 'hot', label: '热榜' },
+  { key: 'export', label: '导出' },
+  { key: 'accounts', label: '管理员' },
   { key: 'knowledge', label: '知识库' }
 ];
 
+const SECTION_TYPES = [
+  { key: 'general', label: '综合' },
+  { key: 'college', label: '学院' },
+  { key: 'club', label: '社团' }
+];
+
+// GET /api/admin/export scopes (build_export_payload).
+const EXPORT_SCOPES = [
+  { key: 'users', label: '用户' },
+  { key: 'posts', label: '帖子' },
+  { key: 'comments', label: '评论' },
+  { key: 'reports', label: '举报' },
+  { key: 'appeals', label: '申诉' },
+  { key: 'cancellations', label: '注销' },
+  { key: 'userlevelrequests', label: '等级申请' },
+  { key: 'postpinrequests', label: '置顶申请' },
+  { key: 'auditlogs', label: '操作日志' }
+];
+
+const EMPTY_ANNOUNCEMENT = { title: '', content: '', type: '系统公告', isImportant: false };
+const EMPTY_SECTION = { sectionType: 'college', sectionId: '', name: '', description: '', ruleText: '', sortOrder: '' };
+const EMPTY_ACCOUNT = { username: '', password: '' };
+// A trace is JSON; past this it is cut, a page cannot show megabytes.
+const TRACE_TEXT_LIMIT = 20000;
+
 // Mini program admins sign in with their student account, which the backend
-// treats as a secondary admin: only pin and club requests and the knowledge
-// base are open to them. Everything else answers 403.
+// treats as a secondary admin: only pin and club requests, sections, the hot
+// list rebuild and the knowledge base (with AI traces) are open to them.
+// Everything else answers 403.
 const FEEDBACK_STATUSES = [
   { key: 'pending', label: '待处理' },
   { key: 'resolved', label: '已回复' },
@@ -102,7 +144,7 @@ const FEEDBACK_STATUS_TEXT = { pending: '待处理', resolved: '已回复', clos
 
 const SECONDARY_TABS = ['requests', 'system'];
 const SECONDARY_REQUEST_TYPES = ['pin', 'club'];
-const SECONDARY_SYSTEM_TYPES = ['knowledge'];
+const SECONDARY_SYSTEM_TYPES = ['sections', 'hot', 'knowledge'];
 
 const STATUS_TEXT = {
   pending: '待处理',
@@ -167,6 +209,20 @@ Page({
     },
     knowledgeSources: [],
     knowledgeIndex: {},
+    traceId: '',
+    traceText: '',
+    announcements: [],
+    announcementForm: { ...EMPTY_ANNOUNCEMENT },
+    sections: [],
+    sectionTypes: SECTION_TYPES,
+    sectionForm: { ...EMPTY_SECTION },
+    hotRows: [],
+    hotRebuiltAt: '',
+    exportScopes: EXPORT_SCOPES,
+    exportScope: 'users',
+    exportFile: null,
+    adminAccounts: [],
+    accountForm: { ...EMPTY_ACCOUNT },
     submitting: false
   },
 
@@ -403,8 +459,43 @@ Page({
     if (this.data.systemType === 'config') return this.loadConfig();
     if (this.data.systemType === 'tags') return this.loadTags();
     if (this.data.systemType === 'knowledge') return this.loadKnowledgeSources();
-    this.setData({ loading: false });
+    if (this.data.systemType === 'announcements') return this.loadAnnouncements();
+    if (this.data.systemType === 'sections') return this.loadSections();
+    if (this.data.systemType === 'accounts') return this.loadAdminAccounts();
+    // 热榜 and 导出 load nothing until asked.
+    this.setData({ loading: false, errorMessage: '' });
     return Promise.resolve();
+  },
+
+  async loadAnnouncements() {
+    this.setData({ loading: true, errorMessage: '' });
+    try {
+      const announcements = await getAdminAnnouncements();
+      this.setData({ announcements, loading: false, errorMessage: '' });
+    } catch (error) {
+      this.setData({ loading: false, errorMessage: '公告加载失败，请重试' });
+    }
+  },
+
+  async loadSections() {
+    this.setData({ loading: true, errorMessage: '' });
+    try {
+      const typeLabel = SECTION_TYPES.reduce((map, item) => ({ ...map, [item.key]: item.label }), {});
+      const sections = (await getSections()).map((item) => ({ ...item, typeLabel: typeLabel[item.sectionType] || item.sectionType }));
+      this.setData({ sections, loading: false, errorMessage: '' });
+    } catch (error) {
+      this.setData({ loading: false, errorMessage: '分区加载失败，请重试' });
+    }
+  },
+
+  async loadAdminAccounts() {
+    this.setData({ loading: true, errorMessage: '' });
+    try {
+      const adminAccounts = await getAdminAccounts();
+      this.setData({ adminAccounts, loading: false, errorMessage: '' });
+    } catch (error) {
+      this.setData({ loading: false, errorMessage: '管理员账号加载失败，请重试' });
+    }
   },
 
   async loadConfig() {
@@ -649,6 +740,232 @@ Page({
   reindexKnowledge() {
     this.confirm({ title: '重建知识库索引', confirmText: '重建' }, () => {
       this.runAction(() => reindexKnowledge());
+    });
+  },
+
+  // ---- AI 追踪: the traceId comes with each AI chat answer. ----
+
+  onTraceIdInput(event) {
+    this.setData({ traceId: event.detail.value });
+  },
+
+  async lookupTrace() {
+    const traceId = this.data.traceId.trim();
+    if (!traceId) {
+      wx.showToast({ title: '请输入 traceId', icon: 'none' });
+      return;
+    }
+    wx.showLoading({ title: '查询中' });
+    try {
+      const trace = await getAiTrace(traceId);
+      const text = JSON.stringify(trace, null, 2);
+      this.setData({
+        traceText: text.length > TRACE_TEXT_LIMIT ? `${text.slice(0, TRACE_TEXT_LIMIT)}\n…（已截断）` : text
+      });
+    } catch (error) {
+      this.setData({ traceText: '' });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  copyTrace() {
+    if (this.data.traceText) wx.setClipboardData({ data: this.data.traceText });
+  },
+
+  // ---- 公告 ----
+
+  onAnnouncementInput(event) {
+    const key = event.currentTarget.dataset.key;
+    this.setData({ [`announcementForm.${key}`]: event.detail.value });
+  },
+
+  toggleAnnouncementImportant() {
+    this.setData({ 'announcementForm.isImportant': !this.data.announcementForm.isImportant });
+  },
+
+  publishAnnouncement() {
+    const form = this.data.announcementForm;
+    const payload = {
+      title: form.title.trim(),
+      content: form.content.trim(),
+      type: form.type.trim() || '系统公告',
+      isImportant: Boolean(form.isImportant)
+    };
+    if (!payload.title || !payload.content) {
+      wx.showToast({ title: '标题和内容不能为空', icon: 'none' });
+      return;
+    }
+    this.confirm({ title: '发布公告', content: payload.title, confirmText: '发布' }, () => {
+      this.runAction(async () => {
+        await publishAnnouncement(payload);
+        this.setData({ announcementForm: { ...EMPTY_ANNOUNCEMENT } });
+      });
+    });
+  },
+
+  // ---- 分区: sectionId is the section's identity and never changes. ----
+
+  onSectionFormInput(event) {
+    const key = event.currentTarget.dataset.key;
+    this.setData({ [`sectionForm.${key}`]: event.detail.value });
+  },
+
+  setSectionFormType(event) {
+    this.setData({ 'sectionForm.sectionType': event.currentTarget.dataset.key });
+  },
+
+  createSection() {
+    const form = this.data.sectionForm;
+    const payload = {
+      sectionType: form.sectionType,
+      sectionId: form.sectionId.trim(),
+      name: form.name.trim(),
+      description: form.description.trim(),
+      ruleText: form.ruleText.trim()
+    };
+    if (String(form.sortOrder).trim()) payload.sortOrder = Number(form.sortOrder);
+    if (!payload.name) {
+      wx.showToast({ title: '名称不能为空', icon: 'none' });
+      return;
+    }
+    if (!/^[0-9A-Za-z_-]{1,80}$/.test(payload.sectionId)) {
+      wx.showToast({ title: 'sectionId 只能用字母、数字、- 和 _', icon: 'none' });
+      return;
+    }
+    this.runAction(async () => {
+      await createSection(payload);
+      this.setData({ sectionForm: { ...EMPTY_SECTION } });
+    });
+  },
+
+  editSection(event) {
+    const { id, field } = event.currentTarget.dataset;
+    const section = this.data.sections.find((item) => item.sectionId === id);
+    if (!section) return;
+    const titles = { name: '修改名称', description: '修改说明', ruleText: '修改发帖规则', sortOrder: '修改排序（数字越小越靠前）' };
+    const current = field === 'name' ? (section.sectionName || section.name) : section[field];
+    this.askNote({ title: titles[field], placeholderText: String(current === undefined ? '' : current) || '（空）', confirmText: '保存' }, (value) => {
+      // An empty answer is a cancel: the prompt starts empty, not prefilled.
+      if (!value) return;
+      let payload;
+      if (field === 'name') payload = { name: value, sectionName: value };
+      else if (field === 'sortOrder') {
+        if (!/^-?\d+$/.test(value)) {
+          wx.showToast({ title: '排序需要整数', icon: 'none' });
+          return;
+        }
+        payload = { sortOrder: Number(value) };
+      } else payload = { [field]: value };
+      this.runAction(() => updateSection(id, payload));
+    });
+  },
+
+  disableSection(event) {
+    const id = event.currentTarget.dataset.id;
+    const section = this.data.sections.find((item) => item.sectionId === id);
+    this.confirm({
+      title: '停用分区',
+      content: `${section ? section.sectionName : id}：停用后不再出现在分区列表，这里也无法再次启用，需到管理后台处理。`,
+      confirmText: '停用'
+    }, () => {
+      this.runAction(() => updateSection(id, { enabled: false }));
+    });
+  },
+
+  // ---- 热榜 ----
+
+  rebuildHotTopics() {
+    this.confirm({ title: '重新生成今日热榜', confirmText: '生成' }, () => {
+      this.runAction(async () => {
+        const rows = await rebuildHotTopics();
+        const now = new Date();
+        this.setData({
+          hotRows: rows.slice(0, 20),
+          hotRebuiltAt: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+        });
+      });
+    });
+  },
+
+  // ---- 导出: the backend sends the file's text; it is written to a local
+  // file that can be sent to a WeChat chat (the only way to get it out). ----
+
+  setExportScope(event) {
+    this.setData({ exportScope: event.currentTarget.dataset.key, exportFile: null });
+  },
+
+  async generateExport() {
+    if (this.data.submitting) return;
+    this.setData({ submitting: true });
+    wx.showLoading({ title: '生成中' });
+    try {
+      const result = await exportAdminData({ scope: this.data.exportScope, format: 'csv' });
+      const filePath = `${wx.env.USER_DATA_PATH}/${result.fileName}`;
+      // A BOM so spreadsheet apps read the Chinese text as UTF-8.
+      wx.getFileSystemManager().writeFileSync(filePath, `\ufeff${result.data}`, 'utf8');
+      this.setData({
+        exportFile: { filePath, fileName: result.fileName, rowCount: result.rowCount, text: result.data }
+      });
+      wx.hideLoading();
+    } catch (error) {
+      wx.hideLoading();
+      wx.showToast({ title: (error && error.data && error.data.message) || '导出失败', icon: 'none' });
+    }
+    this.setData({ submitting: false });
+  },
+
+  // Must run from the tap itself: WeChat refuses shareFileMessage otherwise.
+  shareExportFile() {
+    const file = this.data.exportFile;
+    if (!file) return;
+    wx.shareFileMessage({
+      filePath: file.filePath,
+      fileName: file.fileName,
+      fail: (error) => {
+        if (!/cancel/i.test(String(error && error.errMsg))) wx.showToast({ title: '发送失败，可改用复制内容', icon: 'none' });
+      }
+    });
+  },
+
+  copyExportFile() {
+    if (this.data.exportFile) wx.setClipboardData({ data: this.data.exportFile.text });
+  },
+
+  // ---- 管理员账号 (primary admins only; new accounts are secondary). ----
+
+  onAccountInput(event) {
+    const key = event.currentTarget.dataset.key;
+    this.setData({ [`accountForm.${key}`]: event.detail.value });
+  },
+
+  createAdminAccount() {
+    const username = this.data.accountForm.username.trim();
+    const password = this.data.accountForm.password;
+    if (!/^[A-Za-z0-9_.-]{3,32}$/.test(username)) {
+      wx.showToast({ title: '用户名需 3-32 位字母、数字或 _ . -', icon: 'none' });
+      return;
+    }
+    if (!password) {
+      wx.showToast({ title: '请填写初始密码', icon: 'none' });
+      return;
+    }
+    this.runAction(async () => {
+      await createAdminAccount(username, password);
+      this.setData({ accountForm: { ...EMPTY_ACCOUNT } });
+    });
+  },
+
+  actAdminAccount(event) {
+    const { id, action } = event.currentTarget.dataset;
+    const account = this.data.adminAccounts.find((item) => item.id === id);
+    const deactivate = action === 'deactivate';
+    this.confirm({
+      title: deactivate ? '注销管理员账号' : '重新启用管理员账号',
+      content: `${account ? account.username : id}${deactivate ? '：会立即退出所有登录' : ''}`,
+      confirmText: deactivate ? '注销' : '启用'
+    }, () => {
+      this.runAction(() => actAdminAccount(id, action));
     });
   }
 });

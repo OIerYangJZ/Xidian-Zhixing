@@ -148,6 +148,20 @@
         <text class="counter">{{anonymousAlias.length}}/24</text>
         <view class="zx-btn zx-btn--ghost zx-btn--small" bindtap="fillRandomAlias"><view class="zx-i zx-i-refresh zx-i--sm"></view>随机</view>
       </view>
+      <view class="setting zx-row anon-head" bindtap="toggleAllowComment">
+        <view class="anon-main">
+          <view class="setting-title setting-title--flat">允许评论</view>
+          <view class="zx-caption">关闭后其他同学只能浏览</view>
+        </view>
+        <switch checked="{{allowComment}}" color="{{themePrimary}}" catchtap="toggleAllowComment" />
+      </view>
+      <view wx:if="{{!useAnonymousAlias}}" class="setting zx-row anon-head" bindtap="toggleAllowDm">
+        <view class="anon-main">
+          <view class="setting-title setting-title--flat">允许私信</view>
+          <view class="zx-caption">其他同学可以从这条帖子给你发私信</view>
+        </view>
+        <switch checked="{{allowDm}}" color="{{themePrimary}}" catchtap="toggleAllowDm" />
+      </view>
       <view wx:if="{{clubs.length}}" class="setting zx-row club-row" bindtap="chooseClubIdentity">
         <view class="setting-title setting-title--flat">社团身份</view>
         <view class="zx-badge zx-badge--neutral">仅小程序</view>

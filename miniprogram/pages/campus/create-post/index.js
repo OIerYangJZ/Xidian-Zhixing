@@ -148,6 +148,10 @@ Page({
 
     useAnonymousAlias: false,
     anonymousAlias: '',
+    // Per-post switches (the post's owner can turn them off).  An anonymous
+    // post never takes DMs: a DM would reveal who wrote it.
+    allowComment: true,
+    allowDm: true,
 
     visibilityOptions: VISIBILITY_OPTIONS,
     privateOnly: false,
@@ -353,7 +357,7 @@ Page({
   },
 
   saveDraft() {
-    const { title, content, markdown, sectionIndex, sections, clubs, clubIdentityIndex, postStatusIndex, privateOnly, useAnonymousAlias, anonymousAlias } = this.data;
+    const { title, content, markdown, sectionIndex, sections, clubs, clubIdentityIndex, postStatusIndex, privateOnly, useAnonymousAlias, anonymousAlias, allowComment, allowDm } = this.data;
     if (!title.trim() && !content.trim()) {
       wx.removeStorageSync(DRAFT_KEY);
       this.setData({ draftSavedAt: '' });
@@ -361,7 +365,7 @@ Page({
     }
     const section = sectionIndex >= 0 ? sections[sectionIndex] : null;
     wx.setStorageSync(DRAFT_KEY, {
-      title, content, markdown, postStatusIndex, privateOnly, useAnonymousAlias, anonymousAlias,
+      title, content, markdown, postStatusIndex, privateOnly, useAnonymousAlias, anonymousAlias, allowComment, allowDm,
       sectionName: section ? section.sectionName : '',
       clubId: clubIdentityIndex >= 0 && clubs[clubIdentityIndex] ? clubs[clubIdentityIndex].id : ''
     });
@@ -395,6 +399,8 @@ Page({
       privateOnly: Boolean(draft.privateOnly),
       useAnonymousAlias: Boolean(draft.useAnonymousAlias),
       anonymousAlias: draft.anonymousAlias || '',
+      allowComment: draft.allowComment !== false,
+      allowDm: draft.allowDm !== false,
       tagChips: extractInlineTags(draft.title || '', draft.content || ''),
       draftSavedAt: '已恢复'
     });
@@ -717,6 +723,16 @@ Page({
     });
   },
 
+  toggleAllowComment() {
+    this.setData({ allowComment: !this.data.allowComment });
+    this.afterEdit();
+  },
+
+  toggleAllowDm() {
+    this.setData({ allowDm: !this.data.allowDm });
+    this.afterEdit();
+  },
+
   toggleAnonymous() {
     const useAnonymousAlias = !this.data.useAnonymousAlias;
     this.setData({ useAnonymousAlias, anonymousAlias: '' });
@@ -901,8 +917,8 @@ Page({
         publisherType: this.data.clubIdentityIndex >= 0 ? 'club' : 'user',
         publisherClubId: this.data.clubIdentityIndex >= 0 && this.data.clubs[this.data.clubIdentityIndex] ? this.data.clubs[this.data.clubIdentityIndex].id : '',
         tags,
-        allowComment: true,
-        allowDm: !this.data.useAnonymousAlias,
+        allowComment: this.data.allowComment,
+        allowDm: this.data.allowDm && !this.data.useAnonymousAlias,
         visibility: this.data.privateOnly ? 'private' : 'public',
         hasImage: this.data.images.length > 0,
         imageUploadIds: uploadedImageIds,

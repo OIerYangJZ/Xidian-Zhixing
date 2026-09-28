@@ -187,3 +187,77 @@ export const reindexKnowledge = async () => {
   const response = await request.post('/api/admin/ai/reindex', {}, knowledgeReindexOptions);
   return getData(response, {});
 };
+
+// ---- 公告 ----
+
+export const getAdminAnnouncements = async () => {
+  const response = await request.get('/api/admin/announcements', {}, adminOptions);
+  return toArray(getData(response, []));
+};
+
+// {title, content, type?, isImportant?}; primary admins only.
+export const publishAnnouncement = async (payload) => {
+  const response = await request.post('/api/admin/announcements', payload, adminOptions);
+  return getData(response, {});
+};
+
+// ---- 分区 ----
+// Named by sectionId, which never changes.  GET /api/sections lists enabled
+// sections only, so a disabled one drops out of this list.
+
+export const getSections = async () => {
+  const response = await request.get('/api/sections', {}, adminOptions);
+  return toArray(getData(response, []));
+};
+
+// {sectionType, sectionId, name, description?, ruleText?, sortOrder?}; 409 if the sectionId is taken.
+export const createSection = async (payload) => {
+  const response = await request.post('/api/sections', payload, adminOptions);
+  return getData(response, {});
+};
+
+export const updateSection = async (sectionId, payload) => {
+  const response = await request.patch(`/api/sections/${encodeURIComponent(sectionId)}`, payload, adminOptions);
+  return getData(response, {});
+};
+
+// ---- 管理员账号 (primary admins only) ----
+
+export const getAdminAccounts = async () => {
+  const response = await request.get('/api/admin/admin-accounts', {}, adminOptions);
+  return toArray(getData(response, []));
+};
+
+export const createAdminAccount = async (username, password) => {
+  const response = await request.post('/api/admin/admin-accounts', { username, password }, adminOptions);
+  return getData(response, {});
+};
+
+// action: 'activate' | 'deactivate'
+export const actAdminAccount = async (id, action) => {
+  const response = await request.post(`/api/admin/admin-accounts/${encodeURIComponent(id)}/action`, { action }, adminOptions);
+  return getData(response, {});
+};
+
+// ---- 导出 / 热榜 / AI 追踪 ----
+
+// {format, fileName, contentType, rowCount, data}: the file's text in `data`.
+export const exportAdminData = async (params = {}) => {
+  const response = await request.get('/api/admin/export', params, adminOptions);
+  const data = getData(response, {});
+  if (typeof data.data !== 'string' || !data.fileName) {
+    throw responseContractError('导出响应缺少文件内容');
+  }
+  return data;
+};
+
+export const rebuildHotTopics = async () => {
+  const response = await request.post('/api/hot-topics/rebuild', {}, adminOptions);
+  return toArray(getData(response, []));
+};
+
+// One AI answer's retrieval trace, by the traceId its chat response carried.
+export const getAiTrace = async (traceId) => {
+  const response = await request.get(`/api/admin/ai/traces/${encodeURIComponent(traceId)}`, {}, adminOptions);
+  return getData(response, {});
+};

@@ -16,6 +16,8 @@
     "pages/profile/index",
     "pages/campus/college/index",
     "pages/campus/post-detail/index",
+    "pages/campus/announcements/index",
+    "pages/campus/announcement/index",
     "pages/campus/create-post/index",
     "pages/campus/search/index",
     "pages/ai/chat/index",
@@ -25,6 +27,7 @@
     "pages/profile/my-posts/index",
     "pages/profile/my-comments/index",
     "pages/profile/activity/index",
+    "pages/profile/my-uploads/index",
     "pages/profile/my-reports/index",
     "pages/profile/report-detail/index",
     "pages/profile/chat/index",
@@ -45,17 +48,20 @@
     "pages/profile/legal/index"
   ],
   "window": {
-    "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundTextStyle": "@bgText",
+    "backgroundColor": "@windowBg",
+    "navigationBarBackgroundColor": "@navBg",
     "navigationBarTitleText": "西电知行",
-    "navigationBarTextStyle": "black"
+    "navigationBarTextStyle": "@navText"
   },
   "usingComponents": {},
+  "darkmode": true,
+  "themeLocation": "theme.json",
   "tabBar": {
-    "color": "#5D5D5A",
-    "selectedColor": "#A43B32",
-    "backgroundColor": "#FFFEFA",
-    "borderStyle": "white",
+    "color": "@tabIdle",
+    "selectedColor": "@tabSelected",
+    "backgroundColor": "@tabBg",
+    "borderStyle": "@tabBorder",
     "list": [
       {
         "pagePath": "pages/treehole/index",

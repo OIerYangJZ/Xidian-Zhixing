@@ -1,0 +1,8 @@
+/* 公告详情. */
+.article { padding: 32rpx; }
+.article-meta { gap: 12rpx; flex-wrap: wrap; }
+.article-title { margin-top: 20rpx; font-size: 40rpx; line-height: 1.4; color: var(--zx-text); }
+.article-summary { margin-top: 24rpx; background: var(--zx-bg-sunk); }
+.article-summary-text { margin-top: 8rpx; font-size: 28rpx; line-height: 1.6; color: var(--zx-text); }
+.article-body { margin-top: 28rpx; font-size: 30rpx; line-height: 1.8; color: var(--zx-text); white-space: pre-wrap; word-break: break-all; }
+.article-link { margin-top: 32rpx; display: inline-flex; gap: 8rpx; }

@@ -1,0 +1,33 @@
+<view class="zx-page list-page {{themeClass}}">
+  <view wx:if="{{summary}}" class="zx-card zx-card--pad daily">
+    <view class="zx-row daily-head"><view class="zx-i zx-i--sm zx-i-bell"></view><text class="zx-label">今日公告</text></view>
+    <view class="zx-caption daily-text">{{summary}}</view>
+  </view>
+  <scroll-view wx:if="{{types.length}}" scroll-x class="types" enhanced show-scrollbar="{{false}}">
+    <view class="type {{activeType === '' ? 'type--on' : ''}}" data-type="" bindtap="onTypeTap">全部</view>
+    <view wx:for="{{types}}" wx:key="*this" class="type {{activeType === item ? 'type--on' : ''}}" data-type="{{item}}" bindtap="onTypeTap">{{item}}</view>
+  </scroll-view>
+
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
+  </view>
+  <view wx:elif="{{!items.length}}" class="zx-empty">
+    <view class="zx-i zx-i-bell empty-icon"></view>
+    <view class="zx-empty__title">暂无公告</view>
+  </view>
+  <view wx:else class="sheet">
+    <view wx:for="{{items}}" wx:key="id" class="row" data-id="{{item.id}}" bindtap="openAnnouncement">
+      <view class="zx-row row-head">
+        <view wx:if="{{item.isImportant}}" class="zx-badge zx-badge--danger">重要</view>
+        <view class="zx-badge zx-badge--neutral">{{item.type}}</view>
+        <view class="zx-spacer"></view>
+        <view class="zx-caption">{{item.timeText}}</view>
+      </view>
+      <view class="zx-label row-title">{{item.title}}</view>
+      <view wx:if="{{item.summaryText}}" class="zx-caption row-summary">{{item.summaryText}}</view>
+    </view>
+  </view>
+</view>

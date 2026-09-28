@@ -96,3 +96,5 @@
 .service-ext { position: absolute; top: -8rpx; right: -8rpx; width: 32rpx; height: 32rpx; border-radius: 16rpx; background: var(--zx-surface); color: var(--zx-text-3); display: flex; align-items: center; justify-content: center; box-shadow: var(--zx-shadow-1); }
 .service-ext .zx-i { width: 20rpx; height: 20rpx; }
 .service-name { max-width: 150rpx; font-size: 24rpx; font-weight: 600; color: var(--zx-text); text-align: center; }
+
+.notice-icon { background: var(--zx-primary-soft); color: var(--zx-primary); }

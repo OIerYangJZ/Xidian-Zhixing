@@ -19,6 +19,15 @@
         <view class="zx-btn zx-btn--secondary zx-btn--small">登录管理</view>
       </view>
 
+      <view class="zx-card zx-card--pad zx-row auth card-gap" bindtap="openAnnouncements" hover-class="zx-btn-hover">
+        <view class="auth-icon notice-icon"><view class="zx-i zx-i-bell"></view></view>
+        <view class="auth-main">
+          <view class="zx-label">校园公告</view>
+          <view class="zx-caption zx-ellipsis">{{announcementSummary || '学校与平台发布的通知'}}</view>
+        </view>
+        <view class="zx-list-item__chevron"></view>
+      </view>
+
       <view class="zx-card zx-card--pad card-gap">
         <view class="zx-row card-head">
           <view class="zx-i zx-i--sm zx-i-calendar card-head-icon"></view>

@@ -143,3 +143,15 @@ export const unblockUserGlobally = async (targetUserId) => {
   const response = await request.delete(`/api/users/me/blocks/${targetUserId}`);
   return getData(response, {});
 };
+
+// Every image one uploaded, newest first: {id, url, status, postId, …}.
+export const getMyUploads = async () => {
+  const response = await request.get('/api/uploads/mine');
+  return toArray(getData(response, [])).map((item) => ({
+    ...item,
+    id: String(item.id || ''),
+    url: resolveUrl(item.url || ''),
+    status: String(item.status || 'pending'),
+    postId: String(item.postId || '')
+  }));
+};

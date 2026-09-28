@@ -1,4 +1,5 @@
 import { clearLegacyCampusAuthSecrets } from './utils/campus_auth';
+import { applyThemeAndLanguage, getDisplayMode } from './utils/theme_i18n';
 
 App({
   globalData: {
@@ -13,6 +14,16 @@ App({
     this.globalData.hasToken = Boolean(token);
     clearLegacyCampusAuthSecrets();
     this.initSystemInfo();
+    // 跟随系统: switching the phone between light and dark repaints the
+    // page on screen (the others repaint in their own onShow).
+    if (wx.onThemeChange) {
+      wx.onThemeChange(() => {
+        if (getDisplayMode() !== 'system') return;
+        const pages = getCurrentPages();
+        const current = pages[pages.length - 1];
+        if (current) applyThemeAndLanguage(current);
+      });
+    }
   },
 
   initSystemInfo() {

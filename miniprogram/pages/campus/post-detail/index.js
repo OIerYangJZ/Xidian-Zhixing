@@ -10,6 +10,7 @@ import {
   setCommentLiked,
   setPostLiked,
   setPostReposted,
+  requestPostPin,
   unfavoritePost,
   updateComment
 } from '../../../api/posts';
@@ -24,6 +25,15 @@ import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../../utils/feed_images';
 
 const REPORT_REASONS = ['广告引流', '人身攻击', '违规内容', '垃圾信息', '其他'];
+// The server's PIN_DURATION_OPTIONS.
+const PIN_DURATIONS = [
+  { label: '30 分钟', minutes: 30 },
+  { label: '1 小时', minutes: 60 },
+  { label: '2 小时', minutes: 120 },
+  { label: '3 小时', minutes: 180 },
+  { label: '1 天', minutes: 1440 },
+  { label: '3 天', minutes: 4320 }
+];
 const COMMENT_SORTS = [
   { label: '最新', value: 'latest' },
   { label: '热度', value: 'hot' }
@@ -269,6 +279,40 @@ Page({
     if (userId) wx.navigateTo({ url: `/pages/profile/public-user/index?id=${userId}` });
   },
 
+  // 置顶: pick a duration, give a reason (for the moderator), send.  The
+  // server pins at once for level-one users and files a request otherwise.
+  requestPin() {
+    if (!this.data.post || !this.data.post.isOwnPost) return;
+    wx.showActionSheet({
+      itemList: PIN_DURATIONS.map((item) => item.label),
+      success: (res) => {
+        const duration = PIN_DURATIONS[res.tapIndex];
+        if (!duration) return;
+        wx.showModal({
+          title: `置顶 ${duration.label}`,
+          editable: true,
+          placeholderText: '申请理由（选填，管理员审核时可见）',
+          confirmText: '提交',
+          success: async (modal) => {
+            if (!modal.confirm) return;
+            try {
+              const result = await requestPostPin(this.data.post.id, {
+                durationMinutes: duration.minutes,
+                reason: String(modal.content || '').trim()
+              });
+              if (result.mode === 'direct') {
+                wx.showToast({ title: '已置顶', icon: 'success' });
+                this.loadDetail();
+              } else {
+                wx.showToast({ title: '已提交置顶申请，等待审核', icon: 'none' });
+              }
+            } catch (error) {}
+          }
+        });
+      }
+    });
+  },
+
   editOwnPost() {
     if (!this.data.post || !this.data.post.isOwnPost) return;
     wx.navigateTo({ url: `/pages/campus/create-post/index?editId=${this.data.post.id}` });
@@ -413,8 +457,15 @@ Page({
 
   showPostOptions() {
     if (!this.data.post) return;
-    const itemList = ['问 AI', '复制链接', '举报'];
-    if (this.data.post.isOwnPost) itemList.push('编辑', '删除');
+    // At most six entries (wx.showActionSheet's limit).
+    const itemList = ['问 AI', '复制链接'];
+    if (this.data.post.isOwnPost) {
+      itemList.push('编辑');
+      if (!this.data.post.isPinned) itemList.push('置顶');
+      itemList.push('删除');
+    } else {
+      itemList.push('举报');
+    }
     wx.showActionSheet({
       itemList,
       success: (res) => {
@@ -423,6 +474,7 @@ Page({
         if (action === '复制链接') this.copyPostLink();
         if (action === '举报') this.reportPost();
         if (action === '编辑') this.editOwnPost();
+        if (action === '置顶') this.requestPin();
         if (action === '删除') this.deleteOwnPost();
       }
     });

@@ -198,3 +198,14 @@ export const getMyActivityPage = async (params = {}) => {
   }
   return { items: payload.items, hasMore: payload.hasMore };
 };
+
+// 置顶. Level-one users pin at once ({mode: 'direct', post}); everyone else
+// files a request for a moderator ({mode: 'pending', request}).
+export const requestPostPin = async (postId, { durationMinutes, reason = '' }) => {
+  const response = await request.post(`/api/posts/${postId}/pin-request`, { durationMinutes, reason });
+  const data = getData(response, {});
+  if (!['direct', 'pending'].includes(data.mode)) {
+    throw responseContractError('置顶响应缺少 mode');
+  }
+  return data;
+};

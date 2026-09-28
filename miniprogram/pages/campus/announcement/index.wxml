@@ -1,0 +1,23 @@
+<view class="zx-page {{themeClass}}">
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small" style="margin-top: 24rpx;" bindtap="load">重试</view>
+  </view>
+  <view wx:elif="{{item}}" class="article">
+    <view class="zx-row article-meta">
+      <view wx:if="{{item.isImportant}}" class="zx-badge zx-badge--danger">重要</view>
+      <view class="zx-badge zx-badge--neutral">{{item.type}}</view>
+      <view class="zx-caption">{{item.publisher}} · {{item.timeText}}</view>
+    </view>
+    <view class="zx-display article-title">{{item.title}}</view>
+    <view wx:if="{{item.aiSummary}}" class="zx-card zx-card--pad article-summary">
+      <view class="zx-caption">AI 摘要</view>
+      <view class="article-summary-text">{{item.aiSummary}}</view>
+    </view>
+    <view class="article-body"><text user-select>{{item.content}}</text></view>
+    <view wx:if="{{item.originalUrl}}" class="zx-btn zx-btn--secondary zx-btn--small article-link" bindtap="copyOriginal">
+      <view class="zx-i zx-i--sm zx-i-link"></view>复制原文链接
+    </view>
+  </view>
+</view>

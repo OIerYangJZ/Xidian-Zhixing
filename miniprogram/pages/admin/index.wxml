@@ -17,7 +17,8 @@
     </scroll-view>
     <view wx:if="{{admin && !admin.isPrimary}}" class="zx-caption scope-note">二级管理员可处理置顶和社团申请、维护知识库；其他管理请用网页版管理后台。</view>
 
-    <view wx:if="{{errorMessage}}" class="zx-empty">
+    <!-- On 系统 the error sits under its sub-tabs, so the others stay reachable. -->
+    <view wx:if="{{errorMessage && activeTab !== 'system'}}" class="zx-empty">
       <view class="zx-empty__title">加载失败</view>
       <view class="zx-empty__message">{{errorMessage}}</view>
       <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="loadActiveTab">重试</view>
@@ -193,10 +194,11 @@
       </view>
     </view>
 
-    <view wx:if="{{!errorMessage && activeTab === 'system'}}" class="admin-body">
+    <view wx:if="{{activeTab === 'system'}}" class="admin-body">
       <scroll-view class="filter-row" scroll-x enable-flex>
         <view wx:for="{{systemTypes}}" wx:key="key" class="filter-chip {{systemType === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setSystemType">{{item.label}}</view>
       </scroll-view>
+      <view wx:if="{{errorMessage}}" class="zx-inline-message zx-inline-message--danger" bindtap="loadActiveTab">{{errorMessage}}（点此重试）</view>
 
       <view wx:if="{{systemType === 'config'}}" class="admin-card form-card">
         <view class="form-label">敏感词</view>
@@ -219,6 +221,116 @@
       </view>
 
 
+      <!-- 公告: publish, then the published list (newest first). -->
+      <view wx:if="{{systemType === 'announcements'}}" class="admin-card form-card">
+        <view class="form-label">标题</view>
+        <input class="form-input" value="{{announcementForm.title}}" data-key="title" bindinput="onAnnouncementInput" maxlength="120" />
+        <view class="form-label">类型</view>
+        <input class="form-input" value="{{announcementForm.type}}" data-key="type" bindinput="onAnnouncementInput" maxlength="20" placeholder="系统公告" />
+        <view class="form-label">内容</view>
+        <textarea class="form-textarea large" value="{{announcementForm.content}}" data-key="content" bindinput="onAnnouncementInput" maxlength="-1"></textarea>
+        <view class="simple-row" bindtap="toggleAnnouncementImportant">
+          <view class="simple-name">标为重要</view>
+          <switch checked="{{announcementForm.isImportant}}" color="{{themePrimary}}" catchtap="toggleAnnouncementImportant" />
+        </view>
+        <view class="full-button" bindtap="publishAnnouncement">发布公告</view>
+      </view>
+      <view wx:if="{{systemType === 'announcements'}}" class="admin-card">
+        <view class="section-head"><view class="section-title">已发布</view></view>
+        <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
+        <view wx:elif="{{!announcements.length}}" class="zx-empty compact">还没有公告</view>
+        <view wx:for="{{announcements}}" wx:key="id" class="knowledge-source-row">
+          <view class="card-head">
+            <view class="card-title knowledge-source-title">{{item.title}}</view>
+            <view class="zx-badge {{item.isImportant ? 'zx-badge--danger' : 'zx-badge--neutral'}} status-pill">{{item.isImportant ? '重要' : item.type}}</view>
+          </view>
+          <view class="card-content">{{item.summary}}</view>
+          <view class="card-time">{{item.publishedAt}}</view>
+        </view>
+      </view>
+
+      <!-- 分区: sectionId is permanent; the rest can be edited. -->
+      <view wx:if="{{systemType === 'sections'}}" class="admin-card form-card">
+        <view class="form-label">类型</view>
+        <view class="filter-row">
+          <view wx:for="{{sectionTypes}}" wx:key="key" class="filter-chip {{sectionForm.sectionType === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setSectionFormType">{{item.label}}</view>
+        </view>
+        <view class="form-label">sectionId（创建后不能修改，学院需与统一认证映射一致）</view>
+        <input class="form-input" value="{{sectionForm.sectionId}}" data-key="sectionId" bindinput="onSectionFormInput" maxlength="80" placeholder="例如 cs" />
+        <view class="form-label">名称</view>
+        <input class="form-input" value="{{sectionForm.name}}" data-key="name" bindinput="onSectionFormInput" maxlength="80" />
+        <view class="form-label">说明</view>
+        <input class="form-input" value="{{sectionForm.description}}" data-key="description" bindinput="onSectionFormInput" maxlength="300" />
+        <view class="form-label">发帖规则</view>
+        <input class="form-input" value="{{sectionForm.ruleText}}" data-key="ruleText" bindinput="onSectionFormInput" maxlength="300" />
+        <view class="form-label">排序（选填，数字越小越靠前）</view>
+        <input class="form-input" type="number" value="{{sectionForm.sortOrder}}" data-key="sortOrder" bindinput="onSectionFormInput" />
+        <view class="full-button" bindtap="createSection">新建分区</view>
+      </view>
+      <view wx:if="{{systemType === 'sections'}}" class="admin-card">
+        <view class="section-head"><view class="section-title">启用中的分区</view></view>
+        <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
+        <view wx:elif="{{!sections.length}}" class="zx-empty compact">暂无分区</view>
+        <view wx:for="{{sections}}" wx:key="sectionId" class="knowledge-source-row">
+          <view class="card-head">
+            <view class="card-title knowledge-source-title">{{item.sectionName || item.name}}</view>
+            <view class="zx-badge zx-badge--neutral status-pill">{{item.typeLabel}}</view>
+          </view>
+          <view class="card-meta">{{item.sectionId}} · 排序 {{item.sortOrder}}</view>
+          <view wx:if="{{item.description}}" class="card-content">{{item.description}}</view>
+          <view class="action-row">
+            <view class="action-button" data-id="{{item.sectionId}}" data-field="name" bindtap="editSection">改名</view>
+            <view class="action-button" data-id="{{item.sectionId}}" data-field="description" bindtap="editSection">说明</view>
+            <view class="action-button" data-id="{{item.sectionId}}" data-field="ruleText" bindtap="editSection">规则</view>
+            <view class="action-button" data-id="{{item.sectionId}}" data-field="sortOrder" bindtap="editSection">排序</view>
+            <view class="action-button danger" data-id="{{item.sectionId}}" bindtap="disableSection">停用</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{systemType === 'hot'}}" class="admin-card form-card">
+        <view class="card-meta">热榜每天按互动自动生成；内容有变动时可以手动重新生成。</view>
+        <view class="full-button" bindtap="rebuildHotTopics">重新生成今日热榜</view>
+        <block wx:if="{{hotRows.length}}">
+          <view class="form-label">{{hotRebuiltAt}} 生成</view>
+          <view wx:for="{{hotRows}}" wx:key="id" class="simple-row">
+            <view class="simple-name">{{item.rank}}. {{item.title}}</view>
+          </view>
+        </block>
+      </view>
+
+      <view wx:if="{{systemType === 'export'}}" class="admin-card form-card">
+        <view class="form-label">导出内容</view>
+        <view class="filter-row filter-wrap">
+          <view wx:for="{{exportScopes}}" wx:key="key" class="filter-chip {{exportScope === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setExportScope">{{item.label}}</view>
+        </view>
+        <view class="full-button" bindtap="generateExport">生成 CSV</view>
+        <block wx:if="{{exportFile}}">
+          <view class="card-meta">{{exportFile.fileName}} · {{exportFile.rowCount}} 行</view>
+          <view class="full-button secondary" bindtap="shareExportFile">发送到微信聊天</view>
+          <view class="full-button secondary" bindtap="copyExportFile">复制内容</view>
+        </block>
+      </view>
+
+      <!-- 管理员: new accounts are secondary admins (web console sign-in). -->
+      <view wx:if="{{systemType === 'accounts'}}" class="admin-card form-card">
+        <view class="form-label">用户名</view>
+        <input class="form-input" value="{{accountForm.username}}" data-key="username" bindinput="onAccountInput" maxlength="32" />
+        <view class="form-label">初始密码</view>
+        <input class="form-input" password value="{{accountForm.password}}" data-key="password" bindinput="onAccountInput" maxlength="128" />
+        <view class="full-button" bindtap="createAdminAccount">创建二级管理员</view>
+      </view>
+      <view wx:if="{{systemType === 'accounts'}}" class="admin-card">
+        <view class="section-head"><view class="section-title">二级管理员</view></view>
+        <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
+        <view wx:elif="{{!adminAccounts.length}}" class="zx-empty compact">还没有二级管理员</view>
+        <view wx:for="{{adminAccounts}}" wx:key="id" class="simple-row">
+          <view class="simple-name">{{item.username}} · {{item.statusLabel}}</view>
+          <view wx:if="{{item.active}}" class="text-button danger-text" data-id="{{item.id}}" data-action="deactivate" bindtap="actAdminAccount">注销</view>
+          <view wx:else class="text-button" data-id="{{item.id}}" data-action="activate" bindtap="actAdminAccount">启用</view>
+        </view>
+      </view>
+
       <view wx:if="{{systemType === 'knowledge'}}" class="admin-card form-card">
         <view class="form-label">名称</view>
         <input class="form-input" value="{{knowledgeForm.name}}" data-key="name" bindinput="onKnowledgeInput" />
@@ -228,6 +340,16 @@
         <textarea class="form-textarea large" value="{{knowledgeForm.content}}" data-key="content" bindinput="onKnowledgeInput" maxlength="-1"></textarea>
         <view class="full-button" bindtap="saveKnowledgeSource">保存知识</view>
         <view class="full-button secondary" bindtap="reindexKnowledge">重建索引</view>
+      </view>
+      <!-- AI 追踪: an answer's retrieval trace, by the traceId it carried. -->
+      <view wx:if="{{systemType === 'knowledge'}}" class="admin-card form-card">
+        <view class="form-label">查看 AI 回答追踪（traceId）</view>
+        <input class="form-input" value="{{traceId}}" bindinput="onTraceIdInput" placeholder="AI 回答附带的 traceId" />
+        <view class="full-button secondary" bindtap="lookupTrace">查询</view>
+        <block wx:if="{{traceText}}">
+          <textarea class="form-textarea large code" value="{{traceText}}" maxlength="-1" disabled></textarea>
+          <view class="full-button secondary" bindtap="copyTrace">复制</view>
+        </block>
       </view>
       <view wx:if="{{systemType === 'knowledge'}}" class="admin-card">
         <view class="section-head">

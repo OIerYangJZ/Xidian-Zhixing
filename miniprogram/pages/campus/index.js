@@ -1,6 +1,7 @@
 import { getCalendarSchedules, getCampusServices, getTodaySchedules } from '../../api/campus';
 import { sectionTone } from '../../utils/format';
 import { getUserInfo } from '../../api/auth';
+import { getAnnouncementDailySummary } from '../../api/announcements';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 import { avatarInitial } from '../../utils/format';
@@ -100,8 +101,21 @@ Page({
     });
   },
 
+  // Today's announcements in one line; the card works without it.
+  async loadAnnouncementSummary() {
+    try {
+      const daily = await getAnnouncementDailySummary();
+      this.setData({ announcementSummary: daily.summary });
+    } catch (error) {}
+  },
+
+  openAnnouncements() {
+    wx.navigateTo({ url: '/pages/campus/announcements/index' });
+  },
+
   async loadData() {
     this.setData({ errorMessage: '' });
+    this.loadAnnouncementSummary();
     try {
       const [servicesResponse, todaySchedulesResponse] = await Promise.all([
         getCampusServices(),
