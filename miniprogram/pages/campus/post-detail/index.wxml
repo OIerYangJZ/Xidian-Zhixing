@@ -25,6 +25,7 @@
           <view class="post-subline">
             <text class="post-time" style="color: var(--text-secondary);">{{post.timeText || post.createdAt}}</text>
             <text class="zx-badge {{post.statusKey === 'resolved' ? 'zx-badge--success' : post.statusKey === 'closed' ? 'zx-badge--neutral' : 'zx-badge--info'}}" style="margin-left: 12rpx;">{{post.statusLabel}}</text>
+            <text wx:if="{{post.isEdited}}" class="zx-badge zx-badge--neutral" style="margin-left: 12rpx;">已编辑</text>
           </view>
         </view>
         <view class="header-actions" wx:if="{{(post.canMessageAuthor && post.authorUserId && !post.isAnonymous) || (post.canFollowAuthor && post.authorUserId && !(post.followingAuthor || post.isFollowingAuthor || post.isFollowing))}}">
@@ -41,6 +42,7 @@
       <view class="post-title" wx:if="{{post.titleSegments && post.titleSegments.length}}">
         <block wx:for="{{post.titleSegments}}" wx:for-item="segment" wx:key="index">
           <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+          <text wx:elif="{{segment.type === 'mention'}}" class="inline-tag" data-user-id="{{segment.userId}}" catchtap="openMention">{{segment.text}}</text>
           <text wx:else>{{segment.text}}</text>
         </block>
       </view>
@@ -50,6 +52,7 @@
       <view class="post-content" wx:else>
         <block wx:for="{{post.contentSegments}}" wx:for-item="segment" wx:key="index">
           <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+          <text wx:elif="{{segment.type === 'mention'}}" class="inline-tag" data-user-id="{{segment.userId}}" catchtap="openMention">{{segment.text}}</text>
           <text wx:else>{{segment.text}}</text>
         </block>
       </view>
@@ -68,6 +71,10 @@
         <view class="detail-action" bindtap="scrollToComments">
           <view class="zx-i zx-i-comment"></view>
           <text wx:if="{{post.commentCount > 0}}">{{post.commentCount}}</text>
+        </view>
+        <view class="detail-action {{post.reposted ? 'reposted' : ''}}" bindtap="handleRepost" aria-label="转发到主页">
+          <view class="zx-i zx-i-forward"></view>
+          <text wx:if="{{post.repostCount > 0}}">{{post.repostCount}}</text>
         </view>
         <button class="detail-share-button" open-type="share">
           <view class="zx-i zx-i-share"></view>
@@ -95,8 +102,14 @@
             <text class="comment-author" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor">{{item.authorAlias || item.authorName || '匿名用户'}}</text>
             <text wx:if="{{item.isPostAuthor}}" class="zx-badge zx-badge--seal" style="margin-left: 8rpx;">洞主</text>
             <text class="comment-time">{{item.timeText || item.createdAt}}</text>
+            <text wx:if="{{item.isEdited}}" class="comment-time">已编辑</text>
           </view>
-          <view class="comment-text"><text>{{item.content}}</text></view>
+          <view class="comment-text">
+            <block wx:for="{{item.contentSegments}}" wx:for-item="segment" wx:for-index="segmentIndex" wx:key="segmentIndex">
+              <text wx:if="{{segment.type === 'mention'}}" class="inline-tag" data-user-id="{{segment.userId}}" catchtap="openMention">{{segment.text}}</text>
+              <text wx:else>{{segment.text}}</text>
+            </block>
+          </view>
           <view class="comment-actions">
             <view class="comment-action {{item.liked ? 'active' : ''}}" data-index="{{index}}" bindtap="likeComment">
               <view class="zx-i zx-i--sm {{item.liked ? 'zx-i-heart-fill' : 'zx-i-heart'}}"></view>
@@ -124,8 +137,25 @@
   <view class="emoji-panel" wx:if="{{!loading && post && showEmojiPanel}}">
     <text wx:for="{{emojis}}" wx:key="*this" data-emoji="{{item}}" bindtap="insertEmoji">{{item}}</text>
   </view>
-  <view class="bottom-bar" wx:if="{{!loading && post && post.allowComment !== false}}">
-    <view wx:if="{{replyToId}}" class="reply-banner">
+  <view class="bottom-bar" wx:if="{{!loading && post && (post.allowComment !== false || editingCommentId)}}">
+    <!-- @ while typing a name: people to mention. -->
+    <view wx:if="{{mentionCandidates.length}}" class="mention-panel">
+      <view wx:for="{{mentionCandidates}}" wx:key="id" class="mention-row" data-index="{{index}}" bindtap="pickMention">
+        <view class="zx-avatar zx-avatar--sm mention-avatar">
+          <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+          <text wx:else>{{item.avatarInitial}}</text>
+        </view>
+        <text class="mention-name">{{item.nickname}}</text>
+      </view>
+    </view>
+    <view wx:if="{{editingCommentId}}" class="reply-banner">
+      <view class="reply-banner-left">
+        <view class="reply-banner-icon"></view>
+        <text class="reply-banner-text">编辑评论</text>
+      </view>
+      <view class="reply-banner-close" bindtap="cancelEditComment">×</view>
+    </view>
+    <view wx:elif="{{replyToId}}" class="reply-banner">
       <view class="reply-banner-left">
         <view class="reply-banner-icon"></view>
         <text class="reply-banner-text">回复 @{{replyToName}}</text>
@@ -134,8 +164,8 @@
     </view>
     <view class="comment-compose">
       <view class="emoji-toggle" bindtap="toggleEmojiPanel">☺</view>
-      <input class="comment-input" maxlength="2000" placeholder="温柔地回应一下" placeholder-class="comment-placeholder" value="{{commentContent}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="submitComment" cursor-spacing="20" />
-      <button class="send-btn" bindtap="submitComment" disabled="{{isSending || !canSendComment}}">发送</button>
+      <input class="comment-input" maxlength="2000" placeholder="温柔地回应一下，@ 可以提到同学" placeholder-class="comment-placeholder" value="{{commentContent}}" cursor="{{composeCursor}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="submitComment" cursor-spacing="20" />
+      <button class="send-btn" bindtap="submitComment" disabled="{{isSending || !canSendComment}}">{{editingCommentId ? '保存' : '发送'}}</button>
     </view>
   </view>
 </view>

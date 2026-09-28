@@ -14,6 +14,7 @@ const QUICK_ENTRIES = [
 ];
 
 const MENU = [
+  { key: 'activity', label: '互动', icon: 'history', tone: 'info', url: '/pages/profile/activity/index', note: '发帖 · 评论 · 点赞 · 转发 · 关注' },
   { key: 'hot', label: '热榜', icon: 'fire', tone: 'danger', url: '/pages/treehole/hot/index' },
   { key: 'college', label: '学院专区', icon: 'building', tone: 'info', url: '/pages/campus/college/index' },
   { key: 'clubs', label: '社团', icon: 'users', tone: 'success', url: '/pages/clubs/index' },

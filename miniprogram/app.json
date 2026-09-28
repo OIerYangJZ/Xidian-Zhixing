@@ -24,6 +24,7 @@
     "pages/profile/favorites/index",
     "pages/profile/my-posts/index",
     "pages/profile/my-comments/index",
+    "pages/profile/activity/index",
     "pages/profile/my-reports/index",
     "pages/profile/report-detail/index",
     "pages/profile/chat/index",

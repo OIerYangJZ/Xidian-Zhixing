@@ -37,23 +37,45 @@ export const truncate = (value, max = 80) => {
   return `${text.slice(0, max)}...`;
 };
 
-export const inlineTagSegments = (value) => {
+// Text split into plain runs, #tags and resolved @mentions, for <text> nodes.
+// Tags follow the old rule (a # word followed by a space or the end); a
+// mention is linked only when the backend resolved it (`mentions`).
+const NAME_END_RE = /^[\p{L}\p{N}_]/u;
+
+export const richSegments = (value, mentions = []) => {
   const text = String(value || '');
+  const names = (mentions || [])
+    .filter((item) => item && item.nickname && item.userId)
+    .sort((a, b) => b.nickname.length - a.nickname.length);
   const segments = [];
-  const pattern = /#([^\s#]{1,30})(?=\s|$)/g;
-  let cursor = 0;
-  let match = pattern.exec(text);
-  while (match) {
-    if (match.index > cursor) {
-      segments.push({ type: 'text', text: text.slice(cursor, match.index) });
+  let plain = '';
+  const flush = () => { if (plain) { segments.push({ type: 'text', text: plain }); plain = ''; } };
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === '@') {
+      const hit = names.find((item) => text.startsWith(`@${item.nickname}`, i)
+        && !NAME_END_RE.test(text.slice(i + 1 + item.nickname.length, i + 2 + item.nickname.length)));
+      if (hit) {
+        flush();
+        segments.push({ type: 'mention', text: `@${hit.nickname}`, userId: hit.userId });
+        i += 1 + hit.nickname.length;
+        continue;
+      }
     }
-    segments.push({ type: 'tag', text: match[0], tag: match[1] });
-    cursor = match.index + match[0].length;
-    match = pattern.exec(text);
+    if (ch === '#') {
+      const match = /^#([^\s#]{1,30})(?=\s|$)/.exec(text.slice(i));
+      if (match) {
+        flush();
+        segments.push({ type: 'tag', text: match[0], tag: match[1] });
+        i += match[0].length;
+        continue;
+      }
+    }
+    plain += ch;
+    i += 1;
   }
-  if (cursor < text.length) {
-    segments.push({ type: 'text', text: text.slice(cursor) });
-  }
+  flush();
   return segments;
 };
 
@@ -141,6 +163,11 @@ const normalizeCount = (raw, field, label) => {
   return value;
 };
 
+// [{userId, nickname}] as the backend resolved them.
+const normalizeMentions = (value) => toArray(value)
+  .filter((item) => isRecord(item) && item.userId && item.nickname)
+  .map((item) => ({ userId: String(item.userId), nickname: String(item.nickname) }));
+
 export const normalizePost = (raw = {}) => {
   if (!isRecord(raw)) {
     throw responseContractError('帖子数据格式错误');
@@ -162,17 +189,23 @@ export const normalizePost = (raw = {}) => {
     ? String(raw.authorAlias || raw.alias || raw.authorName || '匿名用户')
     : String(raw.authorAlias || raw.alias || raw.authorName || '匿名同学');
   const sectionName = String(raw.sectionName || '').trim();
+  const mentions = normalizeMentions(raw.mentions);
   return {
     ...raw,
     id,
     title,
-    titleSegments: inlineTagSegments(title),
+    titleSegments: richSegments(title, mentions),
     displayTitle,
-    displayTitleSegments: inlineTagSegments(displayTitle),
+    displayTitleSegments: richSegments(displayTitle, mentions),
     content,
-    contentSegments: inlineTagSegments(content),
+    contentSegments: richSegments(content, mentions),
     summary,
-    summarySegments: inlineTagSegments(summary),
+    summarySegments: richSegments(summary, mentions),
+    mentions,
+    editedAt: String(raw.editedAt || ''),
+    isEdited: Boolean(raw.editedAt),
+    repostCount: normalizeCount(raw, 'repostCount', '帖子数据'),
+    reposted: Boolean(raw.reposted),
     sectionName,
     sectionColor: sectionColor(sectionName),
     sectionTone: sectionTone(sectionName),
@@ -211,10 +244,15 @@ export const normalizeComment = (raw = {}) => {
     throw responseContractError('评论数据缺少 ID');
   }
   const authorAlias = String(raw.authorAlias || raw.authorName || '匿名同学');
+  const mentions = normalizeMentions(raw.mentions);
   return {
     ...raw,
     id,
     content: String(raw.content || ''),
+    contentSegments: richSegments(String(raw.content || ''), mentions),
+    mentions,
+    editedAt: String(raw.editedAt || ''),
+    isEdited: Boolean(raw.editedAt),
     authorAlias,
     authorInitial: avatarInitial(authorAlias),
     authorAvatarUrl: resolveUrl(raw.authorAvatarUrl || raw.authorAvatar || ''),

@@ -1,0 +1,24 @@
+<view class="zx-page list-page {{themeClass}}">
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage && !items.length}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
+  </view>
+  <view wx:elif="{{!items.length}}" class="zx-empty">
+    <view class="zx-i zx-i-bell empty-icon"></view>
+    <view class="zx-empty__title">还没有互动</view>
+    <view class="zx-empty__message">你发的帖子、评论、点赞、收藏、转发和关注会出现在这里</view>
+  </view>
+  <view wx:else class="sheet">
+    <view wx:for="{{items}}" wx:key="id" class="row" data-index="{{index}}" bindtap="openItem">
+      <view class="row-icon row-icon--{{item.tone}}"><view class="zx-i zx-i--sm zx-i-{{item.icon}}"></view></view>
+      <view class="row-main">
+        <view class="row-line"><text class="row-verb">{{item.verb}}</text><text class="row-target">{{item.target}}</text></view>
+        <view wx:if="{{item.quote}}" class="zx-caption row-quote">{{item.quote}}</view>
+        <view class="zx-caption row-time">{{item.timeText}}</view>
+      </view>
+    </view>
+    <view wx:if="{{loadingMore}}" class="zx-caption list-more">加载中…</view>
+  </view>
+</view>

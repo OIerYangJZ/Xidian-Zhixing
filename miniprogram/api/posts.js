@@ -152,3 +152,45 @@ export const deleteComment = async (commentId) => {
   requireOk(data, '删除评论');
   return data;
 };
+
+// Sets the repost to `reposted` (not a toggle, so a stale list cannot flip it
+// the wrong way).  Returns {reposted, repostCount}.
+export const setPostReposted = async (postId, reposted) => {
+  const response = await request.post(`/api/posts/${postId}/repost`, { reposted });
+  const data = getData(response, {});
+  requireBooleanField(data, 'reposted', '转发');
+  requireNumberField(data, 'repostCount', '转发');
+  return data;
+};
+
+export const updateComment = async (commentId, payload) => {
+  const response = await request.patch(`/api/comments/${commentId}`, payload);
+  return normalizeComment(getData(response, {}));
+};
+
+// A user's posts and reposts, newest first; each row says who reposted it.
+export const getUserTimelinePage = async (userId, params = {}) => {
+  const response = await request.get(`/api/users/${userId}/timeline`, params);
+  const payload = getData(response, {});
+  if (!Array.isArray(payload.items) || typeof payload.hasMore !== 'boolean') {
+    throw responseContractError('主页动态响应格式错误');
+  }
+  return {
+    items: payload.items.map((item) => ({
+      ...normalizePost(item),
+      repostedBy: item.repostedBy && item.repostedBy.userId ? item.repostedBy : null,
+      eventKey: String(item.eventKey || item.id)
+    })),
+    hasMore: payload.hasMore
+  };
+};
+
+// What the signed-in user did (posts, comments, likes, saves, reposts, follows).
+export const getMyActivityPage = async (params = {}) => {
+  const response = await request.get('/api/users/me/activity', params);
+  const payload = getData(response, {});
+  if (!Array.isArray(payload.items) || typeof payload.hasMore !== 'boolean') {
+    throw responseContractError('互动记录响应格式错误');
+  }
+  return { items: payload.items, hasMore: payload.hasMore };
+};

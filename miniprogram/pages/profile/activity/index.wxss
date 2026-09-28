@@ -1,0 +1,23 @@
+/* 互动: one row per action, icon toned by kind. */
+@import "../../../styles/zx-list-page.wxss";
+
+.row { display: flex; gap: 20rpx; padding: 28rpx 32rpx; border-bottom: 2rpx solid var(--zx-line); }
+.row-icon {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  width: 64rpx; height: 64rpx; border-radius: 16rpx; background: var(--zx-bg-sunk); color: var(--zx-text-2);
+}
+.row-icon--primary { background: var(--zx-primary-soft, var(--zx-bg-sunk)); color: var(--zx-primary); }
+.row-icon--info { background: var(--zx-info-soft); color: var(--zx-info); }
+.row-icon--danger { background: var(--zx-danger-soft, var(--zx-bg-sunk)); color: var(--zx-danger); }
+.row-icon--accent { background: var(--zx-accent-soft); color: var(--zx-accent-ink); }
+.row-icon--success { background: var(--zx-success-soft); color: var(--zx-success); }
+.row-main { flex: 1; min-width: 0; }
+.row-line { font-size: 28rpx; color: var(--zx-text); word-break: break-all; }
+.row-verb { color: var(--zx-text-2); margin-right: 8rpx; }
+.row-target { font-weight: 600; }
+.row-quote {
+  margin-top: 8rpx; padding: 8rpx 16rpx; border-radius: 12rpx; background: var(--zx-bg-sunk);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.row-time { margin-top: 8rpx; }
+.list-more { padding: 24rpx; text-align: center; }

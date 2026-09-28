@@ -1,12 +1,14 @@
 import { getUserInfo } from '../../../api/auth';
 import { getSectionsTree } from '../../../api/campus';
 import { getClubs } from '../../../api/clubs';
-import { createPost, getRandomAnonymousAlias } from '../../../api/posts';
+import { createPost, getPost, getRandomAnonymousAlias, updatePost } from '../../../api/posts';
+import { insertMention, mentionIdsIn, mentionQueryAt, searchMentionCandidates } from '../../../utils/mentions';
 import { uploadPostImage } from '../../../api/uploads';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { sectionTone } from '../../../utils/format';
 import { markdownToNodes } from '../../../utils/markdown';
+import { hydrateDisplayImages } from '../../../utils/feed_images';
 
 const MAX_IMAGE_COUNT = 9;
 // The server's limits (_post_handler.py _MAX_POST_*, _MAX_TAGS).
@@ -154,13 +156,21 @@ Page({
     images: [],
     loadErrorMessage: '',
     isUploading: false,
-    isPublishing: false
+    isPublishing: false,
+
+    // Editing one's own post (?editId=): text, images and status change;
+    // section, identity, visibility and pinning stay as published.
+    editingPostId: '',
+    mentionCandidates: [],
+    // Set only when the text is changed for the user (a picked @name).
+    composeCursor: -1
   },
 
-  onLoad() {
+  onLoad(options = {}) {
     this.initCustomNav();
     applyThemeAndLanguage(this);
     if (!requireLoginPage()) return;
+    if (options.editId) this.setData({ editingPostId: options.editId });
     this.loadInitialData();
   },
 
@@ -207,7 +217,8 @@ Page({
         this.loadUserLevel()
       ]);
       // After both lists: a draft's section and identity name one of each.
-      this.restoreDraft();
+      if (this.data.editingPostId) await this.loadEditingPost();
+      else this.restoreDraft();
     } catch (error) {
       this.setData({
         loading: false,
@@ -216,6 +227,44 @@ Page({
           || '发布配置加载失败，请重试'
       });
     }
+  },
+
+  // The post as its author sees it: images still in review included, since
+  // saving a list without them would delete them.
+  async loadEditingPost() {
+    const post = await getPost(this.data.editingPostId);
+    if (!post.isOwnPost) throw new Error('只能编辑自己的帖子');
+    const markdown = post.contentFormat === 'markdown';
+    const content = markdown ? (post.markdownSource || post.content) : post.content;
+    const ids = Array.isArray(post.uploadedImageIds) ? post.uploadedImageIds : [];
+    // http:// (development) images show from a downloaded copy.
+    const shown = (await hydrateDisplayImages([post]))[post.id] || post.imageUrls;
+    const images = post.imageUrls.map((url, index) => ({
+      localPath: shown[index] || url, size: 0, uploading: false, uploadedId: ids[index] || '', url
+    })).filter((item) => item.uploadedId);
+    const statusIndex = Math.max(0, STATUS_OPTIONS.findIndex((item) => item.value === post.status));
+    this._original = {
+      title: post.title,
+      content,
+      markdown,
+      imageIds: images.map((item) => item.uploadedId).join(','),
+      statusIndex,
+      mentions: post.mentions || []
+    };
+    this.setData({
+      title: post.title,
+      titleLength: post.title.length,
+      content,
+      contentLength: content.length,
+      contentSegments: buildInlineSegments(content),
+      markdown,
+      images,
+      sectionIndex: this.data.sections.findIndex((item) => item.sectionId === post.sectionId),
+      postStatusIndex: statusIndex,
+      selectedStatus: STATUS_OPTIONS[statusIndex],
+      tagChips: extractInlineTags(post.title, content)
+    });
+    this.updatePublishState();
   },
 
   retryLoadInitialData() {
@@ -270,8 +319,11 @@ Page({
 
   validate() {
     const title = this.data.title.trim();
-    const titleError = !title ? '请填写标题' : (title.length > TITLE_LIMIT ? `标题最多 ${TITLE_LIMIT} 字` : '');
-    const sectionError = this.data.sectionIndex < 0 ? '请选择分区' : '';
+    // Posts from the web may have no title; an edit need not add one.
+    const titleRequired = !this.data.editingPostId;
+    const titleError = !title && titleRequired ? '请填写标题' : (title.length > TITLE_LIMIT ? `标题最多 ${TITLE_LIMIT} 字` : '');
+    // An edit keeps the post's section.
+    const sectionError = !this.data.editingPostId && this.data.sectionIndex < 0 ? '请选择分区' : '';
     const contentError = this.data.content.trim() ? '' : '请填写正文';
     const errorCount = [titleError, sectionError, contentError].filter(Boolean).length;
     return { titleError, sectionError, contentError, errorCount };
@@ -286,6 +338,8 @@ Page({
   afterEdit() {
     this.setData({ tagChips: extractInlineTags(this.data.title, this.data.content) });
     this.refreshErrors();
+    // An edit is not a draft of a new post.
+    if (this.data.editingPostId) return;
     clearTimeout(this._draftTimer);
     this._draftTimer = setTimeout(() => this.saveDraft(), 800);
   },
@@ -448,6 +502,38 @@ Page({
       canPublish: value.trim().length > 0 && !this.data.isPublishing
     });
     this.afterEdit();
+    this.updateMentionCandidates(value, cursor);
+  },
+
+  // The list under "@query" while a name is being typed.
+  async updateMentionCandidates(value, cursor) {
+    const at = mentionQueryAt(value, cursor);
+    this._mentionAt = at;
+    if (!at || !at.query) {
+      if (this.data.mentionCandidates.length) this.setData({ mentionCandidates: [] });
+      return;
+    }
+    try {
+      const candidates = await searchMentionCandidates(at.query);
+      if (candidates !== null && this._mentionAt === at) this.setData({ mentionCandidates: candidates });
+    } catch (error) {
+      this.setData({ mentionCandidates: [] });
+    }
+  },
+
+  pickMention(event) {
+    const user = this.data.mentionCandidates[Number(event.currentTarget.dataset.index)];
+    if (!user || !this._mentionAt) return;
+    const next = insertMention(this.data.content, this._mentionAt, user);
+    this._mentionAt = null;
+    this.setData({
+      content: next.text.slice(0, CONTENT_LIMIT),
+      contentCursor: next.cursor,
+      composeCursor: next.cursor,
+      mentionCandidates: []
+    });
+    this.updatePublishState();
+    this.afterEdit();
   },
 
   onContentBlur(event) {
@@ -468,6 +554,10 @@ Page({
   },
 
   onSectionTap(event) {
+    if (this.data.editingPostId) {
+      wx.showToast({ title: '编辑时不能更换分区', icon: 'none' });
+      return;
+    }
     const index = Number(event.currentTarget.dataset.index || 0);
     const section = this.data.sections[index];
     if (section && section.sectionType === 'college') {
@@ -765,6 +855,10 @@ Page({
 
   async submitPost() {
     if (this.data.isPublishing) return;
+    if (this.data.editingPostId) {
+      await this.saveEditedPost();
+      return;
+    }
     const check = this.validate();
     if (check.errorCount) {
       this.setData({ ...check, showErrors: true });
@@ -804,6 +898,7 @@ Page({
         visibility: this.data.privateOnly ? 'private' : 'public',
         hasImage: this.data.images.length > 0,
         imageUploadIds: uploadedImageIds,
+        mentionUserIds: mentionIdsIn(`${this.data.title}\n${content}`),
         useAnonymousAlias: this.data.useAnonymousAlias
       };
 
@@ -850,7 +945,56 @@ Page({
     }
   },
 
+  // PATCH /api/posts/<id> with only what changed: an untouched image list
+  // must not be re-sent (it replaces the post's images), and untouched text
+  // keeps its format.
+  async saveEditedPost() {
+    const check = this.validate();
+    if (check.errorCount) {
+      this.setData({ ...check, showErrors: true });
+      wx.pageScrollTo({ scrollTop: 0, duration: 200 });
+      return;
+    }
+    const original = this._original || {};
+    const content = this.data.content.trim();
+    const title = this.data.title.trim();
+    this.setData({ isPublishing: true, canPublish: false });
+    wx.showLoading({ title: '保存中' });
+    try {
+      await this.uploadPendingImages();
+      const imageIds = this.data.images.map((item) => item.uploadedId).filter(Boolean);
+      const payload = { title, mentionUserIds: mentionIdsIn(`${title}\n${content}`, original.mentions) };
+      if (content !== String(original.content || '').trim() || this.data.markdown !== original.markdown) {
+        if (this.data.markdown) payload.markdownSource = content;
+        else payload.content = content;
+      }
+      if (imageIds.join(',') !== original.imageIds) payload.imageUploadIds = imageIds;
+      if (this.data.postStatusIndex !== original.statusIndex) {
+        payload.status = STATUS_OPTIONS[this.data.postStatusIndex].value;
+      }
+      const saved = await updatePost(this.data.editingPostId, payload);
+      wx.hideLoading();
+      getApp().globalData.editedPostId = this.data.editingPostId;
+      wx.showToast({ title: saved.reviewStatus === 'pending' ? '修改已提交审核' : '已保存修改', icon: 'success' });
+      setTimeout(() => wx.navigateBack(), 250);
+    } catch (error) {
+      wx.hideLoading();
+      const responseData = error && error.data;
+      const errorMessage = (responseData && responseData.message) || '保存失败，请重试';
+      if (responseData && responseData.data && responseData.data.code === 'POST_CONTENT_REJECTED') {
+        wx.showModal({ title: '修改被自动审核拦截', content: errorMessage, showCancel: false, confirmText: '知道了' });
+      } else {
+        wx.showToast({ title: errorMessage, icon: 'none' });
+      }
+      this.setData({ isPublishing: false }, () => this.updatePublishState());
+    }
+  },
+
   confirmDiscard() {
+    if (this.data.editingPostId) {
+      wx.navigateBack();
+      return;
+    }
     if (
       !this.data.title.trim() &&
       !this.data.content.trim() &&

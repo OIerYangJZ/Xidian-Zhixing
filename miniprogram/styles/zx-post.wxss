@@ -50,4 +50,6 @@
 }
 .action--liked { color: var(--zx-primary); }
 .action--saved { background: var(--zx-accent-soft); color: var(--zx-accent-ink); }
+.action--reposted { background: var(--zx-success-soft); color: var(--zx-success); }
+.post-reposted { display: flex; align-items: center; gap: 8rpx; margin-bottom: 8rpx; font-size: 24rpx; color: var(--zx-text-2); }
 

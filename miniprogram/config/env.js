@@ -28,8 +28,21 @@ const CONFIG = {
   },
   prod: {
     name: 'prod',
-    baseUrl: LOCAL_CONFIG.prodBaseUrl,
+    // The production site; env.local.js may point elsewhere (a staging host).
+    baseUrl: LOCAL_CONFIG.prodBaseUrl || 'https://zhixing.xidian.edu.cn',
   }
+};
+
+// 体验版 (trial) and 正式版 (release) always talk to production, whatever
+// env.local.js says: an upload made with a development config would
+// otherwise ship pointing at a LAN address.
+const miniProgramEnvVersion = () => {
+  try {
+    if (typeof wx !== 'undefined' && wx.getAccountInfoSync) {
+      return String(wx.getAccountInfoSync().miniProgram.envVersion || '');
+    }
+  } catch (error) {}
+  return '';
 };
 
 const getRuntimePlatform = () => {
@@ -87,7 +100,10 @@ const isDevtoolsRuntime = () => {
 
 const resolveConfig = () => {
   let config;
-  if (ENV === 'auto') {
+  const envVersion = miniProgramEnvVersion();
+  if (envVersion === 'trial' || envVersion === 'release') {
+    config = CONFIG.prod;
+  } else if (ENV === 'auto') {
     config = isDevtoolsRuntime() ? CONFIG.devtools : CONFIG.lan;
   } else {
     config = CONFIG[ENV];
@@ -107,4 +123,4 @@ const resolveConfig = () => {
 
 export const envConfig = resolveConfig();
 export const baseUrl = envConfig.baseUrl;
-export const envName = ENV === 'auto' ? `auto:${envConfig.name}` : ENV;
+export const envName = envConfig === CONFIG.prod ? 'prod' : (ENV === 'auto' ? `auto:${envConfig.name}` : ENV);

@@ -56,10 +56,10 @@
       <view class="zx-caption blocked-text">不显示 TA 的帖子。解除屏蔽后恢复。</view>
     </view>
     <block wx:else>
-      <view class="tabs"><view class="tab tab--on">TA 的帖子<text class="tab-count">{{profile.postCount}}</text></view></view>
-      <view wx:if="{{!posts.length}}" class="zx-empty"><view class="zx-empty__message">还没有公开的帖子</view></view>
+      <view class="tabs"><view class="tab tab--on">TA 的动态<text class="tab-count">{{profile.postCount}}</text></view></view>
+      <view wx:if="{{!posts.length}}" class="zx-empty"><view class="zx-empty__message">还没有公开的帖子或转发</view></view>
       <view wx:else class="sheet">
-        <block wx:for="{{posts}}" wx:key="id">
+        <block wx:for="{{posts}}" wx:key="eventKey">
           <template is="post-row" data="{{item, index}}" />
         </block>
       </view>

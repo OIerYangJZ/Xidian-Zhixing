@@ -1,6 +1,6 @@
 import { getUserInfo } from '../../api/auth';
 import { getPosts } from '../../api/post';
-import { favoritePost, setPostLiked, unfavoritePost } from '../../api/posts';
+import { favoritePost, setPostLiked, setPostReposted, unfavoritePost } from '../../api/posts';
 import { getSectionsTree } from '../../api/campus';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
@@ -308,6 +308,26 @@ Page({
       favoriteCount: result.favoriteCount
     };
     this.setData({ posts });
+  },
+
+  async togglePostRepost(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    const post = this.data.posts[index];
+    if (!post || !post.id || this._reposting) return;
+    this._reposting = true;
+    let result;
+    try {
+      result = await setPostReposted(post.id, !post.reposted);
+    } catch (error) {
+      toastContractError(error);
+      return;
+    } finally {
+      this._reposting = false;
+    }
+    const posts = this.data.posts.slice();
+    posts[index] = { ...post, reposted: result.reposted, repostCount: result.repostCount };
+    this.setData({ posts });
+    wx.showToast({ title: result.reposted ? '已转发到你的主页' : '已取消转发', icon: 'none' });
   },
 
   openAuthorProfile(event) {

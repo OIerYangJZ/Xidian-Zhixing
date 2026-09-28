@@ -1,6 +1,6 @@
 import { userIdFromScannedLink, userShareLink } from '../../../utils/share_links';
 import { blockUserGlobally, followUser, getPublicUser, unblockUserGlobally, unfollowUser } from '../../../api/user';
-import { getPostsPage, reportTarget } from '../../../api/posts';
+import { getUserTimelinePage, reportTarget } from '../../../api/posts';
 import { createDirectConversation } from '../../../api/messages';
 import { attachDisplayImages } from '../../../utils/feed_images';
 import { requireLoginPage } from '../../../utils/auth_guard';
@@ -81,13 +81,18 @@ Page({
     }
   },
 
-  // Rows show this page's owner, not a stale alias from the feed.
+  // The owner's own posts show this page's name, not a stale alias from the
+  // feed; their reposts keep the original author and say who reposted.
   ownerRows(posts, profile) {
-    return posts.filter(isPublicPost).map((post) => Object.assign(attachDisplayImages(post), {
-      authorAlias: profile.name,
-      authorAvatarUrl: profile.avatarUrl || '',
-      authorInitial: profile.avatarInitial
-    }));
+    return posts
+      .filter((post) => post.repostedBy || isPublicPost(post))
+      .map((post) => (post.repostedBy
+        ? attachDisplayImages(post)
+        : Object.assign(attachDisplayImages(post), {
+          authorAlias: profile.name,
+          authorAvatarUrl: profile.avatarUrl || '',
+          authorInitial: profile.avatarInitial
+        })));
   },
 
   // From page `first` on until one yields a public row or the list ends: on
@@ -96,7 +101,7 @@ Page({
   async fetchPublicPage(first, profile) {
     let page = first;
     for (;;) {
-      const result = await getPostsPage({ authorId: this.data.userId, page, limit: PAGE_SIZE });
+      const result = await getUserTimelinePage(this.data.userId, { page, limit: PAGE_SIZE });
       const rows = this.ownerRows(result.items, profile);
       if (rows.length || !result.hasMore) return { rows, page, hasMore: result.hasMore };
       page += 1;

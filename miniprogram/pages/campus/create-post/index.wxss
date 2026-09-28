@@ -88,3 +88,9 @@
 .pin-head { gap: 12rpx; margin-bottom: 16rpx; }
 
 .publish-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom)); background: var(--zx-surface); border-top: 2rpx solid var(--zx-line); }
+
+/* @-mention picker under the text. */
+.mention-panel { margin: 8rpx 0 16rpx; border: 2rpx solid var(--zx-line); border-radius: 20rpx; overflow: hidden; }
+.mention-row { display: flex; align-items: center; gap: 16rpx; padding: 16rpx 24rpx; }
+.mention-row:active { background: var(--zx-line); }
+.mention-name { font-size: 28rpx; color: var(--zx-text); }

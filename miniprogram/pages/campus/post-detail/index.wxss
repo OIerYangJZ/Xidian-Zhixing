@@ -640,3 +640,19 @@
 .comment-action { color: var(--zx-text-3); }
 .comment-action.active { color: var(--zx-primary); }
 .detail-retry { margin-top: 24rpx; }
+.detail-action.reposted { color: var(--zx-success); }
+
+/* @-mention picker above the comment box. */
+.mention-panel {
+  width: 100%;
+  max-height: 400rpx;
+  overflow-y: auto;
+  margin-bottom: 12rpx;
+  border-radius: 20rpx;
+  background: var(--zx-surface, #fff);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
+}
+.mention-row { display: flex; align-items: center; gap: 16rpx; padding: 16rpx 24rpx; }
+.mention-row:active { background: var(--zx-line); }
+.mention-avatar { flex: none; }
+.mention-name { font-size: 28rpx; color: var(--zx-text); }

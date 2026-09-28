@@ -1,6 +1,7 @@
 <!-- A post row (handoff M1) shared by the pages that list posts.
      Pass {{item, index}} plus, optionally:
-       interactive  like and favorite call the page's togglePostLike / togglePostFavorite
+       interactive  like, favorite and repost call the page's togglePostLike /
+                    togglePostFavorite / togglePostRepost
        card         the card layout instead of the Threads rail
        line         the Threads rail line under the avatar
        more         the ••• mark in the head
@@ -18,6 +19,7 @@
       <view wx:if="{{line && !card}}" class="post-line"></view>
     </view>
     <view class="post-body">
+      <view wx:if="{{item.repostedBy}}" class="post-reposted"><view class="zx-i zx-i--sm zx-i-forward"></view>{{item.repostedBy.nickname}} 转发了</view>
       <view class="zx-row post-head">
         <view class="zx-label zx-ellipsis post-author">{{item.authorAlias || item.authorName || '匿名用户'}}</view>
         <view class="zx-caption post-time">· {{item.timeText}}</view>
@@ -36,16 +38,19 @@
         <view wx:if="{{item.visibility === 'private' || item.isPrivate}}" class="zx-badge zx-badge--neutral"><view class="zx-i zx-i--sm zx-i-lock"></view>仅自己可见</view>
         <view wx:if="{{item.reviewStatus === 'pending'}}" class="zx-badge zx-badge--warning"><view class="zx-i zx-i--sm zx-i-clock"></view>待审核</view>
         <view wx:if="{{item.reviewStatus === 'rejected'}}" class="zx-badge zx-badge--danger"><view class="zx-i zx-i--sm zx-i-block"></view>未通过审核</view>
+        <view wx:if="{{item.isEdited}}" class="zx-badge zx-badge--neutral">已编辑</view>
       </view>
       <view class="post-title" wx:if="{{item.titleSegments && item.titleSegments.length}}">
         <block wx:for="{{item.titleSegments}}" wx:for-item="segment" wx:key="index">
           <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+          <text wx:elif="{{segment.type === 'mention'}}" class="post-tag">{{segment.text}}</text>
           <text wx:else>{{segment.text}}</text>
         </block>
       </view>
       <view class="post-summary" wx:if="{{item.summarySegments && item.summarySegments.length}}">
         <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
           <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+          <text wx:elif="{{segment.type === 'mention'}}" class="post-tag">{{segment.text}}</text>
           <text wx:else>{{segment.text}}</text>
         </block>
       </view>
@@ -59,6 +64,9 @@
           <view class="zx-i zx-i--sm {{item.liked || item.isLiked ? 'zx-i-heart-fill' : 'zx-i-heart'}}"></view><text>{{item.likeCount || 0}}</text>
         </view>
         <view class="action"><view class="zx-i zx-i--sm zx-i-comment"></view><text>{{item.commentCount || 0}}</text></view>
+        <view class="action {{item.reposted ? 'action--reposted' : ''}}" data-index="{{index}}" catchtap="{{interactive ? 'togglePostRepost' : ''}}">
+          <view class="zx-i zx-i--sm zx-i-forward"></view><text>{{item.repostCount || 0}}</text>
+        </view>
         <view class="action {{item.favorited || item.isFavorited ? 'action--saved' : ''}}" data-index="{{index}}" catchtap="{{interactive ? 'togglePostFavorite' : ''}}">
           <view class="zx-i zx-i--sm {{item.favorited || item.isFavorited ? 'zx-i-star-fill' : 'zx-i-star'}}"></view><text>{{item.favoriteCount || 0}}</text>
         </view>

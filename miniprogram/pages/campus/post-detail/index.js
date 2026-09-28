@@ -9,8 +9,11 @@ import {
   reportTarget,
   setCommentLiked,
   setPostLiked,
-  unfavoritePost
+  setPostReposted,
+  unfavoritePost,
+  updateComment
 } from '../../../api/posts';
+import { insertMention, mentionIdsIn, mentionQueryAt, searchMentionCandidates } from '../../../utils/mentions';
 import { createDirectConversation } from '../../../api/messages';
 import { askAiWithPostSelection } from '../../../api/ai';
 import { followUser, unfollowUser } from '../../../api/user';
@@ -93,7 +96,16 @@ Page({
     isSending: false,
     isLiking: false,
     isFavoriting: false,
-    isFollowing: false
+    isReposting: false,
+    isFollowing: false,
+    // The comment box doubles as the editor of one's own comment.
+    editingCommentId: '',
+    commentCursor: 0,
+    // Set only when the text is changed for the user (a picked @name, a
+    // comment loaded for editing); binding the live cursor jitters on
+    // some Android keyboards.
+    composeCursor: -1,
+    mentionCandidates: []
   },
 
   onLoad(options) {
@@ -116,6 +128,12 @@ Page({
 
   onShow() {
     applyThemeAndLanguage(this);
+    // Back from editing this post in the composer.
+    const app = getApp();
+    if (this.data.postId && app.globalData.editedPostId === this.data.postId) {
+      app.globalData.editedPostId = '';
+      this.loadDetail();
+    }
   },
 
   onPullDownRefresh() {
@@ -230,6 +248,30 @@ Page({
     } finally {
       this.setData({ isFavoriting: false });
     }
+  },
+
+  async handleRepost() {
+    if (!this.data.post || this.data.isReposting) return;
+    this.setData({ isReposting: true });
+    const post = this.data.post;
+    try {
+      const result = await setPostReposted(post.id, !post.reposted);
+      this.setData({ post: { ...post, reposted: result.reposted, repostCount: result.repostCount } });
+      wx.showToast({ title: result.reposted ? '已转发到你的主页' : '已取消转发', icon: 'none' });
+    } catch (error) {
+    } finally {
+      this.setData({ isReposting: false });
+    }
+  },
+
+  openMention(event) {
+    const userId = event.currentTarget.dataset.userId;
+    if (userId) wx.navigateTo({ url: `/pages/profile/public-user/index?id=${userId}` });
+  },
+
+  editOwnPost() {
+    if (!this.data.post || !this.data.post.isOwnPost) return;
+    wx.navigateTo({ url: `/pages/campus/create-post/index?editId=${this.data.post.id}` });
   },
 
   reportPost() {
@@ -372,7 +414,7 @@ Page({
   showPostOptions() {
     if (!this.data.post) return;
     const itemList = ['问 AI', '复制链接', '举报'];
-    if (this.data.post.isOwnPost) itemList.push('删除');
+    if (this.data.post.isOwnPost) itemList.push('编辑', '删除');
     wx.showActionSheet({
       itemList,
       success: (res) => {
@@ -380,6 +422,7 @@ Page({
         if (action === '问 AI') this.askAiAboutSelection();
         if (action === '复制链接') this.copyPostLink();
         if (action === '举报') this.reportPost();
+        if (action === '编辑') this.editOwnPost();
         if (action === '删除') this.deleteOwnPost();
       }
     });
@@ -410,9 +453,42 @@ Page({
 
   onCommentInput(event) {
     const value = event.detail.value;
+    const cursor = typeof event.detail.cursor === 'number' ? event.detail.cursor : value.length;
     this.setData({
       commentContent: value,
+      commentCursor: cursor,
       canSendComment: value.trim().length > 0 && !this.data.isSending
+    });
+    this.updateMentionCandidates(value, cursor);
+  },
+
+  // The list under "@query" while a name is being typed.
+  async updateMentionCandidates(value, cursor) {
+    const at = mentionQueryAt(value, cursor);
+    this._mentionAt = at;
+    if (!at || !at.query) {
+      if (this.data.mentionCandidates.length) this.setData({ mentionCandidates: [] });
+      return;
+    }
+    try {
+      const candidates = await searchMentionCandidates(at.query);
+      if (candidates !== null && this._mentionAt === at) this.setData({ mentionCandidates: candidates });
+    } catch (error) {
+      this.setData({ mentionCandidates: [] });
+    }
+  },
+
+  pickMention(event) {
+    const user = this.data.mentionCandidates[Number(event.currentTarget.dataset.index)];
+    if (!user || !this._mentionAt) return;
+    const next = insertMention(this.data.commentContent, this._mentionAt, user);
+    this._mentionAt = null;
+    this.setData({
+      commentContent: next.text,
+      commentCursor: next.cursor,
+      composeCursor: next.cursor,
+      mentionCandidates: [],
+      canSendComment: next.text.trim().length > 0 && !this.data.isSending
     });
   },
 
@@ -432,14 +508,35 @@ Page({
   setReplyTarget(event) {
     const item = this.data.comments[Number(event.currentTarget.dataset.index)];
     if (!item) return;
-      this.setData({
-        replyToId: item.id,
-        replyToName: item.authorAlias || item.authorName || '同学'
-      });
+    this.setData({
+      editingCommentId: '',
+      replyToId: item.id,
+      replyToName: item.authorAlias || item.authorName || '同学'
+    });
   },
 
   clearReplyTarget() {
     this.setData({ replyToId: '', replyToName: '' });
+  },
+
+  // Loads one's own comment into the box; 发送 then saves it.
+  startEditComment(event) {
+    const comment = this.data.comments[Number(event.currentTarget.dataset.index)];
+    if (!comment || !comment.isOwnComment) return;
+    this.setData({
+      editingCommentId: comment.id,
+      replyToId: '',
+      replyToName: '',
+      commentContent: comment.content,
+      commentCursor: comment.content.length,
+      composeCursor: comment.content.length,
+      canSendComment: comment.content.trim().length > 0,
+      mentionCandidates: []
+    });
+  },
+
+  cancelEditComment() {
+    this.setData({ editingCommentId: '', commentContent: '', canSendComment: false, mentionCandidates: [] });
   },
 
   async submitComment() {
@@ -449,21 +546,40 @@ Page({
       return;
     }
     this.setData({ isSending: true });
+    const editing = this.data.comments.find((item) => item.id === this.data.editingCommentId);
     try {
-      await createComment(this.data.postId, {
-        content,
-        isAnonymous: false,
-        parentId: this.data.replyToId
-      });
-      this.setData({
-        commentContent: '',
-        canSendComment: false,
-        replyToId: '',
-        replyToName: '',
-        showEmojiPanel: false
-      });
-      await this.loadDetail();
-      wx.showToast({ title: '评论成功', icon: 'success' });
+      if (editing) {
+        const saved = await updateComment(editing.id, {
+          content,
+          mentionUserIds: mentionIdsIn(content, editing.mentions)
+        });
+        this.setData({
+          commentContent: '',
+          canSendComment: false,
+          editingCommentId: '',
+          mentionCandidates: [],
+          showEmojiPanel: false
+        });
+        await this.loadDetail();
+        wx.showToast({ title: saved.reviewStatus === 'pending' ? '已提交审核' : '已保存', icon: 'success' });
+      } else {
+        await createComment(this.data.postId, {
+          content,
+          isAnonymous: false,
+          parentId: this.data.replyToId,
+          mentionUserIds: mentionIdsIn(content)
+        });
+        this.setData({
+          commentContent: '',
+          canSendComment: false,
+          replyToId: '',
+          replyToName: '',
+          mentionCandidates: [],
+          showEmojiPanel: false
+        });
+        await this.loadDetail();
+        wx.showToast({ title: '评论成功', icon: 'success' });
+      }
     } catch (error) {}
     this.setData({
       isSending: false,
@@ -505,12 +621,15 @@ Page({
     const comment = this.data.comments[index];
     if (!comment) return;
     const itemList = ['复制'];
-    if (comment.isOwnComment) itemList.push('删除');
+    if (comment.isOwnComment) itemList.push('编辑', '删除');
+    else itemList.push('举报');
     wx.showActionSheet({
       itemList,
       success: (res) => {
         const action = itemList[res.tapIndex];
         if (action === '复制') this.copyComment({ currentTarget: { dataset: { index } } });
+        if (action === '编辑') this.startEditComment({ currentTarget: { dataset: { index } } });
+        if (action === '举报') this.reportComment({ currentTarget: { dataset: { index } } });
         if (action === '删除') this.deleteOwnComment({ currentTarget: { dataset: { index } } });
       }
     });
