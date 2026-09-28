@@ -34,6 +34,7 @@ export function toGetPost(post: ApiPost): GetPost {
     progress: post.status,
     displayIdentity: identity,
     authorAlias: post.authorAlias,
+    authorAvatarUrl: orNull(post.authorAvatarUrl),
     sectionType: post.sectionType || 'general',
     sectionId: post.sectionId || 'general',
     sectionName: post.sectionName,

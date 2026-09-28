@@ -32,11 +32,31 @@ interface SessionContextValue {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
-async function mirrorTokenIntoCookie() {
+/** The latest cookie mirror, so navigation into gated pages can wait for it. */
+let cookieMirror: Promise<void> = Promise.resolve();
+
+function mirrorTokenIntoCookie(): Promise<void> {
+  cookieMirror = api<null>('/api/auth/web-session', { method: 'POST' }).then(
+    () => undefined,
+    () => {
+      // The gate cookie is a convenience for Nginx; the API still works without it.
+    },
+  );
+  return cookieMirror;
+}
+
+/**
+ * Whether Nginx will let this browser into signed-in pages right now.
+ * Sending a signed-in user from /login to /feed before the zx_session cookie
+ * exists would bounce them straight back to /login, and round again.
+ */
+export async function pageGateOpen(): Promise<boolean> {
+  await cookieMirror;
   try {
-    await api<null>('/api/auth/web-session', { method: 'POST' });
+    const response = await fetch('/api/auth/check', { credentials: 'same-origin', cache: 'no-store' });
+    return response.ok;
   } catch {
-    // The gate cookie is a convenience for Nginx; the API still works without it.
+    return false;
   }
 }
 
@@ -79,7 +99,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setMe(null);
       setStatus('unauthenticated');
       fetch('/api/auth/web-session', { method: 'DELETE' }).catch(() => {});
-      window.location.assign(loginUrl());
+      // Already on the login page: stay, keeping its `from`/`next`.
+      if (!window.location.pathname.startsWith('/login')) window.location.assign(loginUrl());
     });
     if (getToken()) mirrorTokenIntoCookie();
     loadMe();

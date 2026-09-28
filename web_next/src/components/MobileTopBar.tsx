@@ -24,7 +24,8 @@ export function MobileTopBar() {
   };
   const title = titles[pathname] || (pathname.startsWith('/campus/') ? t('校园', 'Campus') : t('知行', 'Zhixing'));
   const showTitle = pathname !== '/ai' && pathname !== '/messages';
-  if (pathname.startsWith('/posts/')) return null;
+  // The post page (/post?id=…) has its own header with a back button.
+  if (pathname === '/post') return null;
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/80 bg-background/85 px-4 backdrop-blur-xl md:hidden">
       <Link

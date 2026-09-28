@@ -7,7 +7,7 @@ import { Key, useCallback } from 'react';
 import { useDeletePostMutation } from '@/hooks/mutations/useDeletePostMutation';
 import { useErrorNotifier } from '@/hooks/useErrorNotifier';
 import { useLanguage } from '@/hooks/useLanguage';
-import { setPostProgress } from '@/lib/backend/endpoints';
+import { getPost, setPostProgress } from '@/lib/backend/endpoints';
 import type { GetPost, PostProgress } from '@/types/definitions';
 import { useCreatePostModal } from '@/hooks/useCreatePostModal';
 import { DropdownMenuButton } from './ui/DropdownMenuButton';
@@ -40,14 +40,24 @@ export function PostOptions({ post }: { post: GetPost }) {
     });
   }, [confirm, deleteMutation, postId, t]);
 
+  const handleEditClick = useCallback(async () => {
+    // Lists leave out images still in review; the author's own GET includes
+    // them, and the editor must start from the full set.
+    try {
+      launchEditPost(await getPost(postId));
+    } catch (error) {
+      notifyError(error, t('无法打开编辑', 'Could not open the editor'));
+    }
+  }, [launchEditPost, notifyError, postId, t]);
+
   const handleOptionClick = useCallback(
     (key: Key) => {
-      if (key === 'edit') launchEditPost(post);
+      if (key === 'edit') handleEditClick();
       else if (key === 'resolve') progressMutation.mutate('resolved');
       else if (key === 'reopen') progressMutation.mutate('ongoing');
       else handleDeleteClick();
     },
-    [handleDeleteClick, launchEditPost, post, progressMutation],
+    [handleDeleteClick, handleEditClick, progressMutation],
   );
 
   return (

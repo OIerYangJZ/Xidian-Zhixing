@@ -2,9 +2,10 @@
 
 import { ApiError } from '@/lib/backend/client';
 import { consumeXidianAttempt, createXidianAttempt } from '@/lib/backend/endpoints';
-import { loginUrl, useAuthActions, useSession } from '@/lib/backend/session';
+import { loginUrl, pageGateOpen, useAuthActions, useSession } from '@/lib/backend/session';
+import type { ApiMe } from '@/lib/backend/types';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 
 const campusImages: Array<{ src: string; alt: [string, string]; title: [string, string]; place: [string, string] }> = [
@@ -33,13 +34,30 @@ const campusImages: Array<{ src: string; alt: [string, string]; title: [string, 
     place: ['图书馆 · 秋日', 'Library · Autumn'],
   },
 ];
-/** Attempts already exchanged for a token in this page load. */
-const consumedAttempts = new Set<string>();
+type AttemptOutcome = { ok: true } | { ok: false; message: string };
 
-/** Only same-site paths, never back into the login page itself. */
+/**
+ * One exchange per IDS attempt for the whole page load.  The backend hands
+ * the token out exactly once, so the exchange must survive the effect being
+ * torn down and re-run (React's dev double-effect, the language loading):
+ * a re-run subscribes to the same promise instead of asking again.
+ */
+const attemptExchanges = new Map<string, Promise<AttemptOutcome>>();
+
+/** Only paths on this site, never back into the login page itself. */
 function safeNextPath(from: string | null): string {
-  if (!from || !from.startsWith('/') || from.startsWith('//') || from.startsWith('/login')) return '/feed';
-  return from;
+  // Control characters and backslashes: browsers read /\evil as //evil.
+  if (!from || !from.startsWith('/') || from.includes('\\') || [...from].some((ch) => ch.charCodeAt(0) < 0x20)) {
+    return '/feed';
+  }
+  try {
+    // "//evil.example" and friends resolve to another origin.
+    const url = new URL(from, window.location.origin);
+    if (url.origin !== window.location.origin || url.pathname.startsWith('/login')) return '/feed';
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return '/feed';
+  }
 }
 
 /**
@@ -70,6 +88,11 @@ export function CampusLoginExperience() {
   const activeImage = campusImages[activeIndex];
   const { signInWithToken } = useAuthActions();
   const { status } = useSession();
+  // Read through refs so the IDS effect runs once per attempt, not per render.
+  const signInRef = useRef(signInWithToken);
+  signInRef.current = signInWithToken;
+  const tRef = useRef(t);
+  tRef.current = t;
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -84,58 +107,68 @@ export function CampusLoginExperience() {
     const query = new URLSearchParams(window.location.search);
     const attemptId = query.get('xidianAuthAttempt');
     if (!attemptId) return undefined;
-    // The backend hands the token out exactly once; a second read (React's
-    // dev double-effect, a re-render) would come back empty and look failed.
-    if (consumedAttempts.has(attemptId)) return undefined;
-    consumedAttempts.add(attemptId);
 
-    let active = true;
-    let timer: number | undefined;
-    setLoading(true);
-    const fail = (message: string) => {
-      if (!active) return;
-      setAuthError(message);
-      setLoading(false);
-      window.history.replaceState(null, '', loginUrl(requestedPath(query)));
-    };
-    const poll = async () => {
-      try {
+    let exchange = attemptExchanges.get(attemptId);
+    if (!exchange) {
+      const failed = (message: string): AttemptOutcome => ({ ok: false, message });
+      const poll = async (): Promise<AttemptOutcome> => {
         const result = await consumeXidianAttempt(attemptId);
-        if (!active) return;
         if (result.status === 'pending') {
-          timer = window.setTimeout(poll, 1000);
-          return;
+          await new Promise<void>((resolve) => {
+            window.setTimeout(resolve, 1000);
+          });
+          return poll();
         }
         if (result.status !== 'authenticated' || !result.token) {
-          fail(
+          return failed(
             result.message ||
-              t('学校统一认证未完成，请重新登录。', 'Xidian sign-in was not completed. Please try again.'),
+              tRef.current('学校统一认证未完成，请重新登录。', 'Xidian sign-in was not completed. Please try again.'),
           );
-          return;
         }
-        const me = await signInWithToken(result.token);
+        const me: ApiMe | null = await signInRef.current(result.token);
         const target = me?.banned || result.banned ? '/settings/account' : requestedPath(query);
         window.location.replace(target);
-      } catch (error) {
-        fail(
+        return { ok: true };
+      };
+      exchange = poll().catch((error) =>
+        failed(
           error instanceof ApiError
             ? error.message
-            : t('暂时无法确认登录状态，请重新登录。', 'We could not confirm your sign-in. Please try again.'),
-        );
-      }
-    };
-    poll();
+            : tRef.current(
+                '暂时无法确认登录状态，请重新登录。',
+                'We could not confirm your sign-in. Please try again.',
+              ),
+        ),
+      );
+      attemptExchanges.set(attemptId, exchange);
+    }
+
+    let active = true;
+    setLoading(true);
+    exchange.then((outcome) => {
+      if (!active || outcome.ok) return;
+      setAuthError(outcome.message);
+      setLoading(false);
+      window.history.replaceState(null, '', loginUrl(requestedPath(query)));
+    });
     return () => {
       active = false;
-      if (timer) window.clearTimeout(timer);
     };
-  }, [signInWithToken, t]);
+  }, []);
 
   useEffect(() => {
-    // Already signed in (and not in the middle of an IDS return): go on.
-    if (status === 'authenticated' && !new URLSearchParams(window.location.search).get('xidianAuthAttempt')) {
-      window.location.replace(requestedPath(new URLSearchParams(window.location.search)));
+    // Already signed in (and not in the middle of an IDS return): go on, but
+    // only once Nginx agrees, or the gated page would send us back here.
+    if (status !== 'authenticated' || new URLSearchParams(window.location.search).get('xidianAuthAttempt')) {
+      return undefined;
     }
+    let active = true;
+    pageGateOpen().then((open) => {
+      if (active && open) window.location.replace(requestedPath(new URLSearchParams(window.location.search)));
+    });
+    return () => {
+      active = false;
+    };
   }, [status]);
 
   useEffect(() => {

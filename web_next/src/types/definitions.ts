@@ -92,6 +92,8 @@ export interface GetPost {
   displayIdentity: DisplayIdentity;
   /** Alias shown for anonymous posts; the author's nickname otherwise. */
   authorAlias: string;
+  /** Shown when `user` is null but the author is not anonymous (one's own private post). */
+  authorAvatarUrl: string | null;
   sectionType: SectionType;
   sectionId: string;
   sectionName: string;
@@ -138,6 +140,13 @@ export interface PostId {
 }
 
 export type PostIds = PostId[];
+
+/** One loaded page of a <Posts> timeline, as kept in the React Query cache. */
+export interface PostsPage {
+  items: PostIds;
+  /** Kept in the page itself: a remounted list must still know to load on. */
+  hasMore: boolean;
+}
 
 export interface GetComment {
   id: string;

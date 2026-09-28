@@ -83,7 +83,9 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
 
   if (!response.ok) {
     const message = typeof payload?.message === 'string' ? payload.message : `请求失败（${response.status}）`;
-    if (response.status === 401 && token) {
+    // Only if the token that failed is still the current one: a request sent
+    // before signing in again must not wipe the new token.
+    if (response.status === 401 && token && getToken() === token) {
       clearToken();
       onUnauthorized?.();
     }

@@ -92,10 +92,15 @@ export function useWritePostMutations({
     mutationFn: async () => {
       if (!editing) throw new Error('没有正在编辑的帖子');
       const text = `${draft.title}\n${draft.content}`;
+      // Send only what changed: untouched images must not be re-listed (the
+      // list replaces the post's images), and untouched text keeps its format.
+      const imagesChanged =
+        draft.visualMedia.map((media) => media.uploadId ?? media.url).join('\n') !==
+        editing.visualMedia.map((media) => media.uploadId ?? media.url).join('\n');
       return editPost(editing.id, {
         title: draft.title.trim(),
-        content: draft.content,
-        imageUploadIds: await uploadIdsFor(draft.visualMedia),
+        ...(draft.content !== (editing.content ?? '') && { content: draft.content }),
+        ...(imagesChanged && { imageUploadIds: await uploadIdsFor(draft.visualMedia) }),
         mentionUserIds: mentionIdsIn(text, editing.mentions),
       });
     },

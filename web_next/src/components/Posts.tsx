@@ -1,13 +1,12 @@
 'use client';
 
 import { InfiniteData, QueryKey, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { PostIds } from '@/types/definitions';
+import type { PostIds, PostsPage } from '@/types/definitions';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useOnScreen from '@/hooks/useOnScreen';
 import { AnimatePresence, motion } from 'framer-motion';
 import { POSTS_PER_PAGE } from '@/constants';
 import { listFavoritePosts, listPosts, listTimeline, type PostSort, type TimelineEntry } from '@/lib/backend/endpoints';
-import { chunk } from 'lodash';
 import { useShouldAnimate } from '@/hooks/useShouldAnimate';
 import { useLanguage } from '@/hooks/useLanguage';
 import { deductLowerMultiple } from '@/lib/deductLowerMultiple';
@@ -104,19 +103,16 @@ export function Posts(props: PostsProps) {
   const { shouldAnimate } = useShouldAnimate();
   // Posts published since the first page was loaded (feed polling only).
   const [numberOfNewPostsLoaded, setNumberOfNewPostsLoaded] = useState(0);
-  // `hasMore` per loaded page; getNextPageParam only sees the page's ids.
-  const pageHasMore = useRef(new Map<PageParam, boolean>());
-
   const { data, isPending, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useInfiniteQuery<
-    PostIds,
+    PostsPage,
     Error,
-    InfiniteData<PostIds>,
+    InfiniteData<PostsPage>,
     QueryKey,
     PageParam
   >({
     queryKey,
     initialPageParam: 1,
-    queryFn: async ({ pageParam }): Promise<PostIds> => {
+    queryFn: async ({ pageParam }): Promise<PostsPage> => {
       const { entries, hasMore } = await fetchPage(props, pageParam);
       const postIds: PostIds = entries.map(({ post, repostedBy, eventKey }) => {
         // Set query data for each `post`, these queries will be used by the <Post> component
@@ -125,7 +121,7 @@ export function Posts(props: PostsProps) {
         // If the `post` already exists in `data`, make sure to use its current `commentsShown`
         // value to prevent the post's comment section from closing if it is already shown
         const currentPostId = data?.pages
-          .flat()
+          .flatMap((loaded) => loaded.items)
           .find(({ id, feedEventKey }) => id === post.id && (feedEventKey || '') === eventKey);
         return {
           id: post.id,
@@ -134,11 +130,9 @@ export function Posts(props: PostsProps) {
           ...(repostedBy && { repostedBy: { name: repostedBy.nickname, username: repostedBy.userId } }),
         };
       });
-      pageHasMore.current.set(pageParam, hasMore);
-      return postIds;
+      return { items: postIds, hasMore };
     },
-    getNextPageParam: (_lastPage, _pages, lastPageParam) =>
-      pageHasMore.current.get(lastPageParam) ? lastPageParam + 1 : undefined,
+    getNextPageParam: (lastPage, _pages, lastPageParam) => (lastPage.hasMore ? lastPageParam + 1 : undefined),
     refetchOnWindowFocus: false,
     staleTime: Infinity,
     retry: false,
@@ -163,8 +157,8 @@ export function Posts(props: PostsProps) {
         const { entries } = await fetchPage(props, 1);
         const seen = new Set(
           qc
-            .getQueryData<InfiniteData<PostIds>>(queryKey)
-            ?.pages.flat()
+            .getQueryData<InfiniteData<PostsPage>>(queryKey)
+            ?.pages.flatMap((page) => page.items)
             .map(({ id }) => id),
         );
         setNumberOfNewPostsLoaded(entries.filter(({ post }) => !seen.has(post.id)).length);
@@ -188,31 +182,23 @@ export function Posts(props: PostsProps) {
 
   const toggleComments = useCallback(
     async (postId: string, feedEventKey?: string) => {
-      qc.setQueryData<InfiniteData<PostIds>>(queryKey, (oldData) => {
-        if (!oldData) return oldData;
-
-        // Flatten the old pages
-        const newPosts = oldData?.pages.flat();
-
-        // Find the index of the post
-        const index = newPosts.findIndex(
-          (post) => post.id === postId && (!feedEventKey || post.feedEventKey === feedEventKey),
-        );
-
-        // Get the value of the old post
-        const oldPost = newPosts[index];
-
-        // Toggle the `commentsShown` boolean property of the target post
-        newPosts[index] = {
-          ...oldPost,
-          commentsShown: !oldPost.commentsShown,
-        };
-
-        return {
-          pages: chunk(newPosts, POSTS_PER_PAGE),
-          pageParams: oldData.pageParams,
-        };
-      });
+      // In place, page by page: pages are numbered on the backend and may be
+      // short, so re-chunking would move posts between pages.
+      qc.setQueryData<InfiniteData<PostsPage>>(queryKey, (oldData) =>
+        oldData
+          ? {
+              ...oldData,
+              pages: oldData.pages.map((page) => ({
+                ...page,
+                items: page.items.map((post) =>
+                  post.id === postId && (!feedEventKey || post.feedEventKey === feedEventKey)
+                    ? { ...post, commentsShown: !post.commentsShown }
+                    : post,
+                ),
+              })),
+            }
+          : oldData,
+      );
     },
     [qc, queryKey],
   );
@@ -231,6 +217,20 @@ export function Posts(props: PostsProps) {
     [],
   );
   const bottomLoaderStyle = useMemo(() => ({ display: data ? 'block' : 'none' }), [data]);
+  // The backend pages by offset: a post published after page one loaded
+  // shifts everything down, so page two starts with page one's last post.
+  // Show each entry once, where it first appeared.
+  const pages = useMemo(() => {
+    const seen = new Set<string>();
+    return (data?.pages ?? []).map((page) =>
+      page.items.filter((post) => {
+        const key = post.feedEventKey || post.id;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }),
+    );
+  }, [data]);
 
   return (
     <>
@@ -266,7 +266,7 @@ export function Posts(props: PostsProps) {
           </div>
         ) : (
           <AnimatePresence>
-            {data?.pages.map((page) =>
+            {pages.map((page) =>
               page.map((post, i) => (
                 <motion.div
                   variants={postFramerVariants}

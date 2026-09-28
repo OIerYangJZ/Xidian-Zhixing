@@ -2,7 +2,7 @@
 
 import { InfiniteData, Query, useMutation, useQueryClient } from '@tanstack/react-query';
 import { deletePost } from '@/lib/backend/endpoints';
-import { PostIds } from '@/types/definitions';
+import type { PostsPage } from '@/types/definitions';
 import { useErrorNotifier } from '../useErrorNotifier';
 
 /** Every <Posts> timeline: the feed, hashtag pages, profiles and bookmarks. */
@@ -21,13 +21,16 @@ export function useDeletePostMutation() {
     mutationFn: ({ postId }: { postId: string }) => deletePost(postId),
     onMutate: async ({ postId }) => {
       await qc.cancelQueries({ predicate: isPostTimeline });
-      const previous = qc.getQueriesData<InfiniteData<PostIds>>({ predicate: isPostTimeline });
+      const previous = qc.getQueriesData<InfiniteData<PostsPage>>({ predicate: isPostTimeline });
 
       // Drop the post from every loaded page in place.  Pages are numbered on
       // the backend, so re-chunking would desync them from their pageParams.
-      qc.setQueriesData<InfiniteData<PostIds>>({ predicate: isPostTimeline }, (oldData) =>
+      qc.setQueriesData<InfiniteData<PostsPage>>({ predicate: isPostTimeline }, (oldData) =>
         oldData?.pages
-          ? { ...oldData, pages: oldData.pages.map((page) => page.filter((post) => post.id !== postId)) }
+          ? {
+              ...oldData,
+              pages: oldData.pages.map((page) => ({ ...page, items: page.items.filter((post) => post.id !== postId) })),
+            }
           : oldData,
       );
       return { previous };

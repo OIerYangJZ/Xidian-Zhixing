@@ -154,6 +154,7 @@ export const Post = memo(
       createdAt,
       user: author,
       authorAlias,
+      authorAvatarUrl,
       publishedAsClub,
       displayIdentity,
       visualMedia,
@@ -208,7 +209,10 @@ export const Post = memo(
               <Avatar name={publishedAsClub.name} photoUrl={publishedAsClub.avatar} />
             ) : author ? (
               <ProfilePhoto photoUrl={author.profilePhoto || ''} username={author.username} name={author.name} />
-            ) : null}
+            ) : (
+              // No profile link (one's own private post), but still a name.
+              <Avatar name={authorAlias} photoUrl={authorAvatarUrl} />
+            )}
           </div>
           <div className="relative pr-10">
             <div className="min-w-0">
@@ -234,7 +238,12 @@ export const Post = memo(
                   photoUrl={author.profilePhoto || ''}
                   hideAvatar
                 />
-              ) : null}
+              ) : (
+                <div className="flex flex-wrap items-center gap-x-2">
+                  <div className="text-sm font-semibold text-foreground">{authorAlias}</div>
+                  <span className="text-sm text-muted-foreground">· {postTime}</span>
+                </div>
+              )}
             </div>
             <div className="absolute right-0 top-0">{isOwnPost && <PostOptions post={data} />}</div>
           </div>

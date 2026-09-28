@@ -98,9 +98,10 @@ export interface CreatePostInput {
 
 export interface EditPostInput {
   title: string;
-  content: string;
-  /** The complete new image list; images left out are deleted. */
-  imageUploadIds: string[];
+  /** Omit to keep the text (a markdown post then stays markdown). */
+  content?: string;
+  /** The complete new image list; images left out are deleted.  Omit to keep them. */
+  imageUploadIds?: string[];
   mentionUserIds: string[];
 }
 
