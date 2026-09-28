@@ -130,7 +130,7 @@ There is no email/password login route. `handle_register`, `handle_verify`, `han
 | verifiedAt | str | |
 | banned, muted, deleted, isAdmin | bool | |
 | allowStrangerDm, showContactable | bool | privacy |
-| notifyComment, notifyReply, notifyLike, notifyFavorite, notifyReportResult, notifySystem | bool | default true |
+| notifyComment, notifyReply, notifyLike, notifyFavorite, notifyRepost, notifyMention, notifyReportResult, notifySystem | bool | default true |
 | favoriteCount, postCount, followingCount, followerCount | int | postCount includes pending/rejected own posts |
 | userLevel | int | 1 or 2 (2 = normal) |
 | userLevelLabel | str | `一级用户`/`二级用户` |
@@ -163,7 +163,7 @@ There is no email/password login route. `handle_register`, `handle_verify`, `han
 | POST `/api/users/me/blocks` | `{targetUserId}` (alias `userId`) | `{blocked:true}` (idempotent) |
 | DELETE `/api/users/me/blocks/<userId>` | – | `{blocked:false}` |
 | PATCH `/api/users/privacy` | `{allowStrangerDm?:bool, showContactable?:bool}` | `{ok:true}` |
-| PATCH or POST `/api/users/notification-preferences` (alias `/api/users/me/notification-preferences`) | any of `notifyComment, notifyReply, notifyLike, notifyFavorite, notifyReportResult, notifySystem` (bool) | `{ok:true}` |
+| PATCH or POST `/api/users/notification-preferences` (alias `/api/users/me/notification-preferences`) | any of `notifyComment, notifyReply, notifyLike, notifyFavorite, notifyRepost, notifyMention, notifyReportResult, notifySystem` (bool) | `{ok:true}` |
 | POST `/api/users/avatar` | `{avatarDataBase64\|dataBase64, fileName?, avatarContentType\|contentType?}` | `{avatarUrl}` (auto-approved; the old avatar is deleted) |
 | POST `/api/users/me/cancellation-request` | `{reason?}` (default "用户主动申请注销") | CancellationRequest. 409 if one is already pending |
 | POST `/api/users/me/level-upgrade-request` | `{reason?}` | **201** `{message, data: LevelRequest}`. 409 if already level 1 or a request is pending |
@@ -504,12 +504,12 @@ Admin auth uses `POST /api/admin/auth/login`, which returns an admin token (a se
 
 ## 14. Reposts, edits, mentions, activity (added 2026-09-27)
 
-- `POST /api/posts/<id>/repost` `{reposted?: bool}` (omit to toggle) → `{reposted, repostCount}`. 400 for one's own anonymous post (the repost would name the author) and for private posts; 404 if the viewer cannot see the post. Notifies the author (`type:"repost"`), rate-limited as `interaction`.
+- `POST /api/posts/<id>/repost` `{reposted?: bool}` (omit to toggle) → `{reposted, repostCount}`. 400 for one's own anonymous post (the repost would name the author) and for private posts; 404 if the viewer cannot see the post. Undoing an existing repost always works, even after the post went private or back to review. Notifies the author (`type:"repost"`) once per reposter, rate-limited as `interaction`.
 - Post objects gain `repostCount:int`, `reposted:bool`, `mentions:[{userId, nickname}]`, `editedAt:str` (`""` = never edited). Comments gain `mentions` and `editedAt`.
 - `GET /api/users/<id>/timeline?page&limit` → `{items, page, limit, total, hasMore}`; each item is a Post plus `repostedBy: {userId, nickname}|null`, `eventKey` (unique per item: one post can appear as written and as reposted) and `eventAt`. Anonymous posts never appear under their author except to the author.
-- `PATCH /api/posts/<id>` now also takes `title`, `content`, `imageUploadIds` (the full new list; dropped uploads are deleted) and `mentionUserIds`, alone or with `status`. Author only. Text is moderated again; a risky edit returns the post to `reviewStatus:"pending"`.
-- `PATCH /api/comments/<id>` `{content, mentionUserIds?}` → Comment. Author only, moderated again.
-- Mentions: `POST /api/posts` and `POST /api/posts/<id>/comments` accept `mentionUserIds:[str]` (max 10). A mention counts only if `@<nickname>` is in the text, the account exists, is not the author, and neither side blocks the other. Each gets a `type:"mention"` notification once the content is visible; anonymous writing sends no `actorId`. Edits notify only newly added mentions.
-- `GET /api/users/me/activity?page&limit` → paged `{items}` of the signed-in user's own actions, newest first: `type` ∈ `post | comment | like_post | like_comment | favorite | repost | follow`; post-related items carry `post:{id, title}` (plus `commentId`, `content` for comment ones), `follow` carries `user:{userId, nickname}`.
-- Notification categories are now `comment, reply, like, favorite, repost, mention, report_result, system`. `repost` follows the `notifyLike` switch, `mention` follows `notifyReply`.
+- `PATCH /api/posts/<id>` now also takes `title`, `content`, `markdownSource`, `imageUploadIds` (the full new list; dropped uploads are deleted) and `mentionUserIds`, alone or with `status`. Author only; 403 while muted; rate-limited as `interaction`. Text is moderated again; a risky edit returns the post to `reviewStatus:"pending"`, and a rejected edit changes nothing (not even `status`). A markdown post stays markdown unless `content` replaces its text (it then becomes plain); `markdownSource` edits are checked like on create.
+- `PATCH /api/comments/<id>` `{content, mentionUserIds?}` → Comment. Author only, 403 while muted, rate-limited as `interaction`, moderated again.
+- Mentions: `POST /api/posts` and `POST /api/posts/<id>/comments` accept `mentionUserIds:[str]` (max 10). A mention counts only if `@<nickname>` is in the text and not followed by another letter or character, the account exists, is not the author, and neither side blocks the other. Each gets one `type:"mention"` notification once others can open the content: the post (and comment) approved and the post not private, so content held for review notifies on approval. Nobody is notified twice for the same post or comment, whatever the edits; anonymous writing (including the post author commenting on their anonymous post) sends no `actorId`.
+- `GET /api/users/me/activity?page&limit` → paged `{items}` of the signed-in user's own actions, newest first: `type` ∈ `post | comment | like_post | like_comment | favorite | repost | follow`; post-related items carry `post:{id, title}` (plus `commentId`, `content` for comment ones; other people's comments only while approved and not from a blocked user), `follow` carries `user:{userId, nickname}`.
+- Notification categories are now `comment, reply, like, favorite, repost, mention, report_result, system`. `repost` and `mention` have their own switches, `notifyRepost` and `notifyMention` (default true; also accepted by the notification-preferences endpoint).
 - Likes and favorites now keep their real `created_at` across saves (they used to be restamped on every rewrite).

@@ -205,6 +205,10 @@ class S3ObjectStorage:
         if not clean_key:
             return
         self._client.delete_object(Bucket=self.bucket, Key=clean_key)
+        # Same reason as LocalObjectStorage.delete, for the in-memory copies.
+        from helpers._image_variants import forget_memory_variants
+
+        forget_memory_variants(clean_key)
 
     def restore_bytes(self, *, key: str, data: bytes, content_type: str) -> None:
         clean_key = key.strip().strip("/")

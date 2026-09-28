@@ -12,6 +12,7 @@ _post_handler.
 """
 from __future__ import annotations
 
+import re
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from typing import Any
@@ -82,7 +83,8 @@ def resolve_mentions(db: dict[str, Any], author_id: str, text: str, requested: A
         if is_user_blocked(db, user_id, author_id) or is_user_blocked(db, author_id, user_id):
             continue
         nickname = user_nickname(user)
-        if not nickname or f"@{nickname}" not in text:
+        # The name must end there: "@阿丽" names 阿丽, not a user called 阿.
+        if not nickname or not re.search(re.escape(f"@{nickname}") + r"(?!\w)", text):
             continue
         mentions.append({"userId": user_id, "nickname": nickname})
         if len(mentions) >= MENTION_LIMIT:
@@ -90,26 +92,67 @@ def resolve_mentions(db: dict[str, Any], author_id: str, text: str, requested: A
     return mentions
 
 
+def _publicly_visible(row: dict[str, Any]) -> bool:
+    review_status = str(row.get("reviewStatus", "approved")).strip().lower() or "approved"
+    return not row.get("deleted") and review_status in {"approved", "resolved"}
+
+
 def notify_mentions(
     db: dict[str, Any],
-    mentions: list[dict[str, str]],
+    post: dict[str, Any],
+    comment: dict[str, Any] | None = None,
     *,
-    author: dict[str, Any],
-    anonymous: bool,
-    actor_alias: str,
-    snippet: str,
-    post_id: str,
-    comment_id: str = "",
+    skip_user_ids: set[str] | frozenset[str] = frozenset(),
 ) -> None:
-    """One "mention" notification per mentioned account.
+    """Tell everyone the post (or the comment on it) mentions, once.
+
+    Called after creating, editing and approving content.  Nothing is sent
+    while others cannot open it: the post and the comment must both be
+    approved, and the post must not be private.  Whoever already has a
+    mention notification for this post or comment is not told again, so
+    edits and approvals only reach newly mentioned people, and toggling a
+    mention in and out cannot be used to spam.
 
     Anonymous writing carries no actor id, exactly like anonymous comments,
     so the notification cannot be traced back to the author; the block check
-    is therefore done here with the real sender.
+    is therefore done here with the real sender.  A comment counts as
+    anonymous when the post author writes it under their anonymous post,
+    however old the comment's own flag is.
     """
-    author_id = str(author.get("id", "")).strip()
+    if not _publicly_visible(post) or str(post.get("visibility", "public")).strip().lower() == "private":
+        return
+    if comment is not None and not _publicly_visible(comment):
+        return
+
+    if comment is None:
+        author_id = str(post.get("authorId", "")).strip()
+        anonymous = is_post_anonymous(db, post)
+        actor_alias = str(post.get("authorAlias", ""))
+        snippet = str(post.get("title") or post.get("content") or "")
+        related_type, related_id = "post", str(post.get("id", ""))
+        mentions = post.get("mentions", [])
+    else:
+        author_id = str(comment.get("userId", "")).strip()
+        as_post_author = author_id == str(post.get("authorId", "")).strip() and is_post_anonymous(db, post)
+        anonymous = bool(comment.get("isAnonymous")) or as_post_author
+        actor_alias = str(post.get("authorAlias", "") if as_post_author else comment.get("authorAlias", ""))
+        snippet = str(comment.get("content", ""))
+        related_type, related_id = "comment", str(comment.get("id", ""))
+        mentions = comment.get("mentions", [])
+    if not isinstance(mentions, list) or not mentions:
+        return
+
+    already_told = {
+        str(item.get("userId", "")).strip()
+        for item in db.get("notifications", [])
+        if item.get("type") == "mention"
+        and str(item.get("relatedType", "")) == related_type
+        and str(item.get("relatedId", "")) == related_id
+    }
     for mention in mentions:
-        target_id = mention["userId"]
+        target_id = str(mention.get("userId", "")).strip() if isinstance(mention, dict) else ""
+        if not target_id or target_id == author_id or target_id in already_told or target_id in skip_user_ids:
+            continue
         if is_user_blocked(db, target_id, author_id):
             continue
         create_notification(
@@ -118,9 +161,9 @@ def notify_mentions(
             notification_type="mention",
             title="有人提到了你",
             content=snippet[:100],
-            related_type="comment" if comment_id else "post",
-            related_id=comment_id or post_id,
-            post_id=post_id,
+            related_type=related_type,
+            related_id=related_id,
+            post_id=str(post.get("id", "")),
             actor_id="" if anonymous else author_id,
             actor_alias=actor_alias,
         )
@@ -136,28 +179,38 @@ def handle_toggle_repost(handler: BaseHTTPRequestHandler, db: dict[str, Any], po
         json_error(handler, HTTPStatus.UNAUTHORIZED, "请先登录")
         return
     user_id = str(user["id"])
-    visible = {str(post.get("id")): post for post in list_posts(db, viewer_user_id=user_id)}
-    post = visible.get(post_id)
-    if post is None:
-        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
-        return
-    author_id = str(post.get("authorId", "")).strip()
-    # A repost is shown under the reposter's name: reposting one's own
-    # anonymous post would say who wrote it.
-    if author_id == user_id and is_post_anonymous(db, post):
-        json_error(handler, HTTPStatus.BAD_REQUEST, "不能转发自己的匿名帖子")
-        return
-    if str(post.get("visibility", "public")).strip().lower() == "private":
-        json_error(handler, HTTPStatus.BAD_REQUEST, "仅自己可见的帖子不能转发")
-        return
-
+    # Looked up directly, not through list_posts: that writes counters into
+    # every post dict, which makes save_db rewrite the posts table.
+    post = next(
+        (p for p in db.get("posts", []) if str(p.get("id", "")) == post_id and not p.get("deleted")),
+        None,
+    )
     body = read_json_body(handler)
     reposts = db.setdefault("reposts", [])
     existing = next((row for row in reposts if row.get("userId") == user_id and row.get("postId") == post_id), None)
     wanted = body.get("reposted")
     target = (existing is None) if wanted is None else bool(wanted)
+    author_id = str(post.get("authorId", "")).strip() if post else ""
+    # Undoing a repost always works, even once the post went private or
+    # back to review; only new reposts need a post others can see.
+    if existing is None and (
+        post is None
+        or not _publicly_visible(post)
+        or (str(post.get("visibility", "public")).strip().lower() == "private" and author_id != user_id)
+        or is_user_blocked(db, user_id, author_id)
+    ):
+        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+        return
 
     if target and existing is None:
+        # A repost is shown under the reposter's name: reposting one's own
+        # anonymous post would say who wrote it.
+        if author_id == user_id and is_post_anonymous(db, post):
+            json_error(handler, HTTPStatus.BAD_REQUEST, "不能转发自己的匿名帖子")
+            return
+        if str(post.get("visibility", "public")).strip().lower() == "private":
+            json_error(handler, HTTPStatus.BAD_REQUEST, "仅自己可见的帖子不能转发")
+            return
         allowed, retry_after = consume_rate_limit(
             db,
             user_id=user_id,
@@ -169,7 +222,15 @@ def handle_toggle_repost(handler: BaseHTTPRequestHandler, db: dict[str, Any], po
             send_rate_limit_error(handler, action_text="转发", retry_after_seconds=retry_after)
             return
         reposts.append({"userId": user_id, "postId": post_id, "createdAt": now_iso()})
-        if author_id and author_id != user_id:
+        # Like likes: undoing and redoing a repost does not notify again.
+        told_before = any(
+            item.get("type") == "repost"
+            and str(item.get("userId", "")) == author_id
+            and str(item.get("relatedId", "")) == post_id
+            and str(item.get("actorId", "")) == user_id
+            for item in db.get("notifications", [])
+        )
+        if author_id and author_id != user_id and not told_before:
             create_notification(
                 db,
                 user_id=author_id,
@@ -269,7 +330,17 @@ def handle_get_my_activity(handler: BaseHTTPRequestHandler, db: dict[str, Any], 
     for post in list_posts(db, viewer_user_id=user_id, include_rejected=True):
         if str(post.get("authorId", "")).strip() == user_id:
             visible[str(post.get("id"))] = post
-    comments = {str(c.get("id")): c for c in db.get("comments", []) if not c.get("deleted")}
+    # Someone else's comment only while others may read it: its text must not
+    # leak out of review through a like (an edit can send it back there).
+    comments = {
+        str(c.get("id")): c
+        for c in db.get("comments", [])
+        if not c.get("deleted")
+        and (
+            str(c.get("userId", "")).strip() == user_id
+            or (_publicly_visible(c) and not is_user_blocked(db, user_id, str(c.get("userId", "")).strip()))
+        )
+    }
 
     def post_ref(post_id: str) -> dict[str, Any] | None:
         post = visible.get(post_id)

@@ -121,6 +121,35 @@ def test_repost_refuses_what_it_would_expose(world: dict[str, Any]) -> None:
     assert db["reposts"] == []
 
 
+def test_a_repost_can_be_undone_after_the_post_went_private(world: dict[str, Any]) -> None:
+    from handlers import _social_handler
+
+    db = world["db"]
+    _call(_social_handler.handle_toggle_repost, db, "p1", body={"reposted": True})
+    next(p for p in db["posts"] if p["id"] == "p1")["visibility"] = "private"
+    handler = _call(_social_handler.handle_toggle_repost, db, "p1", body={"reposted": False})
+    assert handler.payload()["data"] == {"reposted": False, "repostCount": 0}
+
+
+def test_redoing_a_repost_does_not_notify_again(world: dict[str, Any]) -> None:
+    from handlers import _social_handler
+
+    db = world["db"]
+    for wanted in (True, False, True):
+        _call(_social_handler.handle_toggle_repost, db, "p1", body={"reposted": wanted})
+    assert len(_notifications(db, "bob", "repost")) == 1
+
+
+def test_reposting_leaves_other_posts_untouched(world: dict[str, Any]) -> None:
+    from handlers import _social_handler
+
+    db = world["db"]
+    before = [dict(p) for p in db["posts"]]
+    _call(_social_handler.handle_toggle_repost, db, "p1", body={"reposted": True})
+    # No counters written into post dicts, so save_db has no posts to rewrite.
+    assert db["posts"] == before
+
+
 def test_timeline_merges_reposts_and_hides_anonymous_authorship(world: dict[str, Any]) -> None:
     from handlers import _social_handler
 
@@ -212,6 +241,29 @@ def test_editing_removes_dropped_images(world: dict[str, Any], monkeypatch: pyte
     assert next(u for u in db["mediaUploads"] if u["id"] == "up1")["deleted"] is True
 
 
+def test_an_image_edit_keeps_the_markdown(world: dict[str, Any]) -> None:
+    from handlers import _post_handler
+
+    db = world["db"]
+    post = next(p for p in db["posts"] if p["id"] == "p3")
+    post.update(contentFormat="markdown", markdownSource="# 标题\n\n**正文**", content="标题\n\n正文")
+    data = _call(_post_handler.handle_update_post, db, "p3", body={"imageUploadIds": []}).payload()["data"]
+    assert post["markdownSource"] == "# 标题\n\n**正文**" and post["contentFormat"] == "markdown"
+    assert data["content"] == "标题\n\n正文"
+    # Hostile markdown images are refused on edit, as on create.
+    handler = _call(_post_handler.handle_update_post, db, "p3", body={"markdownSource": "![x](https://evil.example/a.png)"})
+    assert handler.status_code == HTTPStatus.BAD_REQUEST
+
+
+def test_a_rejected_edit_changes_nothing(world: dict[str, Any], monkeypatch: pytest.MonkeyPatch) -> None:
+    from handlers import _post_handler
+
+    monkeypatch.setattr(_post_handler, "assess_text_risk", lambda *_a, **_k: (True, True, ["违禁"]))
+    handler = _call(_post_handler.handle_update_post, world["db"], "p3", body={"content": "违禁", "status": "closed"})
+    assert handler.status_code == HTTPStatus.BAD_REQUEST
+    assert next(p for p in world["db"]["posts"] if p["id"] == "p3").get("status", "ongoing") != "closed"
+
+
 def test_a_risky_edit_goes_back_to_review(world: dict[str, Any], monkeypatch: pytest.MonkeyPatch) -> None:
     from handlers import _post_handler
 
@@ -242,16 +294,91 @@ def test_mentions_need_the_name_in_the_text(world: dict[str, Any]) -> None:
     assert resolve_mentions(db, "alice", "你好 @小波", ["bob"]) == []
 
 
+def test_mentions_need_the_whole_name(world: dict[str, Any]) -> None:
+    from handlers._social_handler import resolve_mentions
+
+    db = world["db"]
+    db["users"].append(_person("ah", "2500503", "阿"))
+    # "@阿丽" names 阿丽, not the user called 阿.
+    assert resolve_mentions(db, "bob", "@阿丽 你好", ["ah", "alice"]) == [{"userId": "alice", "nickname": "阿丽"}]
+    assert resolve_mentions(db, "bob", "@阿，你好", ["ah"]) == [{"userId": "ah", "nickname": "阿"}]
+
+
 def test_anonymous_mentions_do_not_name_the_author(world: dict[str, Any]) -> None:
     from handlers._social_handler import notify_mentions
 
     db = world["db"]
-    notify_mentions(
-        db, [{"userId": "bob", "nickname": "小波"}], author=world["alice"], anonymous=True,
-        actor_alias="匿名猫", snippet="@小波 看这里", post_id="p3",
-    )
-    [row] = _notifications(db, "bob", "mention")
+    post = next(p for p in db["posts"] if p["id"] == "p2")
+    post["mentions"] = [{"userId": "alice", "nickname": "阿丽"}]
+    notify_mentions(db, post)
+    [row] = _notifications(db, "alice", "mention")
     assert row["actorId"] == "" and row["actorAlias"] == "匿名猫"
+
+
+def test_editing_an_old_comment_on_ones_anonymous_post_stays_anonymous(world: dict[str, Any]) -> None:
+    from handlers import _post_handler
+
+    db = world["db"]
+    # Stored before comments on one's own anonymous post were flagged.
+    db["comments"].append({
+        "id": "cm2", "postId": "p2", "userId": "bob", "authorAlias": "小波", "content": "旧评论",
+        "deleted": False, "reviewStatus": "approved", "isAnonymous": False,
+        "createdAt": "2026-09-20T00:00:00+00:00",
+    })
+    world["as"](world["bob"])
+    _call(_post_handler.handle_update_comment, db, "cm2", body={"content": "@阿丽 看这里", "mentionUserIds": ["alice"]})
+    [row] = _notifications(db, "alice", "mention")
+    assert row["actorId"] == "" and row["actorAlias"] == "匿名猫"
+
+
+def test_no_mentions_for_content_others_cannot_open(world: dict[str, Any], monkeypatch: pytest.MonkeyPatch) -> None:
+    from handlers import _post_handler
+
+    db = world["db"]
+    # A rejected post edited to add a mention.
+    world["as"](world["carol"])
+    _call(_post_handler.handle_update_post, db, "p5", body={"content": "@阿丽 看", "mentionUserIds": ["alice"]})
+    # A comment on one's own private post.
+    world["as"](world["bob"])
+    _call(_post_handler.handle_create_comment, db, "p4", body={"content": "@阿丽 看", "mentionUserIds": ["alice"]})
+    # A comment still in review, edited.
+    db["comments"][0]["reviewStatus"] = "pending"
+    _call(_post_handler.handle_update_comment, db, "cm1", body={"content": "@阿丽 看", "mentionUserIds": ["alice"]})
+    assert _notifications(db, "alice", "mention") == []
+
+
+def test_toggling_a_mention_does_not_notify_again(world: dict[str, Any]) -> None:
+    from handlers import _post_handler
+
+    db = world["db"]
+    for round_ in range(4):
+        body = {"content": "@小波 你好", "mentionUserIds": ["bob"]} if round_ % 2 == 0 else {"content": "你好"}
+        _call(_post_handler.handle_update_post, db, "p3", body=body)
+    assert len(_notifications(db, "bob", "mention")) == 1
+
+
+def test_approval_sends_the_mentions_held_back(world: dict[str, Any]) -> None:
+    from handlers._admin_handler import _notify_mentions_after_approval
+
+    db = world["db"]
+    post = next(p for p in db["posts"] if p["id"] == "p5")
+    post["mentions"] = [{"userId": "alice", "nickname": "阿丽"}]
+    post["reviewStatus"] = "approved"
+    _notify_mentions_after_approval(db, "post", "p5")
+    _notify_mentions_after_approval(db, "post", "p5")
+    assert len(_notifications(db, "alice", "mention")) == 1
+
+
+def test_muted_users_cannot_edit(world: dict[str, Any]) -> None:
+    from handlers import _post_handler
+
+    world["alice"]["muted"] = True
+    handler = _call(_post_handler.handle_update_post, world["db"], "p3", body={"content": "改"})
+    assert handler.status_code == HTTPStatus.FORBIDDEN
+    world["bob"]["muted"] = True
+    world["as"](world["bob"])
+    handler = _call(_post_handler.handle_update_comment, world["db"], "cm1", body={"content": "改"})
+    assert handler.status_code == HTTPStatus.FORBIDDEN
 
 
 def test_an_edit_only_notifies_newly_mentioned(world: dict[str, Any]) -> None:
@@ -293,6 +420,16 @@ def test_activity_lists_my_actions_newest_first(world: dict[str, Any]) -> None:
     assert items[3]["post"]["id"] == "p3"
 
 
+def test_activity_hides_comments_out_of_review(world: dict[str, Any]) -> None:
+    from handlers import _social_handler
+
+    db = world["db"]
+    db["likes"] = [{"userId": "alice", "commentId": "cm1", "createdAt": "2026-09-26T02:00:00+00:00"}]
+    db["comments"][0]["reviewStatus"] = "rejected"
+    items = _call(_social_handler.handle_get_my_activity, db, query={}).payload()["data"]["items"]
+    assert "like_comment" not in [item["type"] for item in items]
+
+
 def test_repost_and_mention_have_their_own_switches(world: dict[str, Any]) -> None:
     from handlers import _social_handler
     from handlers._social_handler import notify_mentions
@@ -306,8 +443,9 @@ def test_repost_and_mention_have_their_own_switches(world: dict[str, Any]) -> No
 
     world["bob"]["notifyMention"] = False
     world["carol"]["notifyReply"] = False
-    mentions = [{"userId": "bob", "nickname": "小波"}, {"userId": "carol", "nickname": "卡萝"}]
-    notify_mentions(db, mentions, author=world["alice"], anonymous=False, actor_alias="阿丽", snippet="@小波 @卡萝", post_id="p3")
+    post = next(p for p in db["posts"] if p["id"] == "p3")
+    post["mentions"] = [{"userId": "bob", "nickname": "小波"}, {"userId": "carol", "nickname": "卡萝"}]
+    notify_mentions(db, post)
     assert _notifications(db, "bob", "mention") == []
     assert len(_notifications(db, "carol", "mention")) == 1
 

@@ -13,6 +13,7 @@ from __future__ import annotations
 import io
 import logging
 import threading
+from collections import OrderedDict
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,20 @@ _MAX_SOURCE_PIXELS = 50_000_000
 # GIFs may be animated and SVG is not raster; both are served as uploaded.
 _RESIZABLE_TYPES = frozenset({"image/jpeg", "image/png", "image/webp"})
 
-_render_lock = threading.Lock()
+# Renders running at once, across all images: each can hold a decoded
+# 50 MP frame, so an unbounded burst of first views could exhaust memory.
+_render_slots = threading.BoundedSemaphore(2)
+# Per (object, width): concurrent first views of the same photo wait for
+# one render instead of each decoding it; other photos proceed.
+_key_locks: dict[tuple[str, int], threading.Lock] = {}
+_key_locks_guard = threading.Lock()
+# Non-local storage has no disk cache; keep recent variants in memory.
+_MEMORY_CACHE_BYTES = 32 * 1024 * 1024
+_memory_cache: OrderedDict[tuple[str, int], bytes] = OrderedDict()
+_memory_cache_size = 0
+_memory_cache_guard = threading.Lock()
+# EXIF orientations 5-8 turn the picture a quarter, swapping width and height.
+_QUARTER_TURN_ORIENTATIONS = frozenset({5, 6, 7, 8})
 
 
 def snap_width(raw: str) -> int | None:
@@ -82,7 +96,11 @@ def render_variant(data: bytes, content_type: str, width: int) -> bytes | None:
         with Image.open(io.BytesIO(data)) as image:
             if image.width * image.height > _MAX_SOURCE_PIXELS:
                 return None
-            if image.width <= width:
+            # The width as displayed, after the EXIF rotation, so a portrait
+            # photo stored sideways is never upscaled.
+            orientation = image.getexif().get(0x0112)
+            shown_width = image.height if orientation in _QUARTER_TURN_ORIENTATIONS else image.width
+            if shown_width <= width:
                 return None
             image = ImageOps.exif_transpose(image)
             height = max(1, round(image.height * width / image.width))
@@ -106,24 +124,79 @@ def cached_variant(
 ) -> bytes | None:
     """render_variant with an on-disk cache when storage is local.
 
-    `root_dir` is None for non-local storage, in which case the variant is
-    rendered per request.
+    `root_dir` is None for non-local storage, in which case recent variants
+    are kept in a small in-memory cache instead.
     """
+    cache_key = (object_key, width)
     if root_dir is None:
-        return render_variant(data, content_type, width)
+        cached = _memory_get(cache_key)
+        if cached is not None:
+            return cached
+        with _key_lock(cache_key):
+            cached = _memory_get(cache_key)
+            if cached is not None:
+                return cached
+            with _render_slots:
+                rendered = render_variant(data, content_type, width)
+            if rendered is not None:
+                _memory_put(cache_key, rendered)
+            return rendered
+
     path = variant_path(root_dir, object_key, width)
     if path.is_file():
         return path.read_bytes()
-    # One render at a time: a burst of first views of a large photo would
-    # otherwise decode it once per request thread.
-    with _render_lock:
+    with _key_lock(cache_key):
         if path.is_file():
             return path.read_bytes()
-        rendered = render_variant(data, content_type, width)
+        with _render_slots:
+            rendered = render_variant(data, content_type, width)
         if rendered is None:
             return None
         path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_suffix(".webp.tmp")
+        tmp = path.with_suffix(f".webp.tmp-{threading.get_ident()}")
         tmp.write_bytes(rendered)
         tmp.replace(path)
         return rendered
+
+
+def _key_lock(cache_key: tuple[str, int]) -> threading.Lock:
+    # Locks are tiny and keys are bounded by uploads × 5 widths, so they are
+    # kept rather than reference-counted.
+    with _key_locks_guard:
+        lock = _key_locks.get(cache_key)
+        if lock is None:
+            lock = _key_locks[cache_key] = threading.Lock()
+        return lock
+
+
+def _memory_get(cache_key: tuple[str, int]) -> bytes | None:
+    with _memory_cache_guard:
+        data = _memory_cache.get(cache_key)
+        if data is not None:
+            _memory_cache.move_to_end(cache_key)
+        return data
+
+
+def _memory_put(cache_key: tuple[str, int], data: bytes) -> None:
+    global _memory_cache_size
+    if len(data) > _MEMORY_CACHE_BYTES // 4:
+        return
+    with _memory_cache_guard:
+        previous = _memory_cache.pop(cache_key, None)
+        if previous is not None:
+            _memory_cache_size -= len(previous)
+        _memory_cache[cache_key] = data
+        _memory_cache_size += len(data)
+        while _memory_cache_size > _MEMORY_CACHE_BYTES:
+            _, evicted = _memory_cache.popitem(last=False)
+            _memory_cache_size -= len(evicted)
+
+
+def forget_memory_variants(object_key: str) -> None:
+    """Drop an object's in-memory variants (non-local storage deletes)."""
+    global _memory_cache_size
+    with _memory_cache_guard:
+        for width in VARIANT_WIDTHS:
+            evicted = _memory_cache.pop((object_key, width), None)
+            if evicted is not None:
+                _memory_cache_size -= len(evicted)

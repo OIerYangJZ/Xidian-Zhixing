@@ -698,7 +698,14 @@ def handle_get_post(
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
 
-    send_json(handler, HTTPStatus.OK, {"data": serialize_post(db, post, viewer_user_id=viewer_user_id)})
+    # The author also gets images still in review: the edit dialog loads the
+    # post from here, and saving a list without them would delete them.
+    is_author = bool(viewer_user_id) and str(post.get("authorId", "")).strip() == viewer_user_id
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {"data": serialize_post(db, post, viewer_user_id=viewer_user_id, include_unapproved_images=is_author)},
+    )
 
 
 def handle_get_post_comments(
@@ -1079,18 +1086,8 @@ def handle_create_post(
     for upload in picked_uploads:
         upload["postId"] = post["id"]
     recalc_post_has_image(db, post["id"])
-    # Only once others can read it: a pending or private post would notify
-    # people about something they cannot open.
-    if not risk_marked and visibility != "private":
-        notify_mentions(
-            db,
-            mentions,
-            author=user,
-            anonymous=use_anonymous_alias,
-            actor_alias=post["authorAlias"],
-            snippet=title or content,
-            post_id=post["id"],
-        )
+    # Skips pending and private posts; approval sends the rest.
+    notify_mentions(db, post)
     add_audit_log(db, user["id"], "create_post", f"发布帖子 {post['id']}")
     save_db(db)
     send_json(
@@ -1281,18 +1278,9 @@ def handle_create_comment(
             actor_alias=author_alias,
         )
 
-    if not risk_marked:
-        already_told = {parent_author_id, post_author_id}
-        notify_mentions(
-            db,
-            [m for m in comment["mentions"] if m["userId"] not in already_told],
-            author=user,
-            anonymous=comment_anonymous,
-            actor_alias=author_alias,
-            snippet=comment_content,
-            post_id=post_id,
-            comment_id=comment["id"],
-        )
+    # The parent and post authors already have the more specific reply /
+    # comment notification.
+    notify_mentions(db, post, comment, skip_user_ids={parent_author_id, post_author_id})
     add_audit_log(db, user["id"], "create_comment", f"在帖子 {post_id} 下发表评论 {comment['id']}")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": _serialize_comment(db, comment, viewer_user_id=user["id"], post=post)})
@@ -2039,23 +2027,31 @@ def handle_update_post(
         return
 
     body = read_json_body(handler)
-    edits_text = any(key in body for key in ("title", "content", "imageUploadIds"))
+    edits_text = any(key in body for key in ("title", "content", "markdownSource", "imageUploadIds"))
+    new_status = ""
     if "status" in body:
         new_status = str(body.get("status", "")).strip().lower()
         if new_status not in {"ongoing", "open", "resolved", "closed"}:
             json_error(handler, HTTPStatus.BAD_REQUEST, "无效的帖子状态")
             return
-        post["status"] = "ongoing" if new_status == "open" else new_status
     elif not edits_text:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的帖子状态")
         return
 
     removed_object_keys: list[str] = []
     if edits_text:
+        if user.get("muted"):
+            json_error(handler, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法编辑")
+            return
+        if not _enforce_interaction_rate_limit(handler, db, user):
+            return
         result = _apply_post_edit(handler, db, user, post, body)
         if result is None:
             return
         removed_object_keys = result
+    # Only now: a rejected edit must not leave the status change behind.
+    if new_status:
+        post["status"] = "ongoing" if new_status == "open" else new_status
     post["updatedAt"] = now_iso()
     add_audit_log(
         db,
@@ -2093,9 +2089,24 @@ def _apply_post_edit(
 
     The edited text goes through moderation again: a risky edit sends the
     post back to review, where only its author can see it.
+
+    A markdown post stays markdown unless the edit replaces its text with
+    plain `content` (the web editor edits plain text): a title or image edit
+    keeps the source, and a new `markdownSource` is checked like on create.
     """
     title = str(body.get("title", post.get("title", ""))).strip()
-    raw_content = str(body.get("content", post.get("content", ""))).strip()
+    content_format = _normalize_post_content_format(post.get("contentFormat"))
+    markdown_source = str(post.get("markdownSource", "")) if content_format == "markdown" else ""
+    if "markdownSource" in body:
+        content_format = "markdown"
+        markdown_source = str(body.get("markdownSource", "")).strip()
+        raw_content = _markdown_to_plain_text(markdown_source) or markdown_source
+    elif "content" in body:
+        content_format = "plain"
+        markdown_source = ""
+        raw_content = str(body.get("content", "")).strip()
+    else:
+        raw_content = str(post.get("content", "")).strip()
     if not raw_content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "帖子内容不能为空")
         return None
@@ -2105,6 +2116,13 @@ def _apply_post_edit(
     if len(raw_content) > _MAX_POST_CONTENT_CHARS:
         json_error(handler, HTTPStatus.BAD_REQUEST, f"帖子正文不能超过 {_MAX_POST_CONTENT_CHARS} 个字符")
         return None
+    if content_format == "markdown":
+        if len(markdown_source) > _MAX_MARKDOWN_SOURCE_CHARS:
+            json_error(handler, HTTPStatus.BAD_REQUEST, f"Markdown 不能超过 {_MAX_MARKDOWN_SOURCE_CHARS} 个字符")
+            return None
+        if any(not url.lower().startswith("/api/storage/") for url in _MARKDOWN_IMAGE_RE.findall(markdown_source)):
+            json_error(handler, HTTPStatus.BAD_REQUEST, "Markdown 图片必须使用本站上传地址")
+            return None
 
     current_uploads = [
         u for u in db.get("mediaUploads", [])
@@ -2156,14 +2174,13 @@ def _apply_post_edit(
         save_db(db)
         return None
 
-    old_mentioned = {m.get("userId") for m in post.get("mentions", []) if isinstance(m, dict)}
     mentions = resolve_mentions(db, user["id"], f"{title}\n{raw_content}", body.get("mentionUserIds", [
         m.get("userId") for m in post.get("mentions", []) if isinstance(m, dict)
     ]))
     post["title"] = title
     post["content"] = raw_content
-    post["contentFormat"] = "plain"
-    post["markdownSource"] = ""
+    post["contentFormat"] = content_format
+    post["markdownSource"] = markdown_source
     post["tags"] = tags
     post["mentions"] = mentions
     post["editedAt"] = now_iso()
@@ -2198,16 +2215,7 @@ def _apply_post_edit(
         post["imageIds"] = image_ids
         recalc_post_has_image(db, post["id"])
 
-    if not risk_marked and str(post.get("visibility", "public")) != "private":
-        notify_mentions(
-            db,
-            [m for m in mentions if m["userId"] not in old_mentioned],
-            author=user,
-            anonymous=is_post_anonymous(db, post),
-            actor_alias=str(post.get("authorAlias", "")),
-            snippet=title or raw_content,
-            post_id=post["id"],
-        )
+    notify_mentions(db, post)
     return removed_object_keys
 
 
@@ -2238,10 +2246,16 @@ def handle_update_comment(
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
 
+    if user.get("muted"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法编辑")
+        return
+
     body = read_json_body(handler)
     content = str(body.get("content", "")).strip()
     if not content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "评论内容不能为空")
+        return
+    if not _enforce_interaction_rate_limit(handler, db, user):
         return
     if len(content) > _MAX_COMMENT_CHARS:
         json_error(handler, HTTPStatus.BAD_REQUEST, f"评论内容不能超过 {_MAX_COMMENT_CHARS} 个字符")
@@ -2271,17 +2285,7 @@ def handle_update_comment(
             content=content,
             risk_reasons=risk_reasons,
         )
-    else:
-        notify_mentions(
-            db,
-            [m for m in mentions if m["userId"] not in old_mentioned],
-            author=user,
-            anonymous=bool(comment.get("isAnonymous")),
-            actor_alias=str(comment.get("authorAlias", "")),
-            snippet=content,
-            post_id=str(post["id"]),
-            comment_id=comment["id"],
-        )
+    notify_mentions(db, post, comment)
     add_audit_log(db, user["id"], "edit_comment", f"编辑评论 {comment_id}")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": _serialize_comment(db, comment, viewer_user_id=user["id"], post=post)})

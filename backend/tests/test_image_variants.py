@@ -127,3 +127,32 @@ def test_storage_get_serves_the_variant_after_the_visibility_check(
     handler = FakeJsonHandler()
     assert not _static_handler.handle_storage_get(handler, f"/api/storage/{pending.key}", db, {"w": ["640"]})
     assert not (tmp_path / "_variants" / "640" / f"{pending.key}.webp").exists()
+
+
+def test_a_sideways_photo_is_not_upscaled() -> None:
+    from helpers._image_variants import render_variant
+
+    # Stored 2000×1000, shown 1000×2000 (EXIF orientation 6).
+    image = Image.new("RGB", (2000, 1000), (200, 80, 40))
+    exif = image.getexif()
+    exif[0x0112] = 6
+    out = io.BytesIO()
+    image.save(out, format="JPEG", exif=exif.tobytes())
+    assert render_variant(out.getvalue(), "image/jpeg", 1280) is None
+    rendered = render_variant(out.getvalue(), "image/jpeg", 640)
+    assert rendered is not None and _decoded(rendered).size == (640, 1280)
+
+
+def test_non_local_storage_keeps_variants_in_memory(monkeypatch: pytest.MonkeyPatch) -> None:
+    from helpers import _image_variants
+
+    calls: list[int] = []
+    real = _image_variants.render_variant
+    monkeypatch.setattr(_image_variants, "render_variant", lambda *a: calls.append(1) or real(*a))
+    source = _image_bytes(2000, 1000)
+    first = _image_variants.cached_variant(None, "s3/key.jpg", source, "image/jpeg", 640)
+    assert _image_variants.cached_variant(None, "s3/key.jpg", source, "image/jpeg", 640) == first
+    assert len(calls) == 1
+    _image_variants.forget_memory_variants("s3/key.jpg")
+    _image_variants.cached_variant(None, "s3/key.jpg", source, "image/jpeg", 640)
+    assert len(calls) == 2

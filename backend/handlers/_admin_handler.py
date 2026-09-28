@@ -135,6 +135,32 @@ def _rollback_db_and_storage(
     restore_object_backups(_globals.OBJECT_STORAGE, storage_backups)
 
 
+def _notify_mentions_after_approval(db: dict[str, Any], target_type: str, target_id: str) -> None:
+    """Mentions in content that waited for review go out once it is approved.
+
+    Approving a post also releases the mentions in comments made on it while
+    it was pending (only its author could comment then).
+    """
+    from handlers._social_handler import notify_mentions
+
+    target_id = target_id.strip()
+    if target_type == "post":
+        post = next((p for p in db.get("posts", []) if str(p.get("id", "")) == target_id), None)
+        if post is None:
+            return
+        notify_mentions(db, post)
+        for comment in db.get("comments", []):
+            if str(comment.get("postId", "")) == target_id:
+                notify_mentions(db, post, comment)
+    elif target_type == "comment":
+        comment = next((c for c in db.get("comments", []) if str(c.get("id", "")) == target_id), None)
+        if comment is None:
+            return
+        post = next((p for p in db.get("posts", []) if p.get("id") == comment.get("postId")), None)
+        if post is not None:
+            notify_mentions(db, post, comment)
+
+
 def _require_admin(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
     admin, _ = auth_admin(handler, db)
     if admin is None:
@@ -1031,6 +1057,8 @@ def handle_admin_review_batch(
                     action=action,
                 )
             )
+            if action == "approve":
+                _notify_mentions_after_approval(db, target_type, target_id)
             results.append({"id": target_id, "ok": True})
         except (ValueError, LookupError, RuntimeError) as e:
             results.append({"id": target_id, "ok": False, "error": str(e)})
@@ -1071,6 +1099,8 @@ def handle_admin_single_review(
     except RuntimeError as error:
         json_error(handler, HTTPStatus.BAD_GATEWAY, str(error))
         return
+    if action.strip().lower() == "approve":
+        _notify_mentions_after_approval(db, target_type.strip().lower(), target_id)
 
     add_audit_log(db, admin.get("adminId", "-"), f"review_{action}", f"{target_type} {target_id} -> {action}")
     try:
