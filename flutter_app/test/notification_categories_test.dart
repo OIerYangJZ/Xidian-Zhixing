@@ -34,6 +34,12 @@ void main() {
     expect(_item('a', 'reply').category, 'reply');
     expect(_item('b', 'system_announcement').category, 'system');
     expect(_item('c', 'something_new').category, 'system');
+    // Their own tabs, like the server's categories.
+    expect(_item('d', 'repost').category, 'repost');
+    expect(_item('e', 'mention').category, 'mention');
+    expect(_item('d', 'repost').displayTitle, '转发了你的帖子');
+    expect(_item('e', 'mention').displayTitle, '在帖子中提到了你');
+    expect(_item('e', 'mention').opensPost, isTrue);
   });
 
   test('replies open the post they were left on', () {

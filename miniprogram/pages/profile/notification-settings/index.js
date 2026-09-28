@@ -8,6 +8,8 @@ const PREF_KEYS = [
   'notifyReply',
   'notifyLike',
   'notifyFavorite',
+  'notifyRepost',
+  'notifyMention',
   'notifyReportResult',
   'notifySystem'
 ];
@@ -21,6 +23,8 @@ Page({
       notifyReply: true,
       notifyLike: true,
       notifyFavorite: true,
+      notifyRepost: true,
+      notifyMention: true,
       notifyReportResult: true,
       notifySystem: true
     }

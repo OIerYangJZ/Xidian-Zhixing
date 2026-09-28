@@ -28,6 +28,8 @@ Map<String, Object> _me({bool levelOne = false, Object? levelRequest}) =>
       'notifyReply': true,
       'notifyLike': true,
       'notifyFavorite': true,
+      'notifyRepost': false,
+      'notifyMention': true,
       'notifyReportResult': true,
       'notifySystem': true,
       'levelUpgradeRequest': ?levelRequest,
@@ -129,7 +131,7 @@ void main() {
     }, () => _client);
   });
 
-  testWidgets('a notification switch saves all six and rolls back on failure', (
+  testWidgets('a notification switch saves all eight and rolls back on failure', (
     WidgetTester tester,
   ) async {
     final List<Map<String, dynamic>> patches = <Map<String, dynamic>>[];
@@ -148,13 +150,26 @@ void main() {
       await tester.tap(find.byKey(const Key('notify-like')));
       await _settle(tester);
       expect(patches.single['notifyLike'], false);
-      expect(patches.single.keys, hasLength(6));
+      expect(patches.single.keys, hasLength(8));
+      // The repost and mention switches are their own, loaded and sent.
+      expect(patches.single['notifyRepost'], false);
+      expect(
+        tester.widget<Switch>(find.byKey(const Key('notify-repost'))).value,
+        isFalse,
+      );
       expect(
         tester.widget<Switch>(find.byKey(const Key('notify-like'))).value,
         isFalse,
       );
 
+      await tester.ensureVisible(find.byKey(const Key('notify-mention')));
+      await tester.tap(find.byKey(const Key('notify-mention')));
+      await _settle(tester);
+      expect(patches.last['notifyMention'], false);
+      expect(patches.last['notifyLike'], false);
+
       fail = true;
+      await tester.ensureVisible(find.byKey(const Key('notify-reply')));
       await tester.tap(find.byKey(const Key('notify-reply')));
       await _settle(tester);
       expect(patches.last['notifyReply'], false);

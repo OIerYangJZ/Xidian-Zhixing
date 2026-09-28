@@ -8,6 +8,8 @@ const List<String> notificationCategories = <String>[
   'reply',
   'like',
   'favorite',
+  'repost',
+  'mention',
   'report_result',
   'system',
 ];
@@ -56,8 +58,10 @@ class NotificationItem {
   /// one (a reply points at the new comment, not at the post).
   bool get opensPost =>
       postId.trim().isNotEmpty &&
-      const <String>{'post', 'comment'}
-          .contains(relatedType.trim().toLowerCase());
+      const <String>{
+        'post',
+        'comment',
+      }.contains(relatedType.trim().toLowerCase());
 
   String get displayTitle {
     final String normalizedType = type.trim().toLowerCase();
@@ -76,8 +80,13 @@ class NotificationItem {
           return '收藏了你的帖子';
         }
         return '收藏了你的内容';
+      case 'repost':
+        return '转发了你的帖子';
+      case 'mention':
+        return normalizedRelatedType == 'comment' ? '在评论中提到了你' : '在帖子中提到了你';
       case 'reply':
-        if (normalizedRelatedType == 'comment' || normalizedRelatedType.isEmpty) {
+        if (normalizedRelatedType == 'comment' ||
+            normalizedRelatedType.isEmpty) {
           return '回复了你的评论';
         }
         return '回复了你的内容';
@@ -116,10 +125,24 @@ class NotificationItem {
           return uiTextFor(locale, zh: '收藏了你的帖子', en: 'saved your post');
         }
         return uiTextFor(locale, zh: '收藏了你的内容', en: 'saved your content');
+      case 'repost':
+        return uiTextFor(locale, zh: '转发了你的帖子', en: 'reposted your post');
+      case 'mention':
+        return normalizedRelatedType == 'comment'
+            ? uiTextFor(
+                locale,
+                zh: '在评论中提到了你',
+                en: 'mentioned you in a comment',
+              )
+            : uiTextFor(locale, zh: '在帖子中提到了你', en: 'mentioned you in a post');
       case 'reply':
         if (normalizedRelatedType == 'comment' ||
             normalizedRelatedType.isEmpty) {
-          return uiTextFor(locale, zh: '回复了你的评论', en: 'replied to your comment');
+          return uiTextFor(
+            locale,
+            zh: '回复了你的评论',
+            en: 'replied to your comment',
+          );
         }
         return uiTextFor(locale, zh: '回复了你的内容', en: 'replied to your content');
       case 'comment':
@@ -133,7 +156,11 @@ class NotificationItem {
         if (normalizedRelatedType == 'post' || normalizedRelatedType.isEmpty) {
           return uiTextFor(locale, zh: '评论了你的帖子', en: 'commented on your post');
         }
-        return uiTextFor(locale, zh: '评论了你的内容', en: 'commented on your content');
+        return uiTextFor(
+          locale,
+          zh: '评论了你的内容',
+          en: 'commented on your content',
+        );
       case 'report_result':
         return title.trim().isNotEmpty
             ? title
@@ -161,22 +188,37 @@ class NotificationItem {
       return fallback;
     }
 
-    final String readAt =
-        _readString(<String>['readAt', 'read_at', 'readTime']);
-    final String createdAt = _readString(
-      <String>['createdAt', 'created_at', 'time', 'timestamp'],
-    );
+    final String readAt = _readString(<String>[
+      'readAt',
+      'read_at',
+      'readTime',
+    ]);
+    final String createdAt = _readString(<String>[
+      'createdAt',
+      'created_at',
+      'time',
+      'timestamp',
+    ]);
 
     return NotificationItem(
       id: _readString(<String>['id', 'notificationId', 'notification_id']),
-      type: _readString(<String>['type', 'notificationType', 'notification_type'], fallback: 'system'),
+      type: _readString(<String>[
+        'type',
+        'notificationType',
+        'notification_type',
+      ], fallback: 'system'),
       title: _readString(<String>['title']),
       content: _readString(<String>['content', 'message']),
       relatedType: _readString(<String>['relatedType', 'related_type']),
       relatedId: _readString(<String>['relatedId', 'related_id']),
       postId: _readString(<String>['postId', 'post_id']),
       actorId: _readString(<String>['actorId', 'actor_id']),
-      actorAlias: _readString(<String>['actorAlias', 'actor_alias', 'nickname', 'fromAlias']),
+      actorAlias: _readString(<String>[
+        'actorAlias',
+        'actor_alias',
+        'nickname',
+        'fromAlias',
+      ]),
       actorAvatarUrl: _readString(<String>[
         'actorAvatarUrl',
         'actor_avatar_url',
@@ -189,18 +231,18 @@ class NotificationItem {
         'avatar',
       ]),
       createdAt: createdAt,
-      timeText: _readString(
-        <String>['timeText', 'time_text', 'createdAt', 'created_at'],
-      ),
+      timeText: _readString(<String>[
+        'timeText',
+        'time_text',
+        'createdAt',
+        'created_at',
+      ]),
       isRead: _toBool(json['isRead']) ?? readAt.trim().isNotEmpty,
       readAt: readAt,
     );
   }
 
-  NotificationItem copyWith({
-    bool? isRead,
-    String? readAt,
-  }) {
+  NotificationItem copyWith({bool? isRead, String? readAt}) {
     return NotificationItem(
       id: id,
       type: type,

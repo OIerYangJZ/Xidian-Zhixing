@@ -35,6 +35,22 @@
       <switch checked="{{prefs.notifyFavorite}}" data-key="notifyFavorite" bindchange="onSwitchChange" color="{{themePrimary}}" />
     </view>
     <view class="switch-row">
+      <view class="mobile-tile-icon"><view class="zx-i zx-i-forward"></view></view>
+      <view class="mobile-tile-body">
+        <view class="mobile-tile-title">转发通知</view>
+        <view class="mobile-tile-subtitle">帖子被转发时提醒</view>
+      </view>
+      <switch checked="{{prefs.notifyRepost}}" data-key="notifyRepost" bindchange="onSwitchChange" color="{{themePrimary}}" />
+    </view>
+    <view class="switch-row">
+      <view class="mobile-tile-icon"><view class="zx-i zx-i-at"></view></view>
+      <view class="mobile-tile-body">
+        <view class="mobile-tile-title">@我通知</view>
+        <view class="mobile-tile-subtitle">有人在帖子或评论中提到你时提醒</view>
+      </view>
+      <switch checked="{{prefs.notifyMention}}" data-key="notifyMention" bindchange="onSwitchChange" color="{{themePrimary}}" />
+    </view>
+    <view class="switch-row">
       <view class="mobile-tile-icon"><view class="zx-i zx-i-flag"></view></view>
       <view class="mobile-tile-body">
         <view class="mobile-tile-title">举报结果</view>

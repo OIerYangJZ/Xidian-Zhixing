@@ -14,6 +14,8 @@ const CATEGORY_LOOK = {
   reply: { icon: 'reply', tone: 'success' },
   like: { icon: 'heart', tone: 'danger' },
   favorite: { icon: 'star', tone: 'accent' },
+  repost: { icon: 'forward', tone: 'info' },
+  mention: { icon: 'at', tone: 'accent' },
   report_result: { icon: 'shield', tone: 'success' },
   system: { icon: 'bell', tone: 'neutral' }
 };

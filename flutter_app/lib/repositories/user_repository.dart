@@ -62,6 +62,8 @@ class UserRepository {
     required bool notifyReply,
     required bool notifyLike,
     required bool notifyFavorite,
+    required bool notifyRepost,
+    required bool notifyMention,
     required bool notifyReportResult,
     required bool notifySystem,
   }) {
@@ -70,6 +72,8 @@ class UserRepository {
       'notifyReply': notifyReply,
       'notifyLike': notifyLike,
       'notifyFavorite': notifyFavorite,
+      'notifyRepost': notifyRepost,
+      'notifyMention': notifyMention,
       'notifyReportResult': notifyReportResult,
       'notifySystem': notifySystem,
     };

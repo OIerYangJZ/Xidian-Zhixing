@@ -37,6 +37,8 @@ class _NotificationCenterPageState
     'reply': '回复',
     'like': '点赞',
     'favorite': '收藏',
+    'repost': '转发',
+    'mention': '@我',
     'report_result': '举报结果',
     'system': '系统',
   };
@@ -326,6 +328,8 @@ class _NotificationCenterPageState
     'reply' => t.success,
     'like' => t.danger,
     'favorite' => t.accentInk,
+    'repost' => t.info,
+    'mention' => t.primary,
     'report_result' => t.success,
     _ => t.text2,
   };
@@ -335,6 +339,8 @@ class _NotificationCenterPageState
     'reply' => Icons.reply_rounded,
     'like' => Icons.favorite_border_rounded,
     'favorite' => Icons.star_border_rounded,
+    'repost' => Icons.repeat_rounded,
+    'mention' => Icons.alternate_email_rounded,
     'report_result' => Icons.verified_user_outlined,
     _ => Icons.notifications_none_rounded,
   };

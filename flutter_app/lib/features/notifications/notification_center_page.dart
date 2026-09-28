@@ -364,6 +364,8 @@ class _NotificationCenterPageState
     'reply' => t.primary,
     'like' => t.danger,
     'favorite' => t.accentInk,
+    'repost' => t.success,
+    'mention' => t.primary,
     'report_result' => t.warning,
     _ => t.text2,
   };
@@ -436,6 +438,10 @@ class _NotificationCenterPageState
         return Icons.thumb_up_alt_outlined;
       case 'favorite':
         return Icons.bookmark_border_rounded;
+      case 'repost':
+        return Icons.repeat_rounded;
+      case 'mention':
+        return Icons.alternate_email_rounded;
       case 'report_result':
         return Icons.flag_outlined;
       default:
@@ -455,6 +461,10 @@ class _NotificationCenterPageState
         return uiText(context, zh: '点赞', en: 'Likes');
       case 'favorite':
         return uiText(context, zh: '收藏', en: 'Saves');
+      case 'repost':
+        return uiText(context, zh: '转发', en: 'Reposts');
+      case 'mention':
+        return uiText(context, zh: '@我', en: 'Mentions');
       case 'report_result':
         return uiText(context, zh: '举报结果', en: 'Reports');
       default:

@@ -5,7 +5,7 @@ import '../../design_system/design_system.dart';
 import '../../models/user_profile.dart';
 import '../../repositories/app_repositories.dart';
 
-/// 通知偏好: which of the six notification types are sent. Each switch
+/// 通知偏好: which of the eight notification types are sent. Each switch
 /// saves at once and rolls back if the save fails.
 class NotificationPreferencesPage extends StatefulWidget {
   const NotificationPreferencesPage({super.key});
@@ -49,6 +49,8 @@ class _NotificationPreferencesPageState
         notifyReply: next.notifyReply,
         notifyLike: next.notifyLike,
         notifyFavorite: next.notifyFavorite,
+        notifyRepost: next.notifyRepost,
+        notifyMention: next.notifyMention,
         notifyReportResult: next.notifyReportResult,
         notifySystem: next.notifySystem,
       );
@@ -166,6 +168,30 @@ class _NotificationPreferencesPageState
                                 value: p.notifyFavorite,
                                 apply: (bool v) =>
                                     p.copyWith(notifyFavorite: v),
+                              ),
+                              row(
+                                key: const Key('notify-repost'),
+                                icon: Icons.repeat_rounded,
+                                hue: t.success,
+                                title: text('转发', 'Reposts'),
+                                subtitle: text(
+                                  '有人转发你的帖子',
+                                  'Someone reposts your post',
+                                ),
+                                value: p.notifyRepost,
+                                apply: (bool v) => p.copyWith(notifyRepost: v),
+                              ),
+                              row(
+                                key: const Key('notify-mention'),
+                                icon: Icons.alternate_email_rounded,
+                                hue: t.primary,
+                                title: text('@我', 'Mentions'),
+                                subtitle: text(
+                                  '有人在帖子或评论中提到你',
+                                  'Someone mentions you in a post or comment',
+                                ),
+                                value: p.notifyMention,
+                                apply: (bool v) => p.copyWith(notifyMention: v),
                               ),
                             ],
                           ),

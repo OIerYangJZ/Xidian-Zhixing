@@ -42,6 +42,8 @@ export const NOTIFICATION_CATEGORIES = [
   { key: 'reply', label: '回复' },
   { key: 'like', label: '点赞' },
   { key: 'favorite', label: '收藏' },
+  { key: 'repost', label: '转发' },
+  { key: 'mention', label: '@我' },
   { key: 'report_result', label: '举报结果' },
   { key: 'system', label: '系统' }
 ];

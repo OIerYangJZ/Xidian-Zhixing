@@ -236,6 +236,10 @@ const notificationAction = (type, relatedType, title) => {
       return r === 'comment' ? '喜欢了你的评论' : (r === 'post' ? '喜欢了你的帖子' : '喜欢了你的内容');
     case 'favorite':
       return (r === 'post' || !r) ? '收藏了你的帖子' : '收藏了你的内容';
+    case 'repost':
+      return '转发了你的帖子';
+    case 'mention':
+      return r === 'comment' ? '在评论中提到了你' : '在帖子中提到了你';
     case 'reply':
       return (r === 'comment' || !r) ? '回复了你的评论' : '回复了你的内容';
     case 'comment':

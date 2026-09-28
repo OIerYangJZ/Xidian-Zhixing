@@ -54,6 +54,8 @@ class UserProfile {
     this.notifyReply = true,
     this.notifyLike = true,
     this.notifyFavorite = true,
+    this.notifyRepost = true,
+    this.notifyMention = true,
     this.notifyReportResult = true,
     this.notifySystem = true,
     this.userId = '',
@@ -88,6 +90,8 @@ class UserProfile {
   final bool notifyReply;
   final bool notifyLike;
   final bool notifyFavorite;
+  final bool notifyRepost;
+  final bool notifyMention;
   final bool notifyReportResult;
   final bool notifySystem;
   final int favoriteCount;
@@ -148,6 +152,8 @@ class UserProfile {
       notifyReply: _toBool(json['notifyReply']) ?? true,
       notifyLike: _toBool(json['notifyLike']) ?? true,
       notifyFavorite: _toBool(json['notifyFavorite']) ?? true,
+      notifyRepost: _toBool(json['notifyRepost']) ?? true,
+      notifyMention: _toBool(json['notifyMention']) ?? true,
       notifyReportResult: _toBool(json['notifyReportResult']) ?? true,
       notifySystem: _toBool(json['notifySystem']) ?? true,
       favoriteCount: _toInt(json['favoriteCount']) ?? 0,
@@ -199,6 +205,8 @@ class UserProfile {
     bool? notifyReply,
     bool? notifyLike,
     bool? notifyFavorite,
+    bool? notifyRepost,
+    bool? notifyMention,
     bool? notifyReportResult,
     bool? notifySystem,
     int? favoriteCount,
@@ -237,6 +245,8 @@ class UserProfile {
       notifyReply: notifyReply ?? this.notifyReply,
       notifyLike: notifyLike ?? this.notifyLike,
       notifyFavorite: notifyFavorite ?? this.notifyFavorite,
+      notifyRepost: notifyRepost ?? this.notifyRepost,
+      notifyMention: notifyMention ?? this.notifyMention,
       notifyReportResult: notifyReportResult ?? this.notifyReportResult,
       notifySystem: notifySystem ?? this.notifySystem,
       favoriteCount: favoriteCount ?? this.favoriteCount,
