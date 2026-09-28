@@ -61,6 +61,45 @@ def find_user_by_id(
     return None
 
 
+def college_sections(db: dict[str, Any]) -> list[dict[str, Any]]:
+    """The enabled college 分区 that the school identity mapping assigns
+    anyone to (BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS), in display order.
+
+    This is the only source of colleges: a college nobody is mapped to is
+    not offered anywhere.
+    """
+    mapped = set(_globals.AUTH_STUDENT_COLLEGE_SECTIONS.values())
+    rows = [
+        row for row in db.get("sections", [])
+        if str(row.get("sectionType", "")).strip().lower() == "college"
+        and bool(row.get("enabled", True))
+        and str(row.get("sectionId", "")).strip() in mapped
+    ]
+    rows.sort(key=lambda row: (int(row.get("sortOrder", 0) or 0), str(row.get("sectionName") or row.get("name") or "")))
+    return rows
+
+
+def verified_college_section(db: dict[str, Any], user: dict[str, Any] | None) -> dict[str, Any] | None:
+    """The college 分区 the school identity mapping puts this user in."""
+    if not user:
+        return None
+    student_id = str(user.get("studentId", "")).strip().lower()
+    section_id = _globals.AUTH_STUDENT_COLLEGE_SECTIONS.get(student_id, "")
+    if not section_id:
+        return None
+    return next(
+        (row for row in college_sections(db) if str(row.get("sectionId", "")).strip() == section_id),
+        None,
+    )
+
+
+def verified_college(db: dict[str, Any], user: dict[str, Any] | None) -> str:
+    """A profile's 学院: only what the school's identity mapping says, never
+    what the user typed (users cannot set it)."""
+    section = verified_college_section(db, user)
+    return str(section.get("sectionName") or section.get("name") or "").strip() if section else ""
+
+
 def user_nickname(user: dict[str, Any] | None) -> str:
     if not user:
         return "匿名同学"
@@ -367,7 +406,7 @@ def serialize_public_user_profile(
         ),
         "bio": str(target_user.get("bio", "")).strip(),
         "gender": str(target_user.get("gender", "")).strip(),
-        "college": str(target_user.get("college", "")).strip(),
+        "college": verified_college(db, target_user),
         "major": str(target_user.get("major", "")).strip(),
         "backgroundImageUrl": normalize_media_url(str(target_user.get("backgroundImageUrl", "")).strip()),
         "canDirectMessage": can_request_dm_to_user(

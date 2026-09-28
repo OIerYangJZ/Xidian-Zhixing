@@ -74,7 +74,7 @@ async function fetchPage(
           page,
           limit: POSTS_PER_PAGE,
           sort: sort || 'latest',
-          ...(type === 'hashtag' && { channel: hashtag }),
+          ...(type === 'hashtag' && { tag: hashtag }),
           ...(type === 'search' && { keyword }),
           ...(type === 'feed' && sectionId && { sectionId }),
         });

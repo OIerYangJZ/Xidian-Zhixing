@@ -81,7 +81,7 @@ AdminRepository _repo({bool primary = true}) => AdminRepository(
           'bannedUsers': 0,
           'mutedUsers': 0,
         },
-        '/admin/channels-tags' => <String, Object>{'tags': <String>['食堂']},
+        '/admin/tags' => <String, Object>{'tags': <String>['食堂']},
         '/admin/config' => <String, Object>{
           'sensitiveWords': <String>[],
           'settings': <String, int>{

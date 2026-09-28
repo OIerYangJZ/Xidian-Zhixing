@@ -55,6 +55,7 @@ from services import (
     user_nickname,
     is_user_blocked,
     iso_to_time_text,
+    verified_college,
 )
 
 
@@ -100,7 +101,7 @@ def handle_get_me(
                 "avatarUrl": user_avatar_url(user),
                 "bio": str(user.get("bio", "")).strip(),
                 "gender": str(user.get("gender", "")).strip(),
-                "college": str(user.get("college", "")).strip(),
+                "college": verified_college(db, user),
                 "major": str(user.get("major", "")).strip(),
                 "backgroundImageUrl": normalize_media_url(str(user.get("backgroundImageUrl", "")).strip()),
                 "verified": bool(user.get("verified")),
@@ -214,9 +215,14 @@ def handle_update_me(
         "backgroundImageUrl",
         "bio",
         "gender",
-        "college",
         "major",
     }
+    # 学院 comes from the school identity mapping only.  Clients that still
+    # send the whole form may echo the verified value back; anything else is
+    # an attempt to set it.
+    if "college" in body and re.sub(r"\s+", "", str(body.get("college", "")).strip()) != verified_college(db, user):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "学院由学校统一身份认证确定，不能自行修改")
+        return
     if not any(key in body for key in profile_keys):
         json_error(handler, HTTPStatus.BAD_REQUEST, "缺少可更新的个人资料字段")
         return
@@ -238,11 +244,6 @@ def handle_update_me(
     )
     new_bio = str(body.get("bio", "")).strip() if "bio" in body else None
     new_gender = str(body.get("gender", "")).strip() if "gender" in body else None
-    new_college = (
-        re.sub(r"\s+", "", str(body.get("college", "")).strip())[:80]
-        if "college" in body
-        else None
-    )
     new_major = (
         re.sub(r"\s+", "", str(body.get("major", "")).strip())[:80]
         if "major" in body
@@ -302,8 +303,6 @@ def handle_update_me(
         user["bio"] = new_bio
     if new_gender is not None:
         user["gender"] = new_gender
-    if new_college is not None:
-        user["college"] = new_college
     if new_major is not None:
         user["major"] = new_major
     if new_background_image is not None:
@@ -320,7 +319,7 @@ def handle_update_me(
                 "nickname": user_nickname(user),
                 "bio": str(user.get("bio", "")).strip(),
                 "gender": str(user.get("gender", "")).strip(),
-                "college": str(user.get("college", "")).strip(),
+                "college": verified_college(db, user),
                 "major": str(user.get("major", "")).strip(),
                 "backgroundImageUrl": normalize_media_url(str(user.get("backgroundImageUrl", "")).strip()),
             }

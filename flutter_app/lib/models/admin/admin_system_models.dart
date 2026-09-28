@@ -2,8 +2,7 @@
 
 part of '../admin_models.dart';
 
-/// GET /admin/channels-tags. Sections replaced channels, so only tags are
-/// managed here.
+/// GET /admin/tags: the tag list managed from the admin console.
 class AdminTagData {
   AdminTagData({required this.tags});
 

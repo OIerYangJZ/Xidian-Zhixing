@@ -14,15 +14,6 @@ sys.path.insert(0, str(backend_dir))
 class TestPostHelpers:
     """测试帖子相关的辅助函数。"""
 
-    def test_default_channels(self):
-        """测试默认频道列表。"""
-        from server import DEFAULT_CHANNELS
-
-        assert len(DEFAULT_CHANNELS) > 0
-        assert "吐槽日常" in DEFAULT_CHANNELS
-        assert "求助问答" in DEFAULT_CHANNELS
-        assert "二手交易" in DEFAULT_CHANNELS
-
     def test_default_tags(self):
         """测试默认标签列表。"""
         from server import DEFAULT_TAGS
@@ -39,7 +30,7 @@ class TestPostHelpers:
         for post in SEED_POSTS:
             assert "title" in post
             assert "content" in post
-            assert "channel" in post
+            assert "channel" not in post
             assert "tags" in post
             assert "hasImage" in post
             assert "status" in post
@@ -52,13 +43,6 @@ class TestPostHelpers:
             assert isinstance(post["title"], str)
             assert isinstance(post["tags"], list)
             assert isinstance(post["hasImage"], bool)
-
-    def test_seed_posts_valid_channels(self):
-        """测试种子帖子的频道有效性。"""
-        from server import SEED_POSTS, DEFAULT_CHANNELS
-
-        for post in SEED_POSTS:
-            assert post["channel"] in DEFAULT_CHANNELS
 
     def test_post_status_values(self):
         """测试帖子状态值。"""

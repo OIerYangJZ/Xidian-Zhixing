@@ -16,7 +16,7 @@ Admin & moderation endpoints:
   GET  /api/admin/account-cancellation-requests    — account cancellation list
   GET  /api/admin/appeals                          — appeal list
   GET  /api/admin/export                           — data export
-  GET  /api/admin/channels-tags                   — tag list
+  GET  /api/admin/tags                           — tag list
   GET  /api/admin/config                          — sensitive words & system settings
   GET  /api/admin/announcements                   — published announcements
   POST /api/admin/auth/password                   — change own admin password
@@ -101,7 +101,6 @@ from services import (
     next_id,
     normalize_user_level,
     parse_pin_duration_minutes,
-    post_counts,
     recalc_post_has_image,
     restore_user_account,
     save_db,
@@ -624,11 +623,11 @@ def handle_admin_export(
     send_json(handler, HTTPStatus.OK, {"data": payload})
 
 
-def handle_admin_channels_tags(
+def handle_admin_tags(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
 ) -> None:
-    """GET /api/admin/channels-tags — the tag list (channels became tags)."""
+    """GET /api/admin/tags — the tag list."""
     admin = _require_primary_admin(handler, db)
     if admin is None:
         return

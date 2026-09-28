@@ -258,8 +258,8 @@ export interface ApiUpload {
   moderationReason: string;
 }
 
+/** Named by `sectionId` alone; the backend exposes no other id. */
 export interface ApiSection {
-  id: string;
   sectionType: 'general' | 'college' | 'club';
   sectionId: string;
   sectionName: string;

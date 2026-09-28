@@ -40,10 +40,10 @@ Page({
       if (!colleges.length) {
         const collegesRes = await getColleges();
         const rows = (collegesRes && collegesRes.data) || [];
-        // Each college's id is the sectionId its posts are filed under.
+        // The colleges the school identity mapping assigns people to.
         this._collegeSectionIds = {};
-        rows.forEach((item) => { this._collegeSectionIds[item.name] = item.id; });
-        colleges = rows.map((item) => item.name);
+        rows.forEach((item) => { this._collegeSectionIds[item.sectionName] = item.sectionId; });
+        colleges = rows.map((item) => item.sectionName);
         this.setData({ colleges });
       }
       const activeCollege = this.data.activeCollege || colleges[0] || '';

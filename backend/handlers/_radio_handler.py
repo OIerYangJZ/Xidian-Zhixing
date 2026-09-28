@@ -105,9 +105,13 @@ def add_moderation_task(
     return task
 
 
+# A section's identity is its sectionId: posts, filters, the identity mapping
+# and the admin API all use it.  The internal row id is not exposed.
+_SECTION_ID_RE = re.compile(r"[0-9A-Za-z_-]{1,80}")
+
+
 def _serialize_section(section: dict[str, Any]) -> dict[str, Any]:
     return {
-        "id": str(section.get("id", "")),
         "sectionType": str(section.get("sectionType", "")),
         "sectionId": str(section.get("sectionId", "")),
         "sectionName": str(section.get("sectionName") or section.get("name") or ""),
@@ -194,7 +198,7 @@ def _serialize_source_ref(item: dict[str, Any], source_type: str) -> dict[str, A
             "title": str(item.get("title") or item.get("displayTitle") or "无标题帖子"),
             "summary": _clean(item.get("content", ""), 90),
             "publishedAt": str(item.get("createdAt", "")),
-            "publisher": str(item.get("sectionName") or item.get("channel") or ""),
+            "publisher": str(item.get("sectionName") or ""),
             "jumpUrl": f"/pages/campus/post-detail/index?id={item.get('id', '')}",
         }
     return {
@@ -212,22 +216,14 @@ def _serialize_source_ref(item: dict[str, Any], source_type: str) -> dict[str, A
 
 def handle_get_sections(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
-    rows = [
-        _serialize_section(row)
-        for row in db.get("sections", [])
-        if bool(row.get("enabled", True)) and str(row.get("sectionType", "")).strip().lower() != "school"
-    ]
+    rows = [_serialize_section(row) for row in db.get("sections", []) if bool(row.get("enabled", True))]
     rows.sort(key=lambda item: (item.get("sortOrder", 0), item.get("name", "")))
     send_json(handler, HTTPStatus.OK, {"data": rows})
 
 
 def handle_get_sections_tree(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
-    rows = [
-        _serialize_section(row)
-        for row in db.get("sections", [])
-        if bool(row.get("enabled", True)) and str(row.get("sectionType", "")).strip().lower() != "school"
-    ]
+    rows = [_serialize_section(row) for row in db.get("sections", []) if bool(row.get("enabled", True))]
     # Same order as GET /api/sections, so admin reordering reaches the chips.
     rows.sort(key=lambda item: (item.get("sortOrder", 0), item.get("name", "")))
     sections = [row for row in rows if row["sectionType"] in {"general", "college", "club"}]
@@ -240,26 +236,6 @@ def handle_get_sections_tree(handler: BaseHTTPRequestHandler, db: dict[str, Any]
     send_json(handler, HTTPStatus.OK, {"data": tree})
 
 
-def handle_get_section_posts(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-    section_id: str,
-    query: dict[str, list[str]],
-) -> None:
-    viewer, _ = auth_user_helper(handler, db)
-    viewer_user_id = str(viewer.get("id", "")) if viewer else ""
-    rows = [
-        serialize_post(db, post, viewer_user_id=viewer_user_id)
-        for post in list_posts(
-            db,
-            sort_by=(query.get("sort", ["latest"])[0] or "latest"),
-            viewer_user_id=viewer_user_id,
-        )
-        if str(post.get("sectionId", "")) == section_id or str(post.get("sectionType", "")) == section_id
-    ]
-    send_json(handler, HTTPStatus.OK, {"data": rows})
-
-
 def handle_create_section(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     admin = _require_admin(handler, db)
     if admin is None:
@@ -270,10 +246,17 @@ def handle_create_section(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -
     if section_type not in SECTION_TYPES or not name:
         json_error(handler, HTTPStatus.BAD_REQUEST, "分区类型和名称不能为空")
         return
+    section_key = str(body.get("sectionId", "")).strip()
+    if not _SECTION_ID_RE.fullmatch(section_key):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "sectionId 只能由字母、数字、- 和 _ 组成")
+        return
+    if any(str(row.get("sectionId", "")).strip() == section_key for row in db.get("sections", [])):
+        json_error(handler, HTTPStatus.CONFLICT, "sectionId 已存在")
+        return
     section = {
         "id": next_id(db, "section", "sec"),
         "sectionType": section_type,
-        "sectionId": str(body.get("sectionId") or name).strip(),
+        "sectionId": section_key,
         "sectionName": name,
         "name": name,
         "description": _clean(body.get("description"), 300),
@@ -293,12 +276,16 @@ def handle_update_section(handler: BaseHTTPRequestHandler, db: dict[str, Any], s
     admin = _require_admin(handler, db)
     if admin is None:
         return
-    section = next((row for row in db.get("sections", []) if str(row.get("id", "")) == section_id), None)
+    section = next((row for row in db.get("sections", []) if str(row.get("sectionId", "")) == section_id), None)
     if section is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "分区不存在")
         return
     body = read_json_body(handler)
-    for key in ("sectionName", "name", "description", "ruleText", "sectionId"):
+    # Posts, clubs and the identity mapping refer to it: it never changes.
+    if "sectionId" in body and str(body.get("sectionId", "")).strip() != section_id:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "sectionId 不能修改")
+        return
+    for key in ("sectionName", "name", "description", "ruleText"):
         if key in body:
             section[key] = _clean(body.get(key), 300)
     if "enabled" in body:
@@ -747,7 +734,7 @@ def rebuild_hot_topics(db: dict[str, Any]) -> list[dict[str, Any]]:
             "title": str(post.get("title") or _clean(post.get("content"), 30)),
             "summary": _clean(post.get("content"), 120),
             "hotScore": round(_hot_score(db, post), 2),
-            "sectionName": str(post.get("sectionName") or post.get("channel") or ""),
+            "sectionName": str(post.get("sectionName") or ""),
             "reviewStatus": "pending",
             "createdAt": now_iso(),
         }

@@ -47,7 +47,8 @@
       </view>
       <view class="field">
         <view class="field-label">学院</view>
-        <input class="field-input" value="{{form.college}}" data-key="college" bindinput="onFieldInput" maxlength="80" placeholder="例如：计算机科学与技术学院" placeholder-class="field-placeholder" />
+        <!-- Set by the school's identity mapping; not editable. -->
+        <view class="zx-caption readonly-value">{{form.college || '未由学校统一认证确认'}}</view>
       </view>
       <view class="field">
         <view class="field-label">专业</view>

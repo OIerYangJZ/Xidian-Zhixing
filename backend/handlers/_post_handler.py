@@ -78,7 +78,6 @@ from services import (
     parse_pin_duration_minutes,
     normalize_optional_bool,
     normalize_post_visibility,
-    post_counts,
     recalc_post_has_image,
     save_db,
     serialize_admin_post_pin_request,
@@ -388,7 +387,7 @@ def handle_get_posts(
     author_id = (query.get("authorId", [""])[0] or "").strip()
     section_id = (query.get("sectionId", [""])[0] or "").strip()
     section_type = (query.get("sectionType", [""])[0] or "").strip()
-    channel = (query.get("channel", [""])[0] or "").strip()
+    tag = (query.get("tag", [""])[0] or "").strip()
 
     filtered_posts = []
     for post in list_posts(
@@ -421,11 +420,8 @@ def handle_get_posts(
             continue
         if section_type and post_section_type != section_type:
             continue
-        if channel and channel != "全部":
-            post_channel = str(post.get("channel", "")).strip()
-            post_tags = post.get("tags", [])
-            if post_channel != channel and channel not in post_tags:
-                continue
+        if tag and tag not in post.get("tags", []):
+            continue
 
         if keyword:
             text = " ".join(
@@ -807,7 +803,6 @@ def handle_create_post(
     if content_format == "markdown":
         markdown_source = str(body.get("markdownSource", raw_content)).strip() or raw_content
         content = _markdown_to_plain_text(markdown_source) or markdown_source
-    legacy_channel = str(body.get("channel", "")).strip()
     section_type = str(body.get("sectionType", "")).strip().lower()
     section_id = str(body.get("sectionId", "")).strip()
     section_name = str(body.get("sectionName", "")).strip()
@@ -818,8 +813,6 @@ def handle_create_post(
     for tag in _extract_inline_tags(title, raw_content):
         if tag not in tags:
             tags.append(tag)
-    if legacy_channel and legacy_channel != "综合" and legacy_channel not in tags:
-        tags.append(legacy_channel)
     raw_image_ids = body.get("imageUploadIds") or body.get("imageIds") or []
     image_ids = [str(image_id).strip() for image_id in raw_image_ids if str(image_id).strip()] if isinstance(raw_image_ids, list) else []
     use_anonymous_alias = bool(body.get("useAnonymousAlias"))
@@ -868,13 +861,11 @@ def handle_create_post(
         if not trusted_section_id:
             json_error(handler, HTTPStatus.FORBIDDEN, "学院归属尚未由学校身份源确认")
             return
+        # Sections are addressed by sectionId only.
         section = next(
             (
                 row for row in db.get("sections", [])
-                if section_id in {
-                    str(row.get("id", "")).strip(),
-                    str(row.get("sectionId", "")).strip(),
-                }
+                if str(row.get("sectionId", "")).strip() == section_id
                 and str(row.get("sectionType", "")).strip().lower() == "college"
                 and bool(row.get("enabled", True))
             ),
@@ -883,20 +874,10 @@ def handle_create_post(
         if section is None:
             json_error(handler, HTTPStatus.BAD_REQUEST, "学院分区不存在或已停用")
             return
-        canonical_section_name = str(
-            section.get("sectionName") or section.get("name") or "",
-        ).strip()
-        canonical_section_id = str(
-            section.get("sectionId") or section.get("id") or "",
-        ).strip()
-        if trusted_section_id not in {
-            canonical_section_id,
-            str(section.get("id", "")).strip(),
-        }:
+        if section_id != trusted_section_id:
             json_error(handler, HTTPStatus.FORBIDDEN, "只能在本学院分区发帖")
             return
-        section_id = canonical_section_id
-        section_name = canonical_section_name
+        section_name = str(section.get("sectionName") or section.get("name") or "").strip()
     if publisher_type not in {"user", "club"}:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的发布身份")
         return
@@ -928,25 +909,13 @@ def handle_create_post(
                     row for row in db.get("sections", [])
                     if str(row.get("sectionType", "")).strip().lower() == "club"
                     and bool(row.get("enabled", True))
-                    and club_section_id in {
-                        str(row.get("id", "")).strip(),
-                        str(row.get("sectionId", "")).strip(),
-                    }
+                    and str(row.get("sectionId", "")).strip() == club_section_id
                 ),
                 None,
             )
-            submitted_section_ids = {section_id}
-            if section is not None:
-                submitted_section_ids = {
-                    str(section.get("id", "")).strip(),
-                    str(section.get("sectionId", "")).strip(),
-                }
-            if section is None or section_id not in submitted_section_ids:
+            if section is None or section_id != club_section_id:
                 json_error(handler, HTTPStatus.FORBIDDEN, "只能在本社团分区发布社团帖子")
                 return
-            section_id = str(
-                section.get("sectionId") or section.get("id") or "",
-            ).strip()
             section_name = str(
                 section.get("sectionName") or section.get("name") or club.get("name") or "",
             ).strip()
@@ -1037,7 +1006,6 @@ def handle_create_post(
         "content": content,
         "contentFormat": content_format,
         "markdownSource": markdown_source,
-        "channel": "",
         "tags": tags,
         "hasImage": has_image or bool(picked_uploads),
         "imageIds": image_ids,

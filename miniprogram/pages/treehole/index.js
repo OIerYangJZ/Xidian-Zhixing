@@ -94,7 +94,7 @@ Page({
     ];
     const dedupedSections = [];
     sections.forEach((section) => {
-      if (!dedupedSections.some((item) => item.id === section.id || item.sectionName === section.sectionName)) {
+      if (!dedupedSections.some((item) => item.sectionId === section.sectionId)) {
         dedupedSections.push(section);
       }
     });
@@ -193,7 +193,7 @@ Page({
       sort: this.data.activeSort
     };
     if (this.data.activeSection) {
-      params.sectionId = this.data.activeSection.sectionId || this.data.activeSection.id;
+      params.sectionId = this.data.activeSection.sectionId;
       params.sectionType = this.data.activeSection.sectionType;
     }
 

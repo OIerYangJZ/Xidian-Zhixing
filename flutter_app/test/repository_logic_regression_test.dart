@@ -72,7 +72,6 @@ void main() {
       title: '测试',
       content: '正文',
       section: const SectionItem(
-        id: 'section-general',
         sectionType: 'general',
         sectionId: 'general',
         sectionName: '综合',

@@ -368,9 +368,7 @@ class AdminRepository {
   }
 
   Future<AdminTagData> fetchTags() async {
-    final dynamic response = await _apiClient.get(
-      ApiEndpoints.adminChannelsTags,
-    );
+    final dynamic response = await _apiClient.get(ApiEndpoints.adminTags);
     final Map<String, dynamic> data = extractMap(response);
     return AdminTagData.fromJson(data);
   }

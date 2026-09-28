@@ -129,9 +129,8 @@ export const handleClubApplication = async (id, payload) => {
   return getData(response, {});
 };
 
-// Sections replaced channels; the route keeps its name and returns { tags }.
 export const getTags = async () => {
-  const response = await request.get('/api/admin/channels-tags', {}, adminOptions);
+  const response = await request.get('/api/admin/tags', {}, adminOptions);
   const data = getData(response, {});
   if (!Array.isArray(data.tags)) {
     throw responseContractError('标签列表响应缺少 tags');

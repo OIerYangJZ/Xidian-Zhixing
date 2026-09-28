@@ -70,7 +70,6 @@ def normalize_auth_email(value: str | None) -> str:
 # Config constants (set by configure())
 # ---------------------------------------------------------------------------
 
-DEFAULT_CHANNELS: list[str] = []
 DEFAULT_TAGS: list[str] = []
 DEFAULT_SETTINGS: dict[str, Any] = {}
 DEFAULT_SENSITIVE_WORDS: list[str] = []
@@ -178,7 +177,7 @@ def configure() -> None:
         DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, \
         AI_BASE_URL, AI_API_KEY, AI_MODEL, AI_EMBEDDING_MODEL, RAG_URL, RAG_API_KEY, \
         ALLOW_DEBUG_VERIFY_CODE, INCLUDE_DEBUG_CODE_IN_RESPONSE, \
-        DEFAULT_CHANNELS, DEFAULT_TAGS, DEFAULT_SETTINGS, \
+        DEFAULT_TAGS, DEFAULT_SETTINGS, \
         DEFAULT_SENSITIVE_WORDS, SEED_POSTS, SEED_DEMO_DATA, \
         PIN_DURATION_OPTIONS, RATE_LIMIT_WINDOWS_SECONDS, IP_RATE_LIMITS, \
         ALLOWED_IMAGE_TYPES, \
@@ -225,10 +224,6 @@ def configure() -> None:
         local_public_prefix="/api/storage",
     )
 
-    DEFAULT_CHANNELS[:] = [
-        "吐槽日常", "求助问答", "二手交易", "找搭子",
-        "失物招领", "学习交流", "活动拼车", "交友扩列",
-    ]
     DEFAULT_TAGS[:] = [
         "找对象", "找搭子", "交友扩列", "吐槽日常", "八卦吃瓜",
         "求助问答", "失物招领", "二手交易", "学习交流", "活动拼车",
@@ -270,43 +265,43 @@ def configure() -> None:
 
     SEED_POSTS[:] = [
         {"title": "求助：图书馆哪里插座最多？", "content": "这周赶大作业，想找一个相对安静而且插座多的位置，北校区优先。",
-         "channel": "求助问答", "tags": ["求助问答", "学习", "北校区"], "hasImage": False, "status": "ongoing",
+         "tags": ["求助问答", "学习", "北校区"], "hasImage": False, "status": "ongoing",
          "allowComment": True, "allowDm": True, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
         {"title": "找周末羽毛球搭子", "content": "周六下午操场旁边羽毛球馆，水平一般，主打一起运动。",
-         "channel": "找搭子", "tags": ["找搭子", "运动", "周末"], "hasImage": True, "status": "ongoing",
+         "tags": ["找搭子", "运动", "周末"], "hasImage": True, "status": "ongoing",
          "allowComment": True, "allowDm": True, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
         {"title": "二手显示器出一个 24 寸", "content": "毕业清东西，成色还不错，支持当面看货。",
-         "channel": "二手交易", "tags": ["二手交易", "数码", "毕业季"], "hasImage": True, "status": "ongoing",
+         "tags": ["二手交易", "数码", "毕业季"], "hasImage": True, "status": "ongoing",
          "allowComment": True, "allowDm": True, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
         {"title": "吐槽：食堂晚高峰排队太久", "content": "今天排了 25 分钟，想知道有没有错峰吃饭攻略。",
-         "channel": "吐槽日常", "tags": ["吐槽日常", "食堂", "日常"], "hasImage": False, "status": "resolved",
+         "tags": ["吐槽日常", "食堂", "日常"], "hasImage": False, "status": "resolved",
          "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
     ]
     SEED_POSTS.extend([
-        {"title": "南校区 B 楼 204 怎么走", "content": "从礼仪广场往教学区走，B 楼在 A 楼东侧、C 楼西侧。进楼后看二层连廊指示，B-204 在二层南侧。第一次去建议至少提前十分钟。", "channel": "求助问答", "tags": ["求助问答", "南校区", "教学楼"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
-        {"title": "B 楼附近打印店实测", "content": "最近在 B 楼上课，临时打印可以先看教学区自助打印点；需要装订和彩印时可以去海棠附近的打印店。营业时间可能变化，晚上去前建议先确认。", "channel": "学习交流", "tags": ["学习", "南校区", "打印"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
-        {"title": "北校区图书馆插座座位经验", "content": "靠墙和柱子附近的座位插座相对集中，考试周很早就会坐满。馆内座位和开放时间以图书馆当天安排为准。", "channel": "学习交流", "tags": ["学习", "北校区", "图书馆"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
-        {"title": "南校区图书馆研讨间预约提醒", "content": "研讨间通常需要在图书馆空间预约系统提前预约，到了以后按页面要求签到。临时取消记得释放，避免影响后续预约。", "channel": "学习交流", "tags": ["学习", "南校区", "图书馆"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
-        {"title": "校园网突然断线排查记录", "content": "先看终端是否拿到校内 IP，再到校园网自服务检查账号状态、套餐和在线设备。多设备占用或余额异常时也可能掉线。", "channel": "求助问答", "tags": ["求助问答", "校园网", "数码"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
-        {"title": "校外访问数据库的申请经验", "content": "在校外访问校内资源时，可以先查信息网络技术中心的零信任或校外访问说明。申请通过后再按官方客户端和账号说明操作。", "channel": "学习交流", "tags": ["学习", "校园网", "图书馆"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
-        {"title": "宿舍电费余额怎么看", "content": "宿舍电费查询时要确认校区、楼号和房间号，缴费完成后余额同步可能有短暂延迟。具体入口和账单以学校缴费系统为准。", "channel": "求助问答", "tags": ["求助问答", "宿舍", "缴费"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
-        {"title": "海棠餐厅错峰时间分享", "content": "工作日中午十二点前后排队最明显，我一般十一点四十前或十二点四十后去。窗口开放情况每天可能不一样。", "channel": "吐槽日常", "tags": ["食堂", "南校区", "日常"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
-        {"title": "丁香餐厅早餐窗口记录", "content": "早课前七点多已经有早餐窗口开放，八点前人会比较集中。节假日开放窗口和时间可能调整。", "channel": "吐槽日常", "tags": ["食堂", "南校区", "日常"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
-        {"title": "空闲教室查询别只看当天", "content": "空闲教室要同时选择校区、日期和节次，有临时调课时现场占用可能和系统不同。准备长时间自习前最好再看门口课表。", "channel": "学习交流", "tags": ["学习", "教室", "南校区"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
-        {"title": "考试座位查询注意事项", "content": "考试安排出来后要核对校区、楼宇、考场和座位号，同名课程可能分多个考场。临近考试再确认一次是否调整。", "channel": "学习交流", "tags": ["学习", "考试", "教务"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
-        {"title": "成绩单下载和用途", "content": "电子成绩单通常用于保研、出国和申请材料，下载前注意中英文版本、盖章方式和课程是否完整。正式用途以教务或档案部门说明为准。", "channel": "学习交流", "tags": ["学习", "成绩", "教务"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
-        {"title": "物理实验第一次选课提醒", "content": "选实验时要看实验名称、时间、地点和分组，部分项目还要求预习。实验系统账号规则和开放时间以当学期通知为准。", "channel": "学习交流", "tags": ["学习", "实验", "选课"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
-        {"title": "体测前需要带什么", "content": "一般要带校园卡或能核验身份的证件，穿适合运动的衣服和鞋。具体项目顺序、缓测和补测安排看体育部通知。", "channel": "求助问答", "tags": ["求助问答", "运动", "体测"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
-        {"title": "校医院就诊时间经验", "content": "普通门诊和节假日安排可能不同，准备去之前先看校医院或学校当天通知。紧急情况直接联系急救，不要只依赖帖子经验。", "channel": "求助问答", "tags": ["求助问答", "校医院", "日常"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
-        {"title": "宿舍报修流程记录", "content": "提交报修时把校区、楼栋、房间、故障位置和照片写清楚，后续在报修记录里看受理状态。涉及漏水或用电危险应及时联系值班人员。", "channel": "求助问答", "tags": ["求助问答", "宿舍", "报修"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
-        {"title": "校园卡丢失后的处理", "content": "发现校园卡丢失先通过官方校园卡服务挂失，再按学校说明补卡。涉及余额和身份凭证，不要把完整卡号发到公开帖子。", "channel": "失物招领", "tags": ["失物招领", "校园卡", "日常"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
-        {"title": "南北校区通勤时间参考", "content": "跨校区办事要给交通和进校核验留足时间，早晚高峰差异较大。校车班次、停靠点和购票方式以学校最新通知为准。", "channel": "活动拼车", "tags": ["活动拼车", "北校区", "南校区"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": True, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
-        {"title": "保研材料准备清单交流", "content": "常见材料包括成绩单、排名证明、英语成绩、科研竞赛和个人陈述。不同学院的资格和时间节点差别很大，应以本学院当年通知为准。", "channel": "学习交流", "tags": ["学习", "保研", "学院"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": True, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
-        {"title": "奖学金申请经验汇总", "content": "申请前核对评定办法、成绩范围、综合素质材料和公示时间。帖子只能提供整理思路，最终条件看学院及学生工作部门通知。", "channel": "学习交流", "tags": ["学习", "奖学金", "学院"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
-        {"title": "社团活动场地怎么申请", "content": "通常需要在规定系统或主管单位提交活动信息、时间、人数和场地需求，审批通过后再使用。大型活动还可能需要安全方案。", "channel": "求助问答", "tags": ["求助问答", "社团", "场地"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": True, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
-        {"title": "毕业离校手续别漏这些", "content": "毕业季通常要关注图书归还、校园卡、宿舍、财务欠费、档案和证书领取。各学院安排不同，按离校系统和辅导员通知逐项完成。", "channel": "求助问答", "tags": ["求助问答", "毕业季", "手续"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
-        {"title": "失物招领信息怎么写更容易找回", "content": "写清丢失时间段、校区、大致地点和物品特征，证件类不要公开完整号码。找到物品后及时把帖子状态改为已解决。", "channel": "失物招领", "tags": ["失物招领", "日常", "求助问答"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": True, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
-        {"title": "招聘会入场准备", "content": "参加校招双选会前准备简历、学生证和目标单位清单，提前看场地图和岗位要求。时间地点变化以就业信息网发布为准。", "channel": "学习交流", "tags": ["学习", "就业", "毕业季"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": True, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
+        {"title": "南校区 B 楼 204 怎么走", "content": "从礼仪广场往教学区走，B 楼在 A 楼东侧、C 楼西侧。进楼后看二层连廊指示，B-204 在二层南侧。第一次去建议至少提前十分钟。", "tags": ["求助问答", "南校区", "教学楼"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
+        {"title": "B 楼附近打印店实测", "content": "最近在 B 楼上课，临时打印可以先看教学区自助打印点；需要装订和彩印时可以去海棠附近的打印店。营业时间可能变化，晚上去前建议先确认。", "tags": ["学习", "南校区", "打印"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
+        {"title": "北校区图书馆插座座位经验", "content": "靠墙和柱子附近的座位插座相对集中，考试周很早就会坐满。馆内座位和开放时间以图书馆当天安排为准。", "tags": ["学习", "北校区", "图书馆"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
+        {"title": "南校区图书馆研讨间预约提醒", "content": "研讨间通常需要在图书馆空间预约系统提前预约，到了以后按页面要求签到。临时取消记得释放，避免影响后续预约。", "tags": ["学习", "南校区", "图书馆"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
+        {"title": "校园网突然断线排查记录", "content": "先看终端是否拿到校内 IP，再到校园网自服务检查账号状态、套餐和在线设备。多设备占用或余额异常时也可能掉线。", "tags": ["求助问答", "校园网", "数码"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
+        {"title": "校外访问数据库的申请经验", "content": "在校外访问校内资源时，可以先查信息网络技术中心的零信任或校外访问说明。申请通过后再按官方客户端和账号说明操作。", "tags": ["学习", "校园网", "图书馆"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
+        {"title": "宿舍电费余额怎么看", "content": "宿舍电费查询时要确认校区、楼号和房间号，缴费完成后余额同步可能有短暂延迟。具体入口和账单以学校缴费系统为准。", "tags": ["求助问答", "宿舍", "缴费"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
+        {"title": "海棠餐厅错峰时间分享", "content": "工作日中午十二点前后排队最明显，我一般十一点四十前或十二点四十后去。窗口开放情况每天可能不一样。", "tags": ["食堂", "南校区", "日常"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
+        {"title": "丁香餐厅早餐窗口记录", "content": "早课前七点多已经有早餐窗口开放，八点前人会比较集中。节假日开放窗口和时间可能调整。", "tags": ["食堂", "南校区", "日常"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
+        {"title": "空闲教室查询别只看当天", "content": "空闲教室要同时选择校区、日期和节次，有临时调课时现场占用可能和系统不同。准备长时间自习前最好再看门口课表。", "tags": ["学习", "教室", "南校区"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
+        {"title": "考试座位查询注意事项", "content": "考试安排出来后要核对校区、楼宇、考场和座位号，同名课程可能分多个考场。临近考试再确认一次是否调整。", "tags": ["学习", "考试", "教务"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
+        {"title": "成绩单下载和用途", "content": "电子成绩单通常用于保研、出国和申请材料，下载前注意中英文版本、盖章方式和课程是否完整。正式用途以教务或档案部门说明为准。", "tags": ["学习", "成绩", "教务"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
+        {"title": "物理实验第一次选课提醒", "content": "选实验时要看实验名称、时间、地点和分组，部分项目还要求预习。实验系统账号规则和开放时间以当学期通知为准。", "tags": ["学习", "实验", "选课"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
+        {"title": "体测前需要带什么", "content": "一般要带校园卡或能核验身份的证件，穿适合运动的衣服和鞋。具体项目顺序、缓测和补测安排看体育部通知。", "tags": ["求助问答", "运动", "体测"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
+        {"title": "校医院就诊时间经验", "content": "普通门诊和节假日安排可能不同，准备去之前先看校医院或学校当天通知。紧急情况直接联系急救，不要只依赖帖子经验。", "tags": ["求助问答", "校医院", "日常"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
+        {"title": "宿舍报修流程记录", "content": "提交报修时把校区、楼栋、房间、故障位置和照片写清楚，后续在报修记录里看受理状态。涉及漏水或用电危险应及时联系值班人员。", "tags": ["求助问答", "宿舍", "报修"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
+        {"title": "校园卡丢失后的处理", "content": "发现校园卡丢失先通过官方校园卡服务挂失，再按学校说明补卡。涉及余额和身份凭证，不要把完整卡号发到公开帖子。", "tags": ["失物招领", "校园卡", "日常"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": False, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
+        {"title": "南北校区通勤时间参考", "content": "跨校区办事要给交通和进校核验留足时间，早晚高峰差异较大。校车班次、停靠点和购票方式以学校最新通知为准。", "tags": ["活动拼车", "北校区", "南校区"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": True, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
+        {"title": "保研材料准备清单交流", "content": "常见材料包括成绩单、排名证明、英语成绩、科研竞赛和个人陈述。不同学院的资格和时间节点差别很大，应以本学院当年通知为准。", "tags": ["学习", "保研", "学院"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": True, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
+        {"title": "奖学金申请经验汇总", "content": "申请前核对评定办法、成绩范围、综合素质材料和公示时间。帖子只能提供整理思路，最终条件看学院及学生工作部门通知。", "tags": ["学习", "奖学金", "学院"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
+        {"title": "社团活动场地怎么申请", "content": "通常需要在规定系统或主管单位提交活动信息、时间、人数和场地需求，审批通过后再使用。大型活动还可能需要安全方案。", "tags": ["求助问答", "社团", "场地"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": True, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
+        {"title": "毕业离校手续别漏这些", "content": "毕业季通常要关注图书归还、校园卡、宿舍、财务欠费、档案和证书领取。各学院安排不同，按离校系统和辅导员通知逐项完成。", "tags": ["求助问答", "毕业季", "手续"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
+        {"title": "失物招领信息怎么写更容易找回", "content": "写清丢失时间段、校区、大致地点和物品特征，证件类不要公开完整号码。找到物品后及时把帖子状态改为已解决。", "tags": ["失物招领", "日常", "求助问答"], "hasImage": False, "status": "resolved", "allowComment": True, "allowDm": True, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
+        {"title": "招聘会入场准备", "content": "参加校招双选会前准备简历、学生证和目标单位清单，提前看场地图和岗位要求。时间地点变化以就业信息网发布为准。", "tags": ["学习", "就业", "毕业季"], "hasImage": False, "status": "ongoing", "allowComment": True, "allowDm": True, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
     ])
 
     PIN_DURATION_OPTIONS.clear()
@@ -682,7 +677,6 @@ def is_auth_student_id_allowed(student_id: str) -> bool:
 def public_system_settings() -> dict[str, Any]:
     """Return public system settings. DEPRECATED: use services.public_system_settings(db)."""
     return {
-        "channels": list(DEFAULT_CHANNELS),
         "tags": list(DEFAULT_TAGS),
         "settings": dict(DEFAULT_SETTINGS),
         "rateLimitRules": {
@@ -703,7 +697,7 @@ __all__ = [
     "configure", "smtp_configured", "verify_code_debug_enabled",
     "normalize_auth_email",
     "ALLOW_DEBUG_VERIFY_CODE", "INCLUDE_DEBUG_CODE_IN_RESPONSE",
-    "DEFAULT_CHANNELS", "DEFAULT_TAGS", "DEFAULT_SETTINGS",
+    "DEFAULT_TAGS", "DEFAULT_SETTINGS",
     "DEFAULT_SENSITIVE_WORDS", "SEED_POSTS", "SEED_DEMO_DATA",
     "DEMO_USER_ID", "DEMO_USER_EMAIL", "DEMO_USER_PASSWORD",
     "PASSWORD_HASH_SCHEME", "PASSWORD_HASH_ITERATIONS", "PASSWORD_SALT_BYTES",

@@ -61,7 +61,7 @@ All IDs are strings of the form `prefix + sequential integer`. Never parse them 
 | notification | `n301` | report | `r4` |
 | appeal | `ap2` | feedback | `fb3` |
 | pin request | `pin1` | cancellation request | `cr1` |
-| level request | `lr1` | section | `sec5` (but `sectionId` is a slug such as `general`, `cs`, or a club app id) |
+| level request | `lr1` | section | none exposed: a section is named by its `sectionId`, a slug such as `general`, `cs`, or a club app id |
 | club | `club1` | club application | `ca1` |
 | moderation task | `mt1` | hot topic | `hot-YYYY-MM-DD-p123` |
 | IDS attempt | url-safe random (about 32 chars) | | |
@@ -125,7 +125,8 @@ There is no email/password login route. `handle_register`, `handle_verify`, `han
 | alias, nickname | str | same value |
 | studentId, email | str | email is campus mail |
 | avatarUrl, backgroundImageUrl | str | relative `/api/storage/...` or `""` |
-| bio, gender (`""`/`男`/`女`), college, major | str | |
+| bio, gender (`""`/`男`/`女`), major | str | |
+| college | str | read-only: the name of the college section the identity mapping (`BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS`) assigns this student, `""` if none |
 | verified | bool | |
 | verifiedAt | str | |
 | banned, muted, deleted, isAdmin | bool | |
@@ -140,7 +141,8 @@ There is no email/password login route. `handle_register`, `handle_verify`, `han
 | createdAt | str | |
 
 ### `PATCH /api/users/me`
-- Body: any of `nickname`, `bio` (≤100), `gender` (`""|男|女`), `college`, `major` (whitespace stripped, ≤80), `backgroundImageUrl`, `avatarUrl`.
+- Body: any of `nickname`, `bio` (≤100), `gender` (`""|男|女`), `major` (whitespace stripped, ≤80), `backgroundImageUrl`, `avatarUrl`.
+  - `college` cannot be set: sending anything but the current verified value is 400 "学院由学校统一身份认证确定，不能自行修改" (echoing it back is ignored).
   - `avatarUrl` must equal the current value, otherwise you get 400 "请通过头像上传接口更换头像".
   - At least one key is required, otherwise 400.
 - Response: `data = {ok:true, nickname, bio, gender, college, major, backgroundImageUrl}`.
@@ -194,7 +196,6 @@ There are no user-specific post-list endpoints. Use `GET /api/posts?authorId=<id
 | content | str | plain text. For markdown posts this is the plain-text rendering |
 | contentFormat | `"plain"\|"markdown"` | |
 | markdownSource | str | raw markdown or `""` |
-| channel | str | legacy, always `""` for new posts |
 | tags | str[] | also parsed from `#tag` in title/content |
 | authorAlias | str | nickname, or anonymous alias |
 | isAnonymous | bool | |
@@ -205,7 +206,7 @@ There are no user-specific post-list endpoints. Use `GET /api/posts?authorId=<id
 | imageUrls | str[] | relative storage URLs |
 | uploadedImageIds | str[] | |
 | commentCount, likeCount, favoriteCount, viewCount, shareCount | int | |
-| sectionType | `"general"\|"college"\|"club"\|""` | `""` on legacy posts means general |
+| sectionType | `"general"\|"college"\|"club"` | |
 | sectionId, sectionName | str | |
 | publisherType | `"user"\|"club"` | |
 | publisherClubId | str | |
@@ -230,11 +231,11 @@ There are no user-specific post-list endpoints. Use `GET /api/posts?authorId=<id
   - `keyword`: lowercased substring match on title, content and tags.
   - `sectionType`: `general|college|club`.
   - `sectionId`: e.g. `general` or a college/club sectionId. Legacy posts count as `general`.
-  - `channel`: matches `channel` **or** any tag. `全部` means no filter.
+  - `tag`: posts carrying this tag.
   - `authorId`: anonymous posts are excluded unless it is your own id.
   - `hasImage`, `allowDm`: `true|false`.
   - `status`: `ongoing|resolved|closed`.
-- There is **no following-only feed** and no `tag` param (use `channel`).
+- There is **no following-only feed**. The old `channel` param is gone (it is ignored).
 - Excludes deleted posts, non-approved posts (even your own), other people's private posts, and posts by users you block.
 - Response `data`: `[Post]`, or `{items,page,limit,total,hasMore}` when paginated.
 
@@ -242,7 +243,6 @@ There are no user-specific post-list endpoints. Use `GET /api/posts?authorId=<id
 - `GET /api/posts/<id>` returns `Post`. It returns 404 "帖子不存在或已被删除" if the post is deleted, pending/rejected and not yours, or private and not yours.
 - `GET /api/posts/mine` returns `[Post]`: all your own posts including pending/rejected and private, with unapproved images included. Newest first, no pagination.
 - `GET /api/posts/favorites` returns `[Post]` (your favorites that are still visible).
-- `GET /api/sections/<sectionId>/posts?sort=` returns `[Post]` matching `sectionId` or `sectionType`. This is legacy; prefer `/api/posts?sectionId=`.
 - `GET /api/posts/anonymous-alias` returns `{alias:str}`, a random alias such as "<形容词><名词>". Use it to pre-fill the anonymous name.
 
 **POST `/api/posts`** (create) returns `Post` (including unapproved images). Body:
@@ -402,16 +402,16 @@ There are no user-specific post-list endpoints. Use `GET /api/posts?authorId=<id
 
 ---
 
-## 8. Sections, channels, colleges, tags, clubs, hot topics, announcements
+## 8. Sections, colleges, tags, clubs, hot topics, announcements
 
-- `GET /api/sections` returns `[Section]`: enabled sections, excluding type `school`, sorted by sortOrder then name.
-  - **Section**: `id ("sec5"), sectionType (general|college|club), sectionId (the key used in posts and filters), sectionName, name, description, ruleText, enabled:bool, sortOrder:int, createdAt, updatedAt`.
-  - **Filter and post with `sectionId`, not `id`.** Flutter's `section.key` is `sectionId`.
+- `GET /api/sections` returns `[Section]`: enabled sections, sorted by sortOrder then name.
+  - **Section**: `sectionType (general|college|club), sectionId, sectionName, name, description, ruleText, enabled:bool, sortOrder:int, createdAt, updatedAt`.
+  - `sectionId` is a section's only identifier (posts, filters, clubs, the identity mapping and the admin API). It matches `[0-9A-Za-z_-]{1,80}`, is unique and never changes.
 - `GET /api/sections/tree` returns `{sections:[Section], general:[…], colleges:[…], clubs:[…]}`. This is what Flutter uses.
-- `POST /api/sections` and `PATCH /api/sections/<id>` are admin only (admin token).
-- `GET /api/channels` returns `[str]`: legacy channel names, starting with `综合`. Channels are now tags.
-- `GET /api/colleges` returns a hard-coded list of 8 entries `[{id:"cs", name, icon}]`. It is **not** the same as college sections.
-- Public tag endpoint: none. Tags are free text on posts; the admin tag list is `/api/admin/channels-tags`.
+- `POST /api/sections` (requires a new valid `sectionId`, 409 if taken) and `PATCH /api/sections/<sectionId>` (400 if the body tries to change `sectionId`) are admin only (admin token).
+- `GET /api/colleges` returns `[{sectionId, sectionName, icon}]`: the enabled college sections the identity mapping assigns anyone to, in section order. Nothing is hard-coded; an empty mapping gives `[]`.
+- Channels are gone (no `/api/channels`, no `channel` field or param); their names were folded into tags.
+- Public tag endpoint: none. Tags are free text on posts; the admin tag list is `GET /api/admin/tags`.
 - `GET /api/clubs` returns `[Club + canPublishAs:bool]`. **Club** is `id, name, description, category, ownerUserId, ownerName, sectionId, status, createdAt`.
 - `GET /api/clubs/<id>` returns `Club + {memberCount:int, posts:[Post]}`.
 - `POST /api/clubs/applications` with `{name (required), description (required), category?, contact?}` returns **201** with the raw application `{id:"ca1", name, description, category, applicantUserId, applicantName, contact, status:"pending", reviewNote, createdAt, handledAt, handledBy, clubId}`. 409 on a duplicate pending application.
@@ -486,12 +486,12 @@ Admin auth uses `POST /api/admin/auth/login`, which returns an admin token (a se
 - GET `/api/admin/appeals` · POST `/api/admin/appeals/<id>/handle`
 - GET `/api/admin/feedbacks` · POST `/api/admin/feedbacks/<id>/handle`
 - GET `/api/admin/export`
-- GET `/api/admin/channels-tags` · POST `/api/admin/tags` · PATCH `/api/admin/tags/<name>` · DELETE `/api/admin/tags/<name>`
+- GET `/api/admin/tags` · POST `/api/admin/tags` · PATCH `/api/admin/tags/<name>` · DELETE `/api/admin/tags/<name>`
 - GET `/api/admin/config` · PATCH `/api/admin/config`
 - GET `/api/admin/announcements` · POST `/api/admin/announcements`
 - GET `/api/admin/releases/android` · POST `/api/admin/releases/android` (multipart APK, ≤300 MB)
 - GET `/api/admin/clubs/applications?status=` · POST `/api/admin/clubs/applications/<id>/handle`
-- POST `/api/sections` · PATCH `/api/sections/<id>` · POST `/api/hot-topics/rebuild`
+- POST `/api/sections` · PATCH `/api/sections/<sectionId>` · POST `/api/hot-topics/rebuild`
 - GET/POST `/api/admin/ai/knowledge-sources` · PATCH/DELETE `/api/admin/ai/knowledge-sources/<id>` · POST `/api/admin/ai/reindex` · GET `/api/admin/ai/traces/<traceId>`
 
 ---

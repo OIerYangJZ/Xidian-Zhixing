@@ -8,6 +8,7 @@ import { useDialogs } from '@/hooks/useDialogs';
 import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
 import { useLanguage } from '@/hooks/useLanguage';
 import { getAnonymousAlias, getSectionTree } from '@/lib/backend/endpoints';
+import { useMe } from '@/lib/backend/session';
 import { TextAreaWithMentionsAndHashTags } from './TextAreaWithMentionsAndHashTags';
 import { GenericDialog } from './GenericDialog';
 import { CreatePostSort } from './CreatePostSort';
@@ -42,8 +43,16 @@ export function CreatePostDialog({
     queryFn: getSectionTree,
     staleTime: 300000,
   });
+  const { me } = useMe();
   // Clubs publish through their managers only, so they are not offered here.
-  const sections = useMemo(() => [...(sectionTree?.general ?? []), ...(sectionTree?.colleges ?? [])], [sectionTree]);
+  // Of the colleges, only one's own (from the identity mapping) accepts posts.
+  const sections = useMemo(
+    () => [
+      ...(sectionTree?.general ?? []),
+      ...(sectionTree?.colleges ?? []).filter((item) => me?.college && item.sectionName === me.college),
+    ],
+    [sectionTree, me?.college],
+  );
   const section = useMemo(() => {
     const picked = sections.find((item) => item.sectionId === sectionId);
     return picked
@@ -201,7 +210,7 @@ export function CreatePostDialog({
             className="min-h-10 border border-border bg-background px-3 text-foreground">
             {sections.length === 0 && <option value={GENERAL_SECTION.sectionId}>{GENERAL_SECTION.sectionName}</option>}
             {sections.map((item) => (
-              <option key={item.id} value={item.sectionId}>
+              <option key={item.sectionId} value={item.sectionId}>
                 {item.sectionName || item.name}
               </option>
             ))}

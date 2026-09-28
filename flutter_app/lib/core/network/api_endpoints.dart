@@ -62,7 +62,6 @@ class ApiEndpoints {
   static const String adminAppeals = '/admin/appeals';
   static const String adminFeedbacks = '/admin/feedbacks';
   static const String adminExport = '/admin/export';
-  static const String adminChannelsTags = '/admin/channels-tags';
   static const String adminTags = '/admin/tags';
   static const String adminConfig = '/admin/config';
   static const String adminAnnouncements = '/admin/announcements';

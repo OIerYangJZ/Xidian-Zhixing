@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import time
-from typing import Any
+from typing import Any, Callable
 
 import _globals
 from object_storage import (
@@ -839,20 +839,8 @@ def build_overview(db: dict[str, Any]) -> dict[str, Any]:
         "pendingImages": len(pending_images),
         "pendingImageCount": len(pending_images),
         "totalComments": len(comments),
-        "channels": list(db.get("channels", [])),
         "tags": list(db.get("tags", [])),
     }
-
-
-def post_counts(db: dict[str, Any]) -> dict[str, int]:
-    """Return per-channel post counts."""
-    counts: dict[str, int] = {}
-    for post in db.get("posts", []):
-        if post.get("deleted"):
-            continue
-        channel = str(post.get("channel", ""))
-        counts[channel] = counts.get(channel, 0) + 1
-    return counts
 
 
 def target_owner(db: dict[str, Any], post_id: str) -> dict[str, Any] | None:
@@ -950,7 +938,6 @@ def list_posts(
     db: dict[str, Any],
     *,
     keyword: str = "",
-    channel: str = "",
     has_image: bool | None = None,
     author_id: str = "",
     viewer_user_id: str = "",
@@ -1004,8 +991,6 @@ def list_posts(
         ):
             continue
         if not include_rejected and post.get("reviewStatus") not in ("approved", "resolved"):
-            continue
-        if channel and post.get("channel") != channel:
             continue
         if has_image is True and not post.get("hasImage"):
             continue
@@ -1109,7 +1094,7 @@ def build_export_payload(
             ])
             
     elif normalized_scope == "posts" or (normalized_scope == "reviews" and review_type == "post"):
-        headers = ["id", "title", "channel", "authorId", "authorAlias", "createdAt", "reviewStatus", "deleted"]
+        headers = ["id", "title", "sectionName", "authorId", "authorAlias", "createdAt", "reviewStatus", "deleted"]
         for post in db.get("posts", []):
             status = str(post.get("reviewStatus", "approved")).strip().lower() or "approved"
             if review_status != "all" and status != review_status:
@@ -1117,7 +1102,7 @@ def build_export_payload(
             rows.append([
                 str(post.get("id", "")),
                 str(post.get("title", "")),
-                str(post.get("channel", "")),
+                str(post.get("sectionName", "")),
                 str(post.get("authorId", "")),
                 str(post.get("authorAlias", "")),
                 str(post.get("createdAt", "")),
@@ -1255,9 +1240,8 @@ IS_SQL_DB = False
 
 # Public system settings for unauthenticated endpoints
 def public_system_settings(db: dict[str, Any]) -> dict[str, Any]:
-    """Return public system settings (channels, tags, rate limits)."""
+    """Return public system settings (tags, rate limits)."""
     return {
-        "channels": list(db.get("channels", [])),
         "tags": list(db.get("tags", [])),
         "settings": dict(db.get("settings", {})),
     }
@@ -1579,7 +1563,6 @@ def serialize_post(
         "content": post.get("content", ""),
         "contentFormat": "markdown" if str(post.get("contentFormat", "")).strip().lower() == "markdown" else "plain",
         "markdownSource": str(post.get("markdownSource", "")),
-        "channel": post.get("channel", ""),
         "tags": post.get("tags", []),
         "authorAlias": post.get("authorAlias", "匿名同学"),
         "isAnonymous": is_anonymous,
@@ -3011,22 +2994,13 @@ def ensure_radio_schema(db: dict[str, Any]) -> bool:
         db["sections"] = default_sections
         changed = True
     else:
-        before_count = len(db.get("sections", []))
-        db["sections"] = [
-            row for row in db.get("sections", [])
-            if str(row.get("sectionType", "")).strip().lower() != "school"
-            and str(row.get("sectionName", "")).strip() != "学校总分区"
-        ]
-        if len(db["sections"]) != before_count:
-            changed = True
-        existing_section_names = {
-            str(row.get("sectionName") or row.get("name") or "").strip()
-            for row in db.get("sections", [])
-        }
+        # Matched on sectionId, the section's identity: matching on the name
+        # re-added a default an admin had renamed, with a duplicate sectionId.
+        existing_section_ids = {str(row.get("sectionId") or row.get("id") or "").strip() for row in db["sections"]}
         for section in default_sections:
-            if str(section.get("sectionName", "")).strip() not in existing_section_names:
+            if str(section.get("sectionId", "")).strip() not in existing_section_ids:
                 db["sections"].append(section)
-                existing_section_names.add(str(section.get("sectionName", "")).strip())
+                existing_section_ids.add(str(section.get("sectionId", "")).strip())
                 changed = True
     default_services, default_maps = _default_campus_services(created)
     if not db.get("campusServices"):
@@ -3287,7 +3261,6 @@ def default_db() -> dict[str, Any]:
         ],
         "sessions": {},
         "emailCodes": {},
-        "channels": list(_globals.DEFAULT_CHANNELS),
         "tags": list(_globals.DEFAULT_TAGS),
         "sensitiveWords": list(_globals.DEFAULT_SENSITIVE_WORDS),
         "settings": {
@@ -3344,7 +3317,6 @@ def default_db() -> dict[str, Any]:
                 "content": row["content"],
                 "contentFormat": str(row.get("contentFormat", "plain") or "plain"),
                 "markdownSource": str(row.get("markdownSource", "") or ""),
-                "channel": row["channel"],
                 "tags": row["tags"],
                 "hasImage": row["hasImage"],
                 "status": row["status"],
@@ -3466,26 +3438,74 @@ def save_db(db: dict[str, Any]) -> None:
     _globals.REPOSITORY.save_state(db)
 
 
+def _run_once(db: dict[str, Any], name: str, migration: Callable[[dict[str, Any]], None]) -> bool:
+    """Apply a data migration once, recorded in settings.dataMigrations.
+
+    Migrations are also written to be harmless if run again, in case the
+    marker is ever lost (settings being reset).
+    """
+    settings = db.setdefault("settings", {})
+    done = settings.get("dataMigrations")
+    if not isinstance(done, list):
+        done = settings["dataMigrations"] = []
+    if name in done:
+        return False
+    migration(db)
+    done.append(name)
+    return True
+
+
+def _migrate_sections_to_section_id(db: dict[str, Any]) -> None:
+    """One pass that leaves sectionId as the only way to name a section.
+
+    - the retired 学校总分区 (sectionType "school") goes; its posts move to 综合;
+    - a section without a sectionId gets its row id as one, which is what
+      posts filed under it already store;
+    - posts and clubs that stored a section's row id get its sectionId.
+    """
+    def is_school(row: dict[str, Any]) -> bool:
+        return (
+            str(row.get("sectionType", "")).strip().lower() == "school"
+            or str(row.get("sectionName", "")).strip() == "学校总分区"
+        )
+
+    sections = [row for row in db.get("sections", []) if not is_school(row)]
+    for row in sections:
+        if not str(row.get("sectionId", "")).strip():
+            row["sectionId"] = str(row.get("id", "")).strip()
+    db["sections"] = sections
+    section_ids = {str(row.get("sectionId", "")).strip() for row in sections}
+    by_row_id = {
+        str(row.get("id", "")).strip(): str(row.get("sectionId", "")).strip()
+        for row in sections
+        if str(row.get("id", "")).strip() and str(row.get("id", "")).strip() not in section_ids
+    }
+    for post in db.get("posts", []):
+        if is_school(post) or not str(post.get("sectionType", "")).strip():
+            post["sectionType"] = "general"
+            post["sectionId"] = "general"
+            post["sectionName"] = "综合"
+            continue
+        stored = str(post.get("sectionId", "")).strip()
+        if stored in by_row_id:
+            post["sectionId"] = by_row_id[stored]
+    for club in db.get("clubs", []):
+        stored = str(club.get("sectionId", "")).strip()
+        if stored in by_row_id:
+            club["sectionId"] = by_row_id[stored]
+
+
 def migrate_db(db: dict[str, Any]) -> bool:
     changed = False
     if ensure_radio_schema(db):
         changed = True
+    if _run_once(db, "2026-09-28-section-id", _migrate_sections_to_section_id):
+        changed = True
 
-    if "channels" not in db:
-        db["channels"] = []
+    # Channels are retired (folded into tags by the repository).
+    if "channels" in db:
+        del db["channels"]
         changed = True
-    elif not isinstance(db.get("channels"), list):
-        db["channels"] = []
-        changed = True
-    else:
-        legacy_channels = [str(channel).strip() for channel in db.get("channels", []) if str(channel).strip()]
-        if legacy_channels:
-            tags = db.setdefault("tags", [])
-            for channel in legacy_channels:
-                if channel != "综合" and channel not in tags:
-                    tags.append(channel)
-            db["channels"] = []
-            changed = True
 
     # Seed the defaults once. Re-adding any missing on every load undid an
     # admin deleting or renaming a default tag.
@@ -3700,10 +3720,14 @@ def migrate_db(db: dict[str, Any]) -> bool:
             if normalized_avatar != str(user.get("avatarUrl", "")):
                 user["avatarUrl"] = normalized_avatar
                 changed = True
-        for key in ("college", "major"):
-            if key not in user:
-                user[key] = ""
-                changed = True
+        if "major" not in user:
+            user["major"] = ""
+            changed = True
+        # 学院 is derived from the identity mapping (verified_college); a
+        # typed-in value from before is dropped.
+        if "college" in user:
+            del user["college"]
+            changed = True
         for key in (
             "notifyComment",
             "notifyReply",
@@ -3766,17 +3790,8 @@ def migrate_db(db: dict[str, Any]) -> bool:
             if k not in post:
                 post[k] = v
                 changed = True
-        if str(post.get("sectionType", "")).strip().lower() == "school" or str(post.get("sectionName", "")).strip() == "学校总分区":
-            post["sectionType"] = "general"
-            post["sectionId"] = "general"
-            post["sectionName"] = "综合"
-            changed = True
-        legacy_channel = str(post.get("channel", "")).strip()
-        if legacy_channel:
-            post_tags = post.setdefault("tags", [])
-            if legacy_channel != "综合" and legacy_channel not in post_tags:
-                post_tags.append(legacy_channel)
-            post["channel"] = ""
+        if "channel" in post:
+            del post["channel"]
             changed = True
 
     if _globals.SEED_DEMO_DATA:
@@ -3791,14 +3806,13 @@ def migrate_db(db: dict[str, Any]) -> bool:
                 continue
             db["seq"]["post"] = int(db["seq"].get("post", 0)) + 1
             created = now_iso()
-            tags = list(dict.fromkeys([*row.get("tags", []), str(row.get("channel", "")).strip()]))
+            tags = list(dict.fromkeys(row.get("tags", [])))
             db.setdefault("posts", []).append({
                 "id": f"p{db['seq']['post']}",
                 "title": title,
                 "content": str(row.get("content", "")),
                 "contentFormat": "plain",
                 "markdownSource": "",
-                "channel": "",
                 "tags": [tag for tag in tags if tag and tag != "综合"],
                 "hasImage": bool(row.get("hasImage")),
                 "status": str(row.get("status", "ongoing")),

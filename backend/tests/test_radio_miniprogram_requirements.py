@@ -564,16 +564,15 @@ def test_college_section_post_persists_server_canonical_fields(monkeypatch) -> N
 
     db = make_db()
     user = next(row for row in db["users"] if row["id"] == "u1")
-    user["college"] = "电子工程学院"
     monkeypatch.setattr(
         _globals,
         "AUTH_STUDENT_COLLEGE_SECTIONS",
-        {str(user["studentId"]): "college-ee"},
+        {str(user["studentId"]): "ee"},
     )
     handler = FakeHandler(body={
         "content": "本学院帖子",
         "sectionType": "college",
-        "sectionId": "college-ee",
+        "sectionId": "ee",
         "sectionName": "攻击者提供的名称",
     })
 
@@ -583,6 +582,11 @@ def test_college_section_post_persists_server_canonical_fields(monkeypatch) -> N
     created = next(row for row in db["posts"] if row["content"] == "本学院帖子")
     assert created["sectionId"] == "ee"
     assert created["sectionName"] == "电子工程学院"
+
+    # Sections are addressed by sectionId only, not by their row id.
+    handler = FakeHandler(body={"content": "用行 id", "sectionType": "college", "sectionId": "college-ee"})
+    _post_handler.handle_create_post(handler, db)
+    assert handler.status_code == 400
 
 
 @pytest.mark.parametrize(

@@ -49,7 +49,6 @@ TABLE_SOURCE_KEYS: dict[str, tuple[str, ...]] = {
     "users": ("users",),
     "sessions": ("sessions",),
     "email_codes": ("emailCodes",),
-    "channels": ("channels",),
     "tags": ("tags",),
     "sensitive_words": ("sensitiveWords",),
     "settings": _SETTINGS_SOURCE_KEYS,
@@ -273,7 +272,6 @@ class SqliteTreeholeRepository:
                 "users",
                 "sessions",
                 "email_codes",
-                "channels",
                 "tags",
                 "sensitive_words",
                 "settings",
@@ -422,12 +420,6 @@ class SqliteTreeholeRepository:
               used_at TEXT NULL
             );
 
-            CREATE TABLE IF NOT EXISTS channels (
-              name TEXT PRIMARY KEY,
-              sort_order INTEGER NOT NULL DEFAULT 0,
-              created_at TEXT NOT NULL
-            );
-
             CREATE TABLE IF NOT EXISTS tags (
               name TEXT PRIMARY KEY,
               sort_order INTEGER NOT NULL DEFAULT 0,
@@ -474,7 +466,7 @@ class SqliteTreeholeRepository:
               content TEXT NOT NULL,
               content_format TEXT NOT NULL DEFAULT 'plain',
               markdown_source TEXT NOT NULL DEFAULT '',
-              channel TEXT NOT NULL,
+              channel TEXT NOT NULL DEFAULT '',
               has_image INTEGER NOT NULL DEFAULT 0,
               status TEXT NOT NULL,
               allow_comment INTEGER NOT NULL DEFAULT 1,
@@ -774,8 +766,6 @@ class SqliteTreeholeRepository:
               FOREIGN KEY(reviewed_by) REFERENCES users(id) ON DELETE SET NULL
             );
 
-            CREATE INDEX IF NOT EXISTS idx_posts_channel_status_created
-              ON posts(channel, status, deleted, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_posts_author_created
               ON posts(author_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_posts_review_deleted
@@ -883,6 +873,7 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "email_codes", "attempts", "INTEGER NOT NULL DEFAULT 0")
         self._ensure_column(conn, "email_codes", "used_at", "TEXT NULL")
         self._ensure_email_code_text_column(conn)
+        self._retire_channels(conn)
         conn.execute(
             """
             UPDATE email_codes
@@ -906,6 +897,37 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "likes", "post_id", "TEXT NULL")
         if not begin_transaction:
             conn.commit()
+
+    def _retire_channels(self, conn: sqlite3.Connection) -> None:
+        """Channels are gone; their names live on as tags.
+
+        Folds whatever is left in the channels table and in posts.channel
+        into tags / post_tags, then drops the table and its index.  After the
+        first run there is nothing left to fold, so this is a no-op.
+        posts.channel itself stays (always '') because DROP COLUMN needs
+        SQLite 3.35, newer than some servers have.
+        """
+        has_channels = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'channels'",
+        ).fetchone()
+        if has_channels is not None:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO tags (name, sort_order, created_at)
+                SELECT TRIM(name), 1000 + sort_order, created_at FROM channels
+                WHERE TRIM(name) NOT IN ('', '综合')
+                """
+            )
+            conn.execute("DROP TABLE channels")
+        conn.execute("DROP INDEX IF EXISTS idx_posts_channel_status_created")
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO post_tags (post_id, tag_name)
+            SELECT id, TRIM(channel) FROM posts
+            WHERE TRIM(channel) NOT IN ('', '综合')
+            """
+        )
+        conn.execute("UPDATE posts SET channel = '' WHERE channel != ''")
 
     def _ensure_column(self, conn: sqlite3.Connection, table_name: str, column_name: str, ddl: str) -> None:
         existing = {
@@ -978,7 +1000,6 @@ class SqliteTreeholeRepository:
             "users": [],
             "sessions": {},
             "emailCodes": {},
-            "channels": [],
             "tags": [],
             "sensitiveWords": [],
             "settings": {},
@@ -1032,7 +1053,6 @@ class SqliteTreeholeRepository:
                     "bio": _to_str(row["bio"]),
                     "gender": _to_str(row["gender"]),
                     "backgroundImageUrl": _to_str(row["background_image_url"]),
-                    "college": _to_str(row["college"]),
                     "major": _to_str(row["major"]),
                     "userLevel": _to_int(row["user_level"], 2),
                     "verified": _to_bool(row["verified"]),
@@ -1092,7 +1112,6 @@ class SqliteTreeholeRepository:
                 "usedAt": _to_str(row["used_at"]),
             }
 
-        db["channels"] = [row["name"] for row in conn.execute("SELECT name FROM channels ORDER BY sort_order, name")]
         db["tags"] = [row["name"] for row in conn.execute("SELECT name FROM tags ORDER BY sort_order, name")]
         db["sensitiveWords"] = [
             row["word"] for row in conn.execute("SELECT word FROM sensitive_words ORDER BY word")
@@ -1173,7 +1192,7 @@ class SqliteTreeholeRepository:
 
         for row in conn.execute(
             """
-            SELECT id, title, content, content_format, markdown_source, channel, has_image, status, allow_comment, allow_dm,
+            SELECT id, title, content, content_format, markdown_source, has_image, status, allow_comment, allow_dm,
                    visibility, is_anonymous,
                    author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
                    view_count, section_type, section_id, section_name, publisher_type, publisher_club_id, share_count,
@@ -1190,7 +1209,6 @@ class SqliteTreeholeRepository:
                     "content": row["content"],
                     "contentFormat": _to_str(row["content_format"]) or "plain",
                     "markdownSource": _to_str(row["markdown_source"]),
-                    "channel": row["channel"],
                     "tags": list(tag_map.get(post_id, [])),
                     "hasImage": _to_bool(row["has_image"]),
                     "status": row["status"],
@@ -1681,7 +1699,6 @@ class SqliteTreeholeRepository:
                 "settings",
                 "sensitive_words",
                 "tags",
-                "channels",
                 "email_codes",
                 "sessions",
                 "users",
@@ -1730,7 +1747,9 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("bio")),
                         _to_str(row.get("gender")),
                         _to_str(row.get("backgroundImageUrl")),
-                        _to_str(row.get("college")),
+                        # users.college is retired (学院 comes from the
+                        # identity mapping); the column stays, always empty.
+                        "",
                         _to_str(row.get("major")),
                         _to_int(row.get("userLevel"), 2),
                         _to_bool_int(row.get("verified")),
@@ -1801,14 +1820,6 @@ class SqliteTreeholeRepository:
                             max(0, _to_int(row.get("attempts"))),
                             used_at or None,
                         ),
-                    )
-
-            for index, name in enumerate(db.get("channels", []), start=1):
-                n = _to_str(name).strip()
-                if n:
-                    conn.execute(
-                        "INSERT INTO channels (name, sort_order, created_at) VALUES (?, ?, ?)",
-                        (n, index, created_now),
                     )
 
             for index, name in enumerate(db.get("tags", []), start=1):
@@ -1935,7 +1946,7 @@ class SqliteTreeholeRepository:
                         _to_str(post.get("content")),
                         "markdown" if _to_str(post.get("contentFormat")).strip().lower() == "markdown" else "plain",
                         _to_str(post.get("markdownSource")),
-                        _to_str(post.get("channel")),
+                        "",  # posts.channel is retired; see _retire_channels
                         _to_bool_int(post.get("hasImage")),
                         _to_str(post.get("status"), "ongoing"),
                         _to_bool_int(post.get("allowComment", True)),

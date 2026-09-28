@@ -187,7 +187,7 @@ Page({
     ].filter(Boolean);
     const dedupedSections = [];
     sections.forEach((section) => {
-      if (!dedupedSections.some((item) => item.id === section.id || item.sectionName === section.sectionName)) {
+      if (!dedupedSections.some((item) => item.sectionId === section.sectionId)) {
         dedupedSections.push(section);
       }
     });
@@ -410,8 +410,7 @@ Page({
   // club; any identity may post elsewhere.
   clubFitsSection(club, section) {
     if (!section || section.sectionType !== 'club') return true;
-    return Boolean(club && club.sectionId
-      && (club.sectionId === section.sectionId || club.sectionId === section.id));
+    return Boolean(club && club.sectionId && club.sectionId === section.sectionId);
   },
 
   setClubIdentity(index) {
@@ -472,14 +471,12 @@ Page({
     const index = Number(event.currentTarget.dataset.index || 0);
     const section = this.data.sections[index];
     if (section && section.sectionType === 'college') {
+      // 学院 comes from the school's identity mapping; it cannot be filled in.
       if (!this.data.userCollege) {
         wx.showModal({
-          title: '完善学院信息',
-          content: '学院分区仅允许本学院同学发布，请先在个人资料中填写学院。',
-          confirmText: '去填写',
-          success: (res) => {
-            if (res.confirm) wx.navigateTo({ url: '/pages/profile/edit-profile/index' });
-          }
+          title: '学院未确认',
+          content: '你的学院尚未由学校统一身份认证确认，暂时不能在学院分区发帖。',
+          showCancel: false
         });
         return;
       }
@@ -491,7 +488,7 @@ Page({
     if (section && section.sectionType === 'club' && this.data.sectionIndex !== index) {
       // A club section takes posts only from its own club, posting as the club.
       const clubIndex = this.data.clubs.findIndex((club) => club.sectionId
-        && (club.sectionId === section.sectionId || club.sectionId === section.id));
+        && club.sectionId === section.sectionId);
       if (clubIndex < 0) {
         wx.showToast({ title: '社团分区仅允许负责人以社团身份发布', icon: 'none' });
         return;
@@ -797,7 +794,7 @@ Page({
         contentFormat: this.data.markdown ? 'markdown' : 'plain',
         markdownSource: this.data.markdown ? content : undefined,
         sectionType: selectedSection ? selectedSection.sectionType : '',
-        sectionId: selectedSection ? (selectedSection.sectionId || selectedSection.id) : '',
+        sectionId: selectedSection ? selectedSection.sectionId : '',
         sectionName: selectedSection ? selectedSection.sectionName : '',
         publisherType: this.data.clubIdentityIndex >= 0 ? 'club' : 'user',
         publisherClubId: this.data.clubIdentityIndex >= 0 && this.data.clubs[this.data.clubIdentityIndex] ? this.data.clubs[this.data.clubIdentityIndex].id : '',

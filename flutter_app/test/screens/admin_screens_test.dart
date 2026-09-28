@@ -27,7 +27,7 @@ AdminRepository _repo() => AdminRepository(
       'bannedUsers': 4,
       'mutedUsers': 2,
     },
-    '/admin/channels-tags': <String, Object>{'tags': <String>['食堂', '二手']},
+    '/admin/tags': <String, Object>{'tags': <String>['食堂', '二手']},
     '/admin/config': <String, Object>{
       'sensitiveWords': <String>[],
       'settings': <String, int>{

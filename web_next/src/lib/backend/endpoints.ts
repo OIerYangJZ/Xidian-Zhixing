@@ -48,7 +48,8 @@ export interface PostListQuery {
   authorId?: string;
   sectionType?: string;
   sectionId?: string;
-  channel?: string;
+  /** Posts carrying this tag. */
+  tag?: string;
   hasImage?: boolean;
 }
 
@@ -238,9 +239,8 @@ export const unfollowUser = (userId: string) => api(`/api/users/${userId}/unfoll
 export const listMyFollowing = () => api<ApiFollowUser[]>('/api/users/me/following');
 export const listMyFollowers = () => api<ApiFollowUser[]>('/api/users/me/followers');
 
-export const updateMe = (
-  patch: Partial<Pick<ApiMe, 'nickname' | 'bio' | 'gender' | 'college' | 'major' | 'backgroundImageUrl'>>,
-) => api('/api/users/me', { method: 'PATCH', body: patch });
+export const updateMe = (patch: Partial<Pick<ApiMe, 'nickname' | 'bio' | 'gender' | 'major' | 'backgroundImageUrl'>>) =>
+  api('/api/users/me', { method: 'PATCH', body: patch });
 
 export async function uploadAvatar(file: Blob, fileName: string): Promise<{ avatarUrl: string }> {
   const dataBase64 = await readAsDataUrl(file);

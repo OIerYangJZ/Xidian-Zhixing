@@ -88,7 +88,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
       ).wait;
       final profile = await _ref.read(userRepositoryProvider).fetchProfile();
       state = state.copyWith(
-        sections: postableSections(sections, clubs),
+        sections: postableSections(sections, clubs, college: profile.college),
         clubs: clubs,
         loadingSections: false,
         userLevel: profile.userLevel,

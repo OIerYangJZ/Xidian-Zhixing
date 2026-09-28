@@ -34,7 +34,6 @@ void main() {
     Map<String, String> lastPostQuery = const <String, String>{};
     Map<String, dynamic> lastCreateBody = const <String, dynamic>{};
     const SectionItem general = SectionItem(
-      id: 'section-general',
       sectionType: 'general',
       sectionId: 'general',
       sectionName: '综合',
@@ -204,7 +203,6 @@ void main() {
     group('fetchPostPage', () {
       test('按分区和页码请求，读取 items 与 hasMore', () async {
         const SectionItem college = SectionItem(
-          id: 'section-cs',
           sectionType: 'college',
           sectionId: 'cs',
           sectionName: '计算机科学与技术学院',
@@ -289,7 +287,6 @@ void main() {
 
       test('社团分区以社团身份发布', () {
         const SectionItem clubSection = SectionItem(
-          id: 'section-club-robot',
           sectionType: 'club',
           sectionId: 'club-robot',
           sectionName: '机器人社',

@@ -3,18 +3,15 @@ import '../core/network/json_utils.dart';
 /// A 分区 from `GET /api/sections/tree`: 综合 (general), a college, or a club.
 ///
 /// Posts carry the section they were filed under (sectionType / sectionId /
-/// sectionName); the feed filters on it. Channels are gone: the server keeps
-/// them only as tags.
+/// sectionName); the feed filters on it. A section is named by its sectionId
+/// alone: the server exposes no other id.
 class SectionItem {
   const SectionItem({
-    required this.id,
     required this.sectionType,
     required this.sectionId,
     required this.sectionName,
     this.description = '',
   });
-
-  final String id;
 
   /// general, college or club.
   final String sectionType;
@@ -23,9 +20,7 @@ class SectionItem {
   final String description;
 
   /// What posts store as their sectionId, and what the feed filters on.
-  /// Rows created by admins may have only an id (the mini program does the
-  /// same: `sectionId || id`).
-  String get key => sectionId.isNotEmpty ? sectionId : id;
+  String get key => sectionId;
 
   bool get isGeneral => sectionType == 'general';
   bool get isCollege => sectionType == 'college';
@@ -33,7 +28,6 @@ class SectionItem {
 
   factory SectionItem.fromJson(Map<String, dynamic> json) {
     final SectionItem section = SectionItem(
-      id: readString(json, <String>['id']) ?? '',
       sectionType: (readString(json, <String>['sectionType']) ?? '')
           .toLowerCase(),
       sectionId: readString(json, <String>['sectionId']) ?? '',
@@ -94,25 +88,30 @@ class ClubItem {
 
   /// Whether [section] is this club's own section.
   bool owns(SectionItem section) =>
-      section.isClub &&
-      sectionId.isNotEmpty &&
-      (sectionId == section.sectionId || sectionId == section.id);
+      section.isClub && sectionId.isNotEmpty && sectionId == section.sectionId;
 }
 
-/// The sections one may post to, in the server's order: 综合 and the colleges
-/// (the server decides college membership and says so on publish), plus the
-/// sections of clubs one may post as.
+/// The sections one may post to, in the server's order: 综合, one's own
+/// college, and the sections of clubs one may post as.
+///
+/// [college] is the profile's 学院, which the server takes from the school
+/// identity mapping; only that college's section accepts one's posts. Null
+/// (profile not loaded) leaves every college in, and the server still says
+/// no on publish.
 List<SectionItem> postableSections(
   List<SectionItem> sections,
-  List<ClubItem> clubs,
-) {
+  List<ClubItem> clubs, {
+  String? college,
+}) {
   return sections
       .where(
-        (SectionItem section) =>
-            !section.isClub ||
-            clubs.any(
-              (ClubItem club) => club.canPublishAs && club.owns(section),
-            ),
+        (SectionItem section) => section.isClub
+            ? clubs.any(
+                (ClubItem club) => club.canPublishAs && club.owns(section),
+              )
+            : !section.isCollege ||
+                  college == null ||
+                  section.sectionName == college,
       )
       .toList(growable: false);
 }

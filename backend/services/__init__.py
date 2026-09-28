@@ -35,7 +35,6 @@ from services._db_service import (
     next_id,
     normalize_admin_role,
     normalize_admin_username,
-    post_counts,
     remove_audit_log,
     save_db,
     serialize_android_release,
@@ -108,6 +107,9 @@ from services._user_service import (
     user_level_label,
     user_nickname,
     iso_to_time_text,
+    college_sections,
+    verified_college,
+    verified_college_section,
 )
 
 __all__ = [
@@ -148,7 +150,6 @@ __all__ = [
     "list_posts",
     "normalize_admin_role",
     "normalize_admin_username",
-    "post_counts",
     "serialize_android_release",
     "serialize_admin_account",
     "serialize_admin_auth_payload",
@@ -216,4 +217,7 @@ __all__ = [
     "user_level_label",
     "user_nickname",
     "iso_to_time_text",
+    "college_sections",
+    "verified_college",
+    "verified_college_section",
 ]

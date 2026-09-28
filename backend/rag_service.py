@@ -165,13 +165,12 @@ def _corpus(db: dict[str, Any], include_posts: bool = True) -> list[dict[str, An
                 "id": str(post.get("id", "")),
                 "title": title,
                 "content": content,
-                "searchText": f"{title} {content} {tags} {post.get('channel', '')}",
+                "searchText": f"{title} {content} {tags} {post.get('sectionName', '')}",
                 "sourceUrl": str(post.get("sourceUrl") or ""),
-                "sourceName": _clean(post.get("channel") or "论坛公开帖子", 160),
+                "sourceName": _clean(post.get("sectionName") or "论坛公开帖子", 160),
                 "authority": "community",
                 "createdAt": str(post.get("createdAt", "")),
                 "updatedAt": str(post.get("updatedAt") or post.get("createdAt") or ""),
-                "channel": str(post.get("channel", "")),
                 "jumpUrl": f"/pages/campus/post-detail/index?id={post.get('id', '')}",
             })
     for row in rows:
@@ -181,7 +180,7 @@ def _corpus(db: dict[str, Any], include_posts: bool = True) -> list[dict[str, An
 
 _FINGERPRINT_FIELDS = (
     "type", "id", "title", "content", "searchText", "sourceUrl",
-    "sourceName", "authority", "createdAt", "publishedAt", "updatedAt", "jumpUrl", "channel",
+    "sourceName", "authority", "createdAt", "publishedAt", "updatedAt", "jumpUrl",
 )
 
 
@@ -424,7 +423,7 @@ def citations(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "summary": row.get("summary", ""),
             "publishedAt": row.get("publishedAt") if row.get("type") == "knowledge" else row.get("createdAt", ""),
             "updatedAt": row.get("updatedAt", ""),
-            "publisher": row.get("channel") or row.get("sourceName", ""),
+            "publisher": row.get("sourceName", ""),
             "sourceUrl": row.get("sourceUrl", ""),
             "jumpUrl": row.get("jumpUrl", ""),
             "authority": row.get("authority", ""),

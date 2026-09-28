@@ -66,7 +66,6 @@ DEFAULT_ADMIN_USERNAME = _globals.DEFAULT_ADMIN_USERNAME
 DEFAULT_ADMIN_PASSWORD = _globals.DEFAULT_ADMIN_PASSWORD
 ADMIN_USERNAME_SETTING_KEY = _globals.ADMIN_USERNAME_SETTING_KEY
 ADMIN_PASSWORD_HASH_SETTING_KEY = _globals.ADMIN_PASSWORD_HASH_SETTING_KEY
-DEFAULT_CHANNELS = _globals.DEFAULT_CHANNELS
 DEFAULT_TAGS = _globals.DEFAULT_TAGS
 DEFAULT_SETTINGS = _globals.DEFAULT_SETTINGS
 DEFAULT_SENSITIVE_WORDS = _globals.DEFAULT_SENSITIVE_WORDS
@@ -125,7 +124,7 @@ from services import (
     serialize_user_level_request_summary, list_following_users, list_follower_users,
     list_friend_users, is_user_following, count_following, count_followers,
     build_follow_user_item, normalize_optional_bool, is_post_anonymous,
-    effective_post_allow_dm,
+    effective_post_allow_dm, college_sections,
 )
 from services._db_service import (
     build_admin_account, normalize_admin_username, is_valid_admin_username,
@@ -137,7 +136,7 @@ from services._db_service import (
     serialize_image_upload, build_image_rows, public_system_settings,
     auth_user as auth_user_helper, build_pagination_meta, IS_SQL_DB,
 )
-from _globals import smtp_configured, verify_code_debug_enabled, DEFAULT_CHANNELS
+from _globals import smtp_configured, verify_code_debug_enabled
 
 
 def password_reset_code_key(email: str) -> str:
@@ -542,10 +541,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/sections/tree":
                 _radio_handler.handle_get_sections_tree(self, db)
                 return
-            _section_posts_match = re.fullmatch(r"/api/sections/([^/]+)/posts", path)
-            if _section_posts_match:
-                _radio_handler.handle_get_section_posts(self, db, _section_posts_match.group(1), query)
-                return
 
             if path == "/api/clubs":
                 _radio_handler.handle_get_clubs(self, db)
@@ -589,23 +584,17 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _radio_handler.handle_admin_club_applications(self, db, query)
                 return
 
-            # Channels
-            if path == "/api/channels":
-                channel_rows = list(dict.fromkeys(["综合", *(db.get("channels", []) or []), *_globals.DEFAULT_CHANNELS]))
-                send_json(self, HTTPStatus.OK, {"data": channel_rows})
-                return
-
             if path == "/api/colleges":
+                # The colleges the school identity mapping assigns people to;
+                # nothing is hard-coded, so the mapping alone decides.
                 send_json(self, HTTPStatus.OK, {
                     "data": [
-                        {"id": "cs", "name": "计算机科学与技术学院", "icon": "计"},
-                        {"id": "ee", "name": "电子工程学院", "icon": "电"},
-                        {"id": "is", "name": "网络与信息安全学院", "icon": "安"},
-                        {"id": "me", "name": "机电工程学院", "icon": "机"},
-                        {"id": "math", "name": "数学与统计学院", "icon": "数"},
-                        {"id": "phys", "name": "物理学院", "icon": "物"},
-                        {"id": "human", "name": "人文学院", "icon": "文"},
-                        {"id": "econ", "name": "经济与管理学院", "icon": "经"},
+                        {
+                            "sectionId": str(row.get("sectionId", "")),
+                            "sectionName": str(row.get("sectionName") or row.get("name") or ""),
+                            "icon": str(row.get("sectionName") or row.get("name") or "学")[:1],
+                        }
+                        for row in college_sections(db)
                     ]
                 })
                 return
@@ -786,8 +775,8 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/admin/export":
                 _admin_handler.handle_admin_export(self, db, query)
                 return
-            if path == "/api/admin/channels-tags":
-                _admin_handler.handle_admin_channels_tags(self, db)
+            if path == "/api/admin/tags":
+                _admin_handler.handle_admin_tags(self, db)
                 return
             if path == "/api/admin/config":
                 _admin_handler.handle_admin_config(self, db)

@@ -16,13 +16,11 @@ class _ReadyController extends CreatePostController {
     state = const CreatePostState(
       sections: <SectionItem>[
         SectionItem(
-          id: 'section-general',
           sectionType: 'general',
           sectionId: 'general',
           sectionName: '综合',
         ),
         SectionItem(
-          id: 'section-cs',
           sectionType: 'college',
           sectionId: 'cs',
           sectionName: '计算机科学与技术学院',

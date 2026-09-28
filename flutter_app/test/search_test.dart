@@ -216,7 +216,6 @@ void main() {
 }
 
 const SectionItem _general = SectionItem(
-  id: 'section-general',
   sectionType: 'general',
   sectionId: 'general',
   sectionName: '综合',

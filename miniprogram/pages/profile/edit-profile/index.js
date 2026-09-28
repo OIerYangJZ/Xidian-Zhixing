@@ -168,7 +168,6 @@ Page({
         nickname,
         bio,
         gender: this.data.form.gender,
-        college: this.data.form.college.trim(),
         major: this.data.form.major.trim(),
         // The avatar is saved by its upload endpoint; this route rejects changes to it.
         backgroundImageUrl: this.data.backgroundPath

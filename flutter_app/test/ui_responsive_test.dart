@@ -455,7 +455,6 @@ class _TestCreatePostController extends CreatePostController {
     state = CreatePostState(
       sections: const <SectionItem>[
         SectionItem(
-          id: 'section-general',
           sectionType: 'general',
           sectionId: 'general',
           sectionName: '综合',

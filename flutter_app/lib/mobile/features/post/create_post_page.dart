@@ -93,10 +93,20 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         repo.fetchSections(),
         repo.fetchClubs(),
       ).wait;
+      // The profile's 学院 (from the identity mapping) picks the one college
+      // section open to this user; without it every college stays listed and
+      // the server decides on publish.
+      String? college;
+      try {
+        college =
+            (await ref.read(userRepositoryProvider).fetchProfile()).college;
+      } catch (_) {
+        college = null;
+      }
       if (!mounted) return;
       setState(() {
         _clubs = clubs;
-        _sections = postableSections(sections, clubs);
+        _sections = postableSections(sections, clubs, college: college);
         // 综合 unless the user picks another.
         _section ??= _sections
             .where((SectionItem s) => s.isGeneral)

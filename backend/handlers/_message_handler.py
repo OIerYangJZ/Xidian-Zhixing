@@ -45,7 +45,6 @@ from services import (
     list_comments,
     mark_conversation_read,
     next_id,
-    post_counts,
     refresh_conversation_pair_metadata,
     save_db,
     serialize_direct_message,

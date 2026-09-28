@@ -799,7 +799,8 @@ class TestDatabaseMigration:
         # 检查必要字段
         assert "users" in db
         assert "posts" in db
-        assert "channels" in db
+        # Channels are retired; their names live on as tags.
+        assert "channels" not in db
         assert "tags" in db
         assert "sessions" in db
         assert "settings" in db
@@ -835,7 +836,7 @@ class TestDatabaseMigration:
             assert "id" in post
             assert "title" in post
             assert "content" in post
-            assert "channel" in post
+            assert "channel" not in post
             assert "authorId" in post
 
 

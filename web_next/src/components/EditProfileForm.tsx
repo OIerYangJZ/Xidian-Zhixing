@@ -23,7 +23,6 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
       nickname: me?.nickname || '',
       bio: me?.bio || '',
       gender: me?.gender === '男' || me?.gender === '女' ? me.gender : '',
-      college: me?.college || '',
       major: me?.major || '',
     }),
     [me],
@@ -52,7 +51,7 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
 
   if (!me) return <GenericLoading>{t('正在加载资料…', 'Loading profile…')}</GenericLoading>;
 
-  const textField = (name: 'nickname' | 'college' | 'major', label: string, Icon?: typeof Profile) => (
+  const textField = (name: 'nickname' | 'major', label: string, Icon?: typeof Profile) => (
     <Controller
       control={control}
       name={name}
@@ -103,7 +102,13 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
           </label>
         )}
       />
-      {textField('college', t('学院', 'College'))}
+      {/* Set by the school's identity mapping, never typed in. */}
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span>{t('学院', 'College')}</span>
+        <span className="text-muted-foreground">
+          {me.college || t('未由统一认证确认', 'Not confirmed by Xidian sign-in')}
+        </span>
+      </div>
       {textField('major', t('专业', 'Major'))}
       <div className="flex justify-end gap-4">
         <Button mode="secondary" type="button" loading={updateSessionUserDataMutation.isPending} onPress={resetForm}>
