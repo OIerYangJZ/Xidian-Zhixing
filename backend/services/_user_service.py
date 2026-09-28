@@ -1002,12 +1002,12 @@ def _notification_preference_key(notification_type: str) -> str | None:
         return "notifyComment"
     if normalized == "reply":
         return "notifyReply"
-    # Reposts and mentions have no switch of their own yet: a repost is an
-    # interaction like a like, a mention is addressed to you like a reply.
-    if normalized in {"like", "repost"}:
+    if normalized == "like":
         return "notifyLike"
+    if normalized == "repost":
+        return "notifyRepost"
     if normalized == "mention":
-        return "notifyReply"
+        return "notifyMention"
     if normalized == "favorite":
         return "notifyFavorite"
     if normalized == "report_result":

@@ -47,6 +47,8 @@ export function SettingsPreferences({ section }: { section: 'privacy' | 'notific
     { key: 'notifyReply', title: t('评论回复', 'Comment replies') },
     { key: 'notifyLike', title: t('点赞', 'Likes') },
     { key: 'notifyFavorite', title: t('收藏', 'Bookmarks') },
+    { key: 'notifyRepost', title: t('转发', 'Reposts') },
+    { key: 'notifyMention', title: t('@我', 'Mentions') },
     { key: 'notifyReportResult', title: t('举报处理结果', 'Report outcomes') },
     { key: 'notifySystem', title: t('系统通知', 'System notifications') },
   ] as const;

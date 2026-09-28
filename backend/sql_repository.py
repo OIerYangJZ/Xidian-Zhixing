@@ -392,6 +392,8 @@ class SqliteTreeholeRepository:
               notify_reply INTEGER NOT NULL DEFAULT 1,
               notify_like INTEGER NOT NULL DEFAULT 1,
               notify_favorite INTEGER NOT NULL DEFAULT 1,
+              notify_repost INTEGER NOT NULL DEFAULT 1,
+              notify_mention INTEGER NOT NULL DEFAULT 1,
               notify_report_result INTEGER NOT NULL DEFAULT 1,
               notify_system INTEGER NOT NULL DEFAULT 1,
               created_at TEXT NOT NULL,
@@ -847,6 +849,8 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "users", "notify_reply", "INTEGER NOT NULL DEFAULT 1")
         self._ensure_column(conn, "users", "notify_like", "INTEGER NOT NULL DEFAULT 1")
         self._ensure_column(conn, "users", "notify_favorite", "INTEGER NOT NULL DEFAULT 1")
+        self._ensure_column(conn, "users", "notify_repost", "INTEGER NOT NULL DEFAULT 1")
+        self._ensure_column(conn, "users", "notify_mention", "INTEGER NOT NULL DEFAULT 1")
         self._ensure_column(conn, "users", "notify_report_result", "INTEGER NOT NULL DEFAULT 1")
         self._ensure_column(conn, "users", "notify_system", "INTEGER NOT NULL DEFAULT 1")
         self._ensure_column(conn, "posts", "is_anonymous", "INTEGER NULL")
@@ -1008,7 +1012,8 @@ class SqliteTreeholeRepository:
                    college, major,
                    user_level, verified, verified_at,
                    allow_stranger_dm, show_contactable,
-                   notify_comment, notify_reply, notify_like, notify_favorite, notify_report_result, notify_system,
+                   notify_comment, notify_reply, notify_like, notify_favorite, notify_repost, notify_mention,
+                   notify_report_result, notify_system,
                    created_at, deleted, is_admin, banned, banned_at, muted
             FROM users
             ORDER BY created_at, id
@@ -1038,6 +1043,8 @@ class SqliteTreeholeRepository:
                     "notifyReply": _to_bool(row["notify_reply"]),
                     "notifyLike": _to_bool(row["notify_like"]),
                     "notifyFavorite": _to_bool(row["notify_favorite"]),
+                    "notifyRepost": _to_bool(row["notify_repost"]),
+                    "notifyMention": _to_bool(row["notify_mention"]),
                     "notifyReportResult": _to_bool(row["notify_report_result"]),
                     "notifySystem": _to_bool(row["notify_system"]),
                     "createdAt": row["created_at"],
@@ -1707,9 +1714,10 @@ class SqliteTreeholeRepository:
                       college, major,
                       user_level, verified, verified_at,
                       allow_stranger_dm, show_contactable,
-                      notify_comment, notify_reply, notify_like, notify_favorite, notify_report_result, notify_system,
+                      notify_comment, notify_reply, notify_like, notify_favorite, notify_repost, notify_mention,
+                   notify_report_result, notify_system,
                       created_at, deleted, is_admin, banned, banned_at, muted
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         user_id,
@@ -1733,6 +1741,8 @@ class SqliteTreeholeRepository:
                         _to_bool_int(row.get("notifyReply", True)),
                         _to_bool_int(row.get("notifyLike", True)),
                         _to_bool_int(row.get("notifyFavorite", True)),
+                        _to_bool_int(row.get("notifyRepost", True)),
+                        _to_bool_int(row.get("notifyMention", True)),
                         _to_bool_int(row.get("notifyReportResult", True)),
                         _to_bool_int(row.get("notifySystem", True)),
                         _to_str(row.get("createdAt")) or created_now,

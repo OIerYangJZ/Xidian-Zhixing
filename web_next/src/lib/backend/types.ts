@@ -26,6 +26,8 @@ export interface ApiMe {
   notifyReply: boolean;
   notifyLike: boolean;
   notifyFavorite: boolean;
+  notifyRepost: boolean;
+  notifyMention: boolean;
   notifyReportResult: boolean;
   notifySystem: boolean;
   favoriteCount: number;

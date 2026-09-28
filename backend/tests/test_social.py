@@ -291,3 +291,35 @@ def test_activity_lists_my_actions_newest_first(world: dict[str, Any]) -> None:
     assert [item["type"] for item in items] == ["follow", "repost", "favorite", "like_comment", "like_post", "post"]
     assert items[0]["user"] == {"userId": "bob", "nickname": "小波"}
     assert items[3]["post"]["id"] == "p3"
+
+
+def test_repost_and_mention_have_their_own_switches(world: dict[str, Any]) -> None:
+    from handlers import _social_handler
+    from handlers._social_handler import notify_mentions
+
+    db = world["db"]
+    world["bob"]["notifyRepost"] = False
+    # Turning likes off must not silence reposts, and the other way round.
+    world["carol"]["notifyLike"] = False
+    _call(_social_handler.handle_toggle_repost, db, "p1", body={"reposted": True})
+    assert _notifications(db, "bob", "repost") == []
+
+    world["bob"]["notifyMention"] = False
+    world["carol"]["notifyReply"] = False
+    mentions = [{"userId": "bob", "nickname": "小波"}, {"userId": "carol", "nickname": "卡萝"}]
+    notify_mentions(db, mentions, author=world["alice"], anonymous=False, actor_alias="阿丽", snippet="@小波 @卡萝", post_id="p3")
+    assert _notifications(db, "bob", "mention") == []
+    assert len(_notifications(db, "carol", "mention")) == 1
+
+
+def test_new_switches_round_trip(tmp_path: Path) -> None:
+    from services._db_service import default_db
+    from sql_repository import SqliteTreeholeRepository
+
+    repo = SqliteTreeholeRepository(tmp_path / "prefs.db")
+    repo.initialize(default_db)
+    db = repo.load_state()
+    db["users"].append({**_person("alice", "2500500", "阿丽"), "notifyRepost": False, "notifyMention": True})
+    repo.save_state(db)
+    alice = next(u for u in repo.load_state()["users"] if u["id"] == "alice")
+    assert (alice["notifyRepost"], alice["notifyMention"]) == (False, True)

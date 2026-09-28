@@ -115,6 +115,8 @@ def handle_get_me(
                 "notifyReply": bool(user.get("notifyReply", True)),
                 "notifyLike": bool(user.get("notifyLike", True)),
                 "notifyFavorite": bool(user.get("notifyFavorite", True)),
+                "notifyRepost": bool(user.get("notifyRepost", True)),
+                "notifyMention": bool(user.get("notifyMention", True)),
                 "notifyReportResult": bool(user.get("notifyReportResult", True)),
                 "notifySystem": bool(user.get("notifySystem", True)),
                 "favoriteCount": favorite_count,
@@ -398,6 +400,8 @@ def handle_update_notification_preferences(
         "notifyReply",
         "notifyLike",
         "notifyFavorite",
+        "notifyRepost",
+        "notifyMention",
         "notifyReportResult",
         "notifySystem",
     )
