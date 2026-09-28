@@ -42,7 +42,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   /// A section's key; the draft keeps it across visits.
   String? _selectedSectionKey;
-  PostStatus _status = PostStatus.ongoing;
+  PostStatus _status = PostStatus.none;
   bool _useAnonymousAlias = false;
   bool _useMarkdown = false;
   String _plainDraft = '';
@@ -963,7 +963,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       _pickedImages.clear();
       _selectedSectionKey = null;
       _selectedPinDurationMinutes = null;
-      _status = PostStatus.ongoing;
+      _status = PostStatus.none;
       _privateOnly = false;
       _useAnonymousAlias = false;
       _showErrors = false;
@@ -1024,7 +1024,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       final String status = draft['status']?.toString() ?? '';
       _status = PostStatus.values.firstWhere(
         (PostStatus item) => item.name == status,
-        orElse: () => PostStatus.ongoing,
+        orElse: () => PostStatus.none,
       );
     });
   }

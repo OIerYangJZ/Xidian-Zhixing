@@ -147,11 +147,17 @@ export const resolveUrl = (value) => {
   return `${baseUrl.replace(/\/$/, '')}/${text}`;
 };
 
-const statusLabel = (status) => {
+// 状态 is optional: 'none' (and old rows without one) shows no badge.
+export const POST_STATUS_LABELS = { none: '不标记', ongoing: '进行中', resolved: '已解决', closed: '已结束' };
+
+const statusKeyOf = (status) => {
   const value = String(status || '').toLowerCase();
-  if (value === 'resolved') return '已解决';
-  if (value === 'closed') return '已结束';
-  return '进行中';
+  return POST_STATUS_LABELS[value] ? value : 'none';
+};
+
+const statusLabel = (status) => {
+  const key = statusKeyOf(status);
+  return key === 'none' ? '' : POST_STATUS_LABELS[key];
 };
 
 const normalizeCount = (raw, field, label) => {
@@ -227,9 +233,7 @@ export const normalizePost = (raw = {}) => {
     // Only one's own posts come back pending / rejected (待审核 / 未通过审核).
     reviewStatus: String(raw.reviewStatus || 'approved'),
     statusLabel: statusLabel(raw.status),
-    statusKey: ['resolved', 'closed'].includes(String(raw.status || '').toLowerCase())
-      ? String(raw.status).toLowerCase()
-      : 'ongoing',
+    statusKey: statusKeyOf(raw.status),
     imageUrls,
     firstImageUrl: imageUrls[0] || ''
   };

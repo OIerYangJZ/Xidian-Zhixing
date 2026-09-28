@@ -2,7 +2,7 @@ import Button from '@/components/ui/Button';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import { GetVisualMedia, DisplayIdentity, GetPost } from '@/types/definitions';
+import { GetVisualMedia, DisplayIdentity, GetPost, POST_PROGRESS_OPTIONS, PostProgress } from '@/types/definitions';
 import { useWritePostMutations } from '@/hooks/mutations/useWritePostMutations';
 import { useDialogs } from '@/hooks/useDialogs';
 import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
@@ -38,6 +38,8 @@ export function CreatePostDialog({
     editingPost?.displayIdentity === 'ANONYMOUS' ? editingPost.authorAlias : '',
   );
   const [sectionId, setSectionId] = useState(editingPost?.sectionId ?? GENERAL_SECTION.sectionId);
+  // 状态 is optional; 不标记 leaves the post without a badge.
+  const [progress, setProgress] = useState<PostProgress>(editingPost?.progress ?? 'none');
   const { data: sectionTree } = useQuery({
     queryKey: ['sections', 'tree'],
     queryFn: getSectionTree,
@@ -61,8 +63,8 @@ export function CreatePostDialog({
   }, [sections, sectionId]);
   const exitCreatePostModal = useCallback(() => setShown(false), [setShown]);
   const draft = useMemo(
-    () => ({ title, content, visualMedia, displayIdentity, anonymousAlias, section }),
-    [title, content, visualMedia, displayIdentity, anonymousAlias, section],
+    () => ({ title, content, visualMedia, displayIdentity, anonymousAlias, section, progress }),
+    [title, content, visualMedia, displayIdentity, anonymousAlias, section, progress],
   );
   const { createPostMutation, editPostMutation } = useWritePostMutations({
     draft,
@@ -212,6 +214,20 @@ export function CreatePostDialog({
             {sections.map((item) => (
               <option key={item.sectionId} value={item.sectionId}>
                 {item.sectionName || item.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="mt-3 flex items-center justify-between gap-3 text-sm">
+          <span>{t('状态', 'Status')}</span>
+          <select
+            aria-label={t('状态', 'Status')}
+            value={progress}
+            onChange={(event) => setProgress(event.target.value as PostProgress)}
+            className="min-h-10 border border-border bg-background px-3 text-foreground">
+            {POST_PROGRESS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {t(option.zh, option.en)}
               </option>
             ))}
           </select>

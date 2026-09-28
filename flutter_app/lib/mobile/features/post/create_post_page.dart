@@ -46,7 +46,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   SectionItem? _section;
   List<String> _tags = <String>[];
-  PostStatus _status = PostStatus.ongoing;
+  PostStatus _status = PostStatus.none;
   bool _privateOnly = false;
   bool _isAnonymous = false;
   int? _pinMinutes;
@@ -732,6 +732,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   keyPrefix: 'mobile-create-status',
                   value: _status,
                   options: const <(PostStatus, String)>[
+                    (PostStatus.none, '不标记'),
                     (PostStatus.ongoing, '进行中'),
                     (PostStatus.resolved, '已解决'),
                     (PostStatus.closed, '已结束'),

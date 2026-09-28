@@ -12,9 +12,11 @@ import {
   setPostReposted,
   requestPostPin,
   unfavoritePost,
+  updatePost,
   updateComment
 } from '../../../api/posts';
 import { insertMention, mentionIdsIn, mentionQueryAt, searchMentionCandidates } from '../../../utils/mentions';
+import { POST_STATUS_LABELS } from '../../../utils/format';
 import { createDirectConversation } from '../../../api/messages';
 import { askAiWithPostSelection } from '../../../api/ai';
 import { followUser, unfollowUser } from '../../../api/user';
@@ -313,6 +315,25 @@ Page({
     });
   },
 
+  // 状态 of one's own post: any of the four, in any order.
+  chooseStatus() {
+    const post = this.data.post;
+    if (!post || !post.isOwnPost) return;
+    const keys = Object.keys(POST_STATUS_LABELS).filter((key) => key !== post.statusKey);
+    wx.showActionSheet({
+      itemList: keys.map((key) => POST_STATUS_LABELS[key]),
+      success: async (res) => {
+        const status = keys[res.tapIndex];
+        if (!status) return;
+        try {
+          const saved = await updatePost(post.id, { status });
+          this.setData({ 'post.status': saved.status, 'post.statusKey': saved.statusKey, 'post.statusLabel': saved.statusLabel });
+          wx.showToast({ title: saved.statusLabel ? `已标记为${saved.statusLabel}` : '已取消状态标记', icon: 'none' });
+        } catch (error) {}
+      }
+    });
+  },
+
   editOwnPost() {
     if (!this.data.post || !this.data.post.isOwnPost) return;
     wx.navigateTo({ url: `/pages/campus/create-post/index?editId=${this.data.post.id}` });
@@ -460,7 +481,7 @@ Page({
     // At most six entries (wx.showActionSheet's limit).
     const itemList = ['问 AI', '复制链接'];
     if (this.data.post.isOwnPost) {
-      itemList.push('编辑');
+      itemList.push('编辑', '更改状态');
       if (!this.data.post.isPinned) itemList.push('置顶');
       itemList.push('删除');
     } else {
@@ -474,6 +495,7 @@ Page({
         if (action === '复制链接') this.copyPostLink();
         if (action === '举报') this.reportPost();
         if (action === '编辑') this.editOwnPost();
+        if (action === '更改状态') this.chooseStatus();
         if (action === '置顶') this.requestPin();
         if (action === '删除') this.deleteOwnPost();
       }

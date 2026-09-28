@@ -16,7 +16,9 @@ const CONTENT_LIMIT = 10000;
 const TITLE_LIMIT = 200;
 const TAG_LIMIT = 10;
 const DRAFT_KEY = 'createPostDraft';
+// 状态 is optional; 不标记 (the default) shows no badge on the post.
 const STATUS_OPTIONS = [
+  { label: '不标记', value: 'none', icon: 'minus' },
   { label: '进行中', value: 'ongoing', icon: 'help' },
   { label: '已解决', value: 'resolved', icon: 'check' },
   { label: '已结束', value: 'closed', icon: 'lock' }

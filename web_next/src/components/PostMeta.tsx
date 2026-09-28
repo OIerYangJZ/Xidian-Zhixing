@@ -13,7 +13,7 @@ export function PostMeta({ post }: { post: GetPost }) {
   if (
     !post.isPinned &&
     !showSection &&
-    post.progress === 'ongoing' &&
+    post.progress === 'none' &&
     post.status === 'PUBLISHED' &&
     !post.isPrivate &&
     !post.editedAt
@@ -24,6 +24,9 @@ export function PostMeta({ post }: { post: GetPost }) {
     <div className="mt-1 flex flex-wrap items-center gap-1.5">
       {post.isPinned && <span className={cn(chip, 'bg-primary/10 text-primary')}>{t('置顶', 'Pinned')}</span>}
       {showSection && <span className={cn(chip, 'bg-secondary text-muted-foreground')}>{post.sectionName}</span>}
+      {post.progress === 'ongoing' && (
+        <span className={cn(chip, 'bg-sky-500/10 text-sky-700 dark:text-sky-300')}>{t('进行中', 'Ongoing')}</span>
+      )}
       {post.progress === 'resolved' && (
         <span className={cn(chip, 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400')}>
           {t('已解决', 'Resolved')}

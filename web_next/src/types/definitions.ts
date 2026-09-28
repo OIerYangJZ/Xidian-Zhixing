@@ -11,8 +11,18 @@ export type VisualMediaType = 'PHOTO' | 'VIDEO';
 export type DisplayIdentity = 'USER' | 'CLUB' | 'ANONYMOUS';
 /** Moderation state as the author sees it; others only ever get PUBLISHED. */
 export type PostStatus = 'PUBLISHED' | 'PENDING_REVIEW' | 'REMOVED';
-/** Author-set progress on a post (求助 → 已解决 …). */
-export type PostProgress = 'ongoing' | 'resolved' | 'closed';
+/**
+ * Author-set 状态 on a post (求助 → 已解决 …).  Optional: 'none' shows no
+ * badge.  Only the author changes it, in any direction.
+ */
+export type PostProgress = 'none' | 'ongoing' | 'resolved' | 'closed';
+
+export const POST_PROGRESS_OPTIONS: Array<{ value: PostProgress; zh: string; en: string }> = [
+  { value: 'none', zh: '不标记', en: 'No status' },
+  { value: 'ongoing', zh: '进行中', en: 'Ongoing' },
+  { value: 'resolved', zh: '已解决', en: 'Resolved' },
+  { value: 'closed', zh: '已结束', en: 'Closed' },
+];
 export type SectionType = 'general' | 'college' | 'club';
 
 export type ActivityType =

@@ -17,6 +17,7 @@
         <template is="post-row" data="{{item, index}}" />
         <view class="tools">
           <view class="segment">
+            <view class="segment-option {{item.statusKey === 'none' ? 'segment-option--on' : ''}}" data-index="{{index}}" data-status="none" bindtap="changeStatus">不标记</view>
             <view class="segment-option {{item.statusKey === 'ongoing' ? 'segment-option--on' : ''}}" data-index="{{index}}" data-status="ongoing" bindtap="changeStatus">进行中</view>
             <view class="segment-option {{item.statusKey === 'resolved' ? 'segment-option--on' : ''}}" data-index="{{index}}" data-status="resolved" bindtap="changeStatus">已解决</view>
             <view class="segment-option {{item.statusKey === 'closed' ? 'segment-option--on' : ''}}" data-index="{{index}}" data-status="closed" bindtap="changeStatus">已结束</view>

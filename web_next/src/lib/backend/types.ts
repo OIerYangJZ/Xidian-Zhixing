@@ -112,7 +112,7 @@ export interface ApiPost {
   reposted: boolean;
   mentions: ApiMention[];
   editedAt: string;
-  status: 'ongoing' | 'resolved' | 'closed';
+  status: 'none' | 'ongoing' | 'resolved' | 'closed';
   reviewStatus: 'approved' | 'pending' | 'rejected' | 'resolved';
   allowComment: boolean;
   allowDm: boolean;

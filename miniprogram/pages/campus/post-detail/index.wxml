@@ -24,7 +24,7 @@
           </view>
           <view class="post-subline">
             <text class="post-time" style="color: var(--text-secondary);">{{post.timeText || post.createdAt}}</text>
-            <text class="zx-badge {{post.statusKey === 'resolved' ? 'zx-badge--success' : post.statusKey === 'closed' ? 'zx-badge--neutral' : 'zx-badge--info'}}" style="margin-left: 12rpx;">{{post.statusLabel}}</text>
+            <text wx:if="{{post.statusLabel}}" class="zx-badge {{post.statusKey === 'resolved' ? 'zx-badge--success' : post.statusKey === 'closed' ? 'zx-badge--neutral' : 'zx-badge--info'}}" style="margin-left: 12rpx;">{{post.statusLabel}}</text>
             <text wx:if="{{post.isEdited}}" class="zx-badge zx-badge--neutral" style="margin-left: 12rpx;">已编辑</text>
           </view>
         </view>

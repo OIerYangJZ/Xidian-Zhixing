@@ -32,7 +32,7 @@
         <view wx:if="{{item.isPinned}}" class="zx-badge zx-badge--accent"><view class="zx-i zx-i--sm zx-i-pin"></view>置顶</view>
         <view wx:if="{{item.isAnonymous}}" class="zx-badge zx-badge--outline-seal">匿名</view>
         <view wx:if="{{item.sectionName}}" class="zx-badge zx-badge--channel zx-tone-{{item.sectionTone}}"><view class="zx-dot"></view>{{item.sectionName}}</view>
-        <view class="zx-badge {{item.statusKey === 'resolved' ? 'zx-badge--success' : item.statusKey === 'closed' ? 'zx-badge--neutral' : 'zx-badge--info'}}">
+        <view wx:if="{{item.statusLabel}}" class="zx-badge {{item.statusKey === 'resolved' ? 'zx-badge--success' : item.statusKey === 'closed' ? 'zx-badge--neutral' : 'zx-badge--info'}}">
           <view class="zx-i zx-i--sm {{item.statusKey === 'resolved' ? 'zx-i-check' : 'zx-i-clock'}}"></view>{{item.statusLabel}}
         </view>
         <view wx:if="{{item.visibility === 'private' || item.isPrivate}}" class="zx-badge zx-badge--neutral"><view class="zx-i zx-i--sm zx-i-lock"></view>仅自己可见</view>

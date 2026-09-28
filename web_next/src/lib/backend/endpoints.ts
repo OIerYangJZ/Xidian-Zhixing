@@ -4,7 +4,7 @@
  * @/types/definitions.  Route semantics (envelopes, rate limits, id formats):
  * docs/backend-api-contract.md.
  */
-import type { GetComment, GetPost, GetUser } from '@/types/definitions';
+import type { GetComment, GetPost, GetUser, PostProgress } from '@/types/definitions';
 import { api } from './client';
 import { meToGetUser, toGetComments, toGetPost, toGetUser } from './adapters';
 import type {
@@ -93,6 +93,8 @@ export interface CreatePostInput {
   allowComment?: boolean;
   allowDm?: boolean;
   visibility?: 'public' | 'private';
+  /** Optional; the backend stores 'none' when left out. */
+  status?: PostProgress;
   /** Accounts @-mentioned in the text; the backend keeps only those it finds there. */
   mentionUserIds?: string[];
 }
@@ -104,6 +106,7 @@ export interface EditPostInput {
   /** The complete new image list; images left out are deleted.  Omit to keep them. */
   imageUploadIds?: string[];
   mentionUserIds: string[];
+  status?: PostProgress;
 }
 
 export const editPost = async (postId: string, input: EditPostInput) =>
@@ -145,7 +148,7 @@ export const listMyActivity = (page: number, limit: number) =>
 export const createPost = async (input: CreatePostInput) =>
   toGetPost(await api<ApiPost>('/api/posts', { method: 'POST', body: input }));
 
-export const setPostProgress = async (postId: string, status: 'ongoing' | 'resolved' | 'closed') =>
+export const setPostProgress = async (postId: string, status: PostProgress) =>
   toGetPost(await api<ApiPost>(`/api/posts/${postId}`, { method: 'PATCH', body: { status } }));
 
 export const deletePost = (postId: string) => api<{ ok: boolean }>(`/api/posts/${postId}`, { method: 'DELETE' });

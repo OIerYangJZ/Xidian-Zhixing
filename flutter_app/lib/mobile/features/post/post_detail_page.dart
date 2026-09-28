@@ -808,7 +808,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     final Widget? statusBadge = switch (post.status) {
       PostStatus.resolved => const ZxBadge.resolved('已解决'),
       PostStatus.closed => const ZxBadge.closed('已结束'),
-      PostStatus.ongoing => null,
+      PostStatus.ongoing => const ZxBadge.inProgress('进行中'),
+      PostStatus.none => null,
     };
 
     return Padding(

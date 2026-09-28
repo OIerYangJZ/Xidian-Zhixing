@@ -211,7 +211,7 @@ There are no user-specific post-list endpoints. Use `GET /api/posts?authorId=<id
 | publisherType | `"user"\|"club"` | |
 | publisherClubId | str | |
 | **liked, favorited** | bool | viewer flags. **Not** `isLiked`/`isFavorited` |
-| status | `"ongoing"\|"resolved"\|"closed"` | author-set progress |
+| status | `"none"\|"ongoing"\|"resolved"\|"closed"` | author-set 状态; `none` = no badge. Only the author changes it, in any direction; nothing changes it automatically and it does not lock comments |
 | reviewStatus | `"approved"\|"pending"\|"rejected"\|"resolved"` | non-approved values are only visible to the author |
 | allowComment | bool | |
 | allowDm | bool | effective value: false if anonymous, private, the author disabled it, or the author set `allowStrangerDm=false` |
@@ -234,7 +234,7 @@ There are no user-specific post-list endpoints. Use `GET /api/posts?authorId=<id
   - `tag`: posts carrying this tag.
   - `authorId`: anonymous posts are excluded unless it is your own id.
   - `hasImage`, `allowDm`: `true|false`.
-  - `status`: `ongoing|resolved|closed`.
+  - `status`: `none|ongoing|resolved|closed`.
 - There is **no following-only feed**. The old `channel` param is gone (it is ignored).
 - Excludes deleted posts, non-approved posts (even your own), other people's private posts, and posts by users you block.
 - Response `data`: `[Post]`, or `{items,page,limit,total,hasMore}` when paginated.
@@ -263,7 +263,7 @@ There are no user-specific post-list endpoints. Use `GET /api/posts?authorId=<id
 | allowComment | bool | default true |
 | allowDm | bool | default `!useAnonymousAlias` |
 | visibility | `"public"\|"private"` | |
-| status | `ongoing\|resolved\|closed` | |
+| status | `none\|ongoing\|resolved\|closed` | optional, default `none`; `open` = `ongoing`; anything else is 400 |
 | pinDurationMinutes | int | one of 30, 60, 120, 180, 1440, 4320. **Level-1 users only** (403 otherwise) |
 | hasImage | bool | sent by Flutter, **ignored** by the server |
 
@@ -272,7 +272,7 @@ There are no user-specific post-list endpoints. Use `GET /api/posts?authorId=<id
 - Rate-limited (`post`).
 
 **Mutations**
-- `PATCH /api/posts/<id>` (author only) accepts **only** `{status: "ongoing"|"open"|"resolved"|"closed"}` (`open` is stored as `ongoing`) and returns `Post`. Title and content cannot be edited.
+- `PATCH /api/posts/<id>` (author only) accepts `{status: "none"|"ongoing"|"open"|"resolved"|"closed"}` (`open` is stored as `ongoing`, `""` as `none`) and returns `Post`; text and image edits: see §14.
 - `DELETE /api/posts/<id>` (author only) returns `{ok:true}`. Its images are deleted as well.
 - `POST /api/posts/<id>/like` with `{liked: bool}` returns `{liked, likeCount}`.
   - **There is no DELETE for post likes.** Unlike with `{liked:false}`.

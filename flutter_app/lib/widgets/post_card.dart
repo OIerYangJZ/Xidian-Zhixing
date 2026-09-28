@@ -369,7 +369,8 @@ class PostMarkers extends StatelessWidget {
       // Posts from before sections have none.
       if (section.isNotEmpty)
         ZxBadge.channel(section, color: t.channelFor(section)),
-      switch (post.status) {
+      ?switch (post.status) {
+        PostStatus.none => null,
         PostStatus.ongoing => ZxBadge.inProgress(post.status.labelFor(locale)),
         PostStatus.resolved => ZxBadge.resolved(post.status.labelFor(locale)),
         PostStatus.closed => ZxBadge.closed(post.status.labelFor(locale)),

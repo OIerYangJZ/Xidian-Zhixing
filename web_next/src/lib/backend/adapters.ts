@@ -31,7 +31,8 @@ export function toGetPost(post: ApiPost): GetPost {
     createdAt: post.createdAt,
     viewCount: post.viewCount,
     status: postStatus(post.reviewStatus),
-    progress: post.status,
+    // Rows from before the optional status may lack it.
+    progress: (['ongoing', 'resolved', 'closed'] as const).find((value) => value === post.status) ?? 'none',
     displayIdentity: identity,
     authorAlias: post.authorAlias,
     authorAvatarUrl: orNull(post.authorAvatarUrl),

@@ -8,11 +8,11 @@ import { useDeletePostMutation } from '@/hooks/mutations/useDeletePostMutation';
 import { useErrorNotifier } from '@/hooks/useErrorNotifier';
 import { useLanguage } from '@/hooks/useLanguage';
 import { getPost, setPostProgress } from '@/lib/backend/endpoints';
-import type { GetPost, PostProgress } from '@/types/definitions';
+import { POST_PROGRESS_OPTIONS, type GetPost, type PostProgress } from '@/types/definitions';
 import { useCreatePostModal } from '@/hooks/useCreatePostModal';
 import { DropdownMenuButton } from './ui/DropdownMenuButton';
 
-/** The author's menu: edit, 进行中/已解决 status, delete. */
+/** The author's menu: edit, 状态 (any of the four, in any order), delete. */
 export function PostOptions({ post }: { post: GetPost }) {
   const { id: postId, progress } = post;
   const { launchEditPost } = useCreatePostModal();
@@ -53,9 +53,9 @@ export function PostOptions({ post }: { post: GetPost }) {
   const handleOptionClick = useCallback(
     (key: Key) => {
       if (key === 'edit') handleEditClick();
-      else if (key === 'resolve') progressMutation.mutate('resolved');
-      else if (key === 'reopen') progressMutation.mutate('ongoing');
-      else handleDeleteClick();
+      else if (typeof key === 'string' && key.startsWith('progress:')) {
+        progressMutation.mutate(key.slice('progress:'.length) as PostProgress);
+      } else handleDeleteClick();
     },
     [handleDeleteClick, handleEditClick, progressMutation],
   );
@@ -65,14 +65,19 @@ export function PostOptions({ post }: { post: GetPost }) {
       key={`posts-${postId}-options`}
       label={t('动态选项', 'Post options')}
       onAction={handleOptionClick}>
+      {/* One array: a Section takes elements or an array, not a mix. */}
       <Section>
-        <Item key="edit">{t('编辑动态', 'Edit post')}</Item>
-        {progress === 'ongoing' ? (
-          <Item key="resolve">{t('标记为已解决', 'Mark as resolved')}</Item>
-        ) : (
-          <Item key="reopen">{t('重新标记为进行中', 'Mark as ongoing')}</Item>
-        )}
-        <Item key="delete">{t('删除动态', 'Delete post')}</Item>
+        {[
+          <Item key="edit">{t('编辑动态', 'Edit post')}</Item>,
+          ...POST_PROGRESS_OPTIONS.filter((option) => option.value !== progress).map((option) => (
+            <Item key={`progress:${option.value}`}>
+              {option.value === 'none'
+                ? t('取消状态标记', 'Clear status')
+                : t(`标记为${option.zh}`, `Mark as ${option.en.toLowerCase()}`)}
+            </Item>
+          )),
+          <Item key="delete">{t('删除动态', 'Delete post')}</Item>,
+        ]}
       </Section>
     </DropdownMenuButton>
   );

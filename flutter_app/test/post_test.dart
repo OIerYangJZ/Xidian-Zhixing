@@ -499,10 +499,13 @@ void main() {
           PostStatusCodec.fromDynamic('solved'),
           equals(PostStatus.resolved),
         );
+        // 状态 is optional: none, missing or unknown shows no badge.
+        expect(PostStatusCodec.fromDynamic('none'), equals(PostStatus.none));
         expect(
           PostStatusCodec.fromDynamic('unknown'),
-          equals(PostStatus.ongoing),
+          equals(PostStatus.none),
         );
+        expect(PostStatus.none.apiValue, equals('none'));
       });
 
       test('fromJson 处理空数据', () {
@@ -510,7 +513,7 @@ void main() {
 
         expect(post.id, isEmpty);
         expect(post.title, isEmpty);
-        expect(post.status, equals(PostStatus.ongoing));
+        expect(post.status, equals(PostStatus.none));
       });
 
       test('copyWith 创建新实例保留原值', () {

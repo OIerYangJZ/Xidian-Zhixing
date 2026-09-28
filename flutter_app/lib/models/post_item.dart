@@ -3,11 +3,15 @@ import 'package:flutter/widgets.dart';
 import '../core/config/app_config.dart';
 import '../core/l10n/ui_text.dart';
 
-enum PostStatus { ongoing, resolved, closed }
+/// A post's 状态, set by its author only and changeable in any direction.
+/// Optional: [none] (the default) shows no badge.
+enum PostStatus { none, ongoing, resolved, closed }
 
 extension PostStatusLabel on PostStatus {
   String get label {
     switch (this) {
+      case PostStatus.none:
+        return '不标记';
       case PostStatus.ongoing:
         return '进行中';
       case PostStatus.resolved:
@@ -19,6 +23,8 @@ extension PostStatusLabel on PostStatus {
 
   String labelFor(Locale locale) {
     switch (this) {
+      case PostStatus.none:
+        return uiTextFor(locale, zh: '不标记', en: 'No status');
       case PostStatus.ongoing:
         return uiTextFor(locale, zh: '进行中', en: 'Ongoing');
       case PostStatus.resolved:
@@ -32,6 +38,8 @@ extension PostStatusLabel on PostStatus {
 extension PostStatusCodec on PostStatus {
   String get apiValue {
     switch (this) {
+      case PostStatus.none:
+        return 'none';
       case PostStatus.ongoing:
         return 'ongoing';
       case PostStatus.resolved:
@@ -52,7 +60,10 @@ extension PostStatusCodec on PostStatus {
         text == '已结束') {
       return PostStatus.closed;
     }
-    return PostStatus.ongoing;
+    if (text == 'ongoing' || text == 'open' || text == '进行中') {
+      return PostStatus.ongoing;
+    }
+    return PostStatus.none;
   }
 }
 

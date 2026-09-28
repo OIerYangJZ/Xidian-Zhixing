@@ -1,5 +1,5 @@
 import { Query, useMutation, useQueryClient } from '@tanstack/react-query';
-import { GetVisualMedia, DisplayIdentity, GetPost } from '@/types/definitions';
+import { GetVisualMedia, DisplayIdentity, GetPost, PostProgress } from '@/types/definitions';
 import { createPost, editPost, uploadImage } from '@/lib/backend/endpoints';
 import { mentionIdsIn } from '@/lib/mentions';
 import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
@@ -13,6 +13,7 @@ export interface PostDraft {
   displayIdentity: DisplayIdentity;
   anonymousAlias: string;
   section: { sectionType: string; sectionId: string; sectionName: string };
+  progress: PostProgress;
 }
 
 /** Timelines a new post can appear in: the feed and the author's profile. */
@@ -68,6 +69,7 @@ export function useWritePostMutations({
         imageUploadIds,
         ...draft.section,
         useAnonymousAlias: anonymous,
+        status: draft.progress,
         mentionUserIds: mentionIdsIn(`${draft.title}\n${draft.content}`),
         ...(anonymous && { anonymousAlias: draft.anonymousAlias.trim() || '匿名同学' }),
       });
@@ -101,6 +103,7 @@ export function useWritePostMutations({
         title: draft.title.trim(),
         ...(draft.content !== (editing.content ?? '') && { content: draft.content }),
         ...(imagesChanged && { imageUploadIds: await uploadIdsFor(draft.visualMedia) }),
+        ...(draft.progress !== editing.progress && { status: draft.progress }),
         mentionUserIds: mentionIdsIn(text, editing.mentions),
       });
     },

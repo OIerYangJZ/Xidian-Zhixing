@@ -195,6 +195,22 @@ def _requested_state(handler: BaseHTTPRequestHandler, key: str) -> bool | None:
     return value if isinstance(value, bool) else None
 
 
+# A post's 状态, set by its author only; nothing changes it automatically and
+# it does not lock comments.  "none" (the default) shows no badge: most
+# posts are not a question waiting for an answer.  "open" is an old alias.
+POST_STATUSES = ("none", "ongoing", "resolved", "closed")
+
+
+def _normalize_post_status(value: Any) -> str | None:
+    """The stored status for a requested one, or None if it is not valid."""
+    text = str(value if value is not None else "").strip().lower()
+    if text in {"", "none"}:
+        return "none"
+    if text == "open":
+        return "ongoing"
+    return text if text in POST_STATUSES else None
+
+
 def _can_view_post(post: dict[str, Any], viewer_user_id: str) -> bool:
     author_id = str(post.get("authorId", "")).strip()
     is_owner = bool(viewer_user_id and viewer_user_id == author_id)
@@ -817,7 +833,10 @@ def handle_create_post(
     image_ids = [str(image_id).strip() for image_id in raw_image_ids if str(image_id).strip()] if isinstance(raw_image_ids, list) else []
     use_anonymous_alias = bool(body.get("useAnonymousAlias"))
     anonymous_alias = sanitize_alias(str(body.get("anonymousAlias", "")).strip(), fallback="")
-    status = str(body.get("status", "ongoing")).strip().lower()
+    status = _normalize_post_status(body.get("status"))
+    if status is None:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的帖子状态")
+        return
     visibility = normalize_post_visibility(body.get("visibility"))
     pin_duration_minutes = parse_pin_duration_minutes(body.get("pinDurationMinutes"))
     allow_comment = parse_bool(body.get("allowComment"))
@@ -1009,7 +1028,7 @@ def handle_create_post(
         "tags": tags,
         "hasImage": has_image or bool(picked_uploads),
         "imageIds": image_ids,
-        "status": status if status in {"ongoing", "resolved", "closed"} else "ongoing",
+        "status": status,
         "allowComment": True if allow_comment is None else allow_comment,
         "allowDm": (not use_anonymous_alias) if allow_dm is None else allow_dm,
         "visibility": visibility,
@@ -1998,8 +2017,8 @@ def handle_update_post(
     edits_text = any(key in body for key in ("title", "content", "markdownSource", "imageUploadIds"))
     new_status = ""
     if "status" in body:
-        new_status = str(body.get("status", "")).strip().lower()
-        if new_status not in {"ongoing", "open", "resolved", "closed"}:
+        new_status = _normalize_post_status(body.get("status")) or ""
+        if not new_status:
             json_error(handler, HTTPStatus.BAD_REQUEST, "无效的帖子状态")
             return
     elif not edits_text:
@@ -2019,7 +2038,7 @@ def handle_update_post(
         removed_object_keys = result
     # Only now: a rejected edit must not leave the status change behind.
     if new_status:
-        post["status"] = "ongoing" if new_status == "open" else new_status
+        post["status"] = new_status
     post["updatedAt"] = now_iso()
     add_audit_log(
         db,
