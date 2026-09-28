@@ -1390,7 +1390,8 @@ def handle_admin_create_account(
         json_error(handler, HTTPStatus.CONFLICT, "用户名已存在")
         return
 
-    from services import build_admin_account, next_id as svc_next_id
+    # Not re-exported by services (only server.py used it before).
+    from services._db_service import build_admin_account, next_id as svc_next_id
     account = build_admin_account(
         admin_id=svc_next_id(db, "adminAccount", "adm"),
         username=username,

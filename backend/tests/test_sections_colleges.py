@@ -204,3 +204,18 @@ def test_the_migration_marker_survives_a_save(tmp_path: Path) -> None:
     assert "2026-09-28-section-id" in again["settings"]["dataMigrations"]
     migrate_db(again)
     assert again["settings"]["dataMigrations"].count("2026-09-28-section-id") == 1
+
+
+def test_primary_admin_can_create_an_admin_account(monkeypatch: pytest.MonkeyPatch) -> None:
+    # It used to import build_admin_account from `services`, which does not
+    # export it, so every create answered 500.
+    from handlers import _admin_handler
+    from services._db_service import default_db
+
+    db = default_db()
+    admin = {"id": "", "adminId": "adm-test", "username": "admin", "role": "primary"}
+    monkeypatch.setattr(_admin_handler, "_require_primary_admin", lambda _h, _db: admin)
+    monkeypatch.setattr(_admin_handler, "save_db", lambda _db: None)
+    handler = _call(_admin_handler.handle_admin_create_account, db, body={"username": "helper01", "password": "Str0ng-Passw0rd!"})
+    assert handler.status_code == HTTPStatus.OK, handler.payload()
+    assert any(row.get("username") == "helper01" for row in db["adminAccounts"])
