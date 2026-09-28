@@ -1491,15 +1491,8 @@ def handle_admin_user_action(
     elif action == "restore":
         restore_user_account(db, target_user)
         add_audit_log(db, admin.get("adminId", "-"), "restore_user", f"恢复用户 {user_id}: {review_note}")
-    elif action == "grant_admin":
-        target_user["isAdmin"] = True
-        add_audit_log(db, admin.get("adminId", "-"), "grant_user_admin", f"设为管理员 {user_id}: {review_note}")
-    elif action == "revoke_admin":
-        if str(admin.get("id", "")).strip() == str(target_user.get("id", "")).strip():
-            json_error(handler, HTTPStatus.BAD_REQUEST, "不能移除自己的管理员权限")
-            return
-        target_user["isAdmin"] = False
-        add_audit_log(db, admin.get("adminId", "-"), "revoke_user_admin", f"移除管理员 {user_id}: {review_note}")
+    # grant_admin / revoke_admin are gone: student accounts are never
+    # administrators; administrators have their own accounts.
     else:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的动作")
         return

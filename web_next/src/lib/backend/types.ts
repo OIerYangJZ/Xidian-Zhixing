@@ -19,7 +19,6 @@ export interface ApiMe {
   banned: boolean;
   muted: boolean;
   deleted: boolean;
-  isAdmin: boolean;
   allowStrangerDm: boolean;
   showContactable: boolean;
   notifyComment: boolean;

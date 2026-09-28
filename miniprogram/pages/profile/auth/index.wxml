@@ -33,5 +33,7 @@
       <text>和</text>
       <text class="link" catchtap="goPrivacy">《隐私政策》</text>
     </view>
+    <!-- For administrators, school staff included, who may have no student account. -->
+    <view class="admin-entry" bindtap="goAdminLogin">管理员登录</view>
   </view>
 </view>

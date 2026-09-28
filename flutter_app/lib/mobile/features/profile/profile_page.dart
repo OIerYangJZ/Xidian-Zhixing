@@ -116,7 +116,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   Widget build(BuildContext context) {
     final ZxTokens t = ZxTokens.of(context);
     final UserProfile? p = _profile;
-    final bool admin = p?.isAdmin ?? false;
     final String school = <String>[
       p?.college ?? '',
       p?.major ?? '',
@@ -317,15 +316,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     subtitle: '帮助与反馈',
                     onTap: () => _open('/profile/help-feedback'),
                   ),
-                  if (admin)
-                    ZxListItem(
-                      icon: Icons.shield_outlined,
-                      iconColor: t.text2,
-                      title: '管理',
-                      trailing: const ZxBadge.level('仅管理员'),
-                      showChevron: true,
-                      onTap: () => _open('/admin'),
-                    ),
+                  // Administrator accounts are separate from this one:
+                  // signing in there leaves this account signed in.
+                  ZxListItem(
+                    icon: Icons.shield_outlined,
+                    iconColor: t.text2,
+                    title: '管理后台',
+                    subtitle: '管理员账号登录',
+                    showChevron: true,
+                    onTap: () => _open('/admin'),
+                  ),
                   ZxListItem(
                     icon: Icons.tune_rounded,
                     iconColor: t.text2,

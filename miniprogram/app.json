@@ -10,6 +10,7 @@
     "pages/campus/map/index",
     "pages/treehole/hot/index",
     "pages/admin/index",
+    "pages/admin/login/index",
     "pages/clubs/index",
     "pages/clubs/detail/index",
     "pages/clubs/apply/index",

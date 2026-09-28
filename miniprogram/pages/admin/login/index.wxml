@@ -1,0 +1,16 @@
+<view class="zx-page admin-login {{themeClass}}">
+  <view class="head">
+    <view class="zx-avatar zx-avatar--seal head-seal"><view class="zx-i zx-i-shield"></view></view>
+    <view class="zx-display head-title">管理员登录</view>
+    <view class="zx-caption head-note">管理员账号与学生账号相互独立：登录管理员不会退出你的学生账号，没有学生账号也可以登录。</view>
+  </view>
+  <view class="zx-card zx-card--pad form">
+    <view class="label">管理员账号</view>
+    <input class="input" value="{{username}}" placeholder="管理员用户名" maxlength="32" bindinput="onUsernameInput" />
+    <view class="label">密码</view>
+    <input class="input" value="{{password}}" password placeholder="密码" maxlength="128" bindinput="onPasswordInput" confirm-type="done" bindconfirm="submit" />
+    <view wx:if="{{errorMessage}}" class="zx-inline-message zx-inline-message--danger error">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--primary zx-btn--block submit {{submitting ? 'zx-btn--disabled' : ''}}" bindtap="submit">{{submitting ? '登录中…' : '登录'}}</view>
+  </view>
+  <view class="zx-caption foot">管理员账号由一级管理员在后台创建；忘记密码请联系一级管理员。</view>
+</view>

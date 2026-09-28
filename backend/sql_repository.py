@@ -1069,7 +1069,6 @@ class SqliteTreeholeRepository:
                     "notifySystem": _to_bool(row["notify_system"]),
                     "createdAt": row["created_at"],
                     "deleted": _to_bool(row["deleted"]),
-                    "isAdmin": _to_bool(row["is_admin"]),
                     "banned": _to_bool(row["banned"]),
                     "bannedAt": _to_str(row["banned_at"]),
                     "muted": _to_bool(row["muted"]),
@@ -1766,7 +1765,7 @@ class SqliteTreeholeRepository:
                         _to_bool_int(row.get("notifySystem", True)),
                         _to_str(row.get("createdAt")) or created_now,
                         _to_bool_int(row.get("deleted")),
-                        _to_bool_int(row.get("isAdmin")),
+                        0,  # users.is_admin is retired: administrators have their own accounts
                         _to_bool_int(row.get("banned")),
                         _to_str(row.get("bannedAt")),
                         _to_bool_int(row.get("muted")),

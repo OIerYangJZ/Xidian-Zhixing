@@ -19,7 +19,7 @@ import type { ApiMe } from './types';
 type Status = 'loading' | 'authenticated' | 'unauthenticated';
 
 export interface Session {
-  user: { id: string; name: string; role?: 'ADMIN' | 'USER' };
+  user: { id: string; name: string };
 }
 
 interface SessionContextValue {
@@ -154,7 +154,7 @@ function useSessionContext(): SessionContextValue {
 export function useSession(): { data: Session | null; status: Status } {
   const { status, me } = useSessionContext();
   const data = useMemo<Session | null>(
-    () => (me ? { user: { id: me.id, name: me.nickname || me.alias, role: me.isAdmin ? 'ADMIN' : 'USER' } } : null),
+    () => (me ? { user: { id: me.id, name: me.nickname || me.alias } } : null),
     [me],
   );
   return { data, status };

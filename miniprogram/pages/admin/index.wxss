@@ -150,3 +150,6 @@
 
 /* Export scopes: more chips than fit one line. */
 .filter-row.filter-wrap { flex-wrap: wrap; white-space: normal; gap: 12rpx 0; }
+
+.admin-bar { gap: 12rpx; padding: 20rpx 32rpx; border-bottom: 2rpx solid var(--zx-line); color: var(--zx-primary); }
+.admin-name { color: var(--zx-text); }

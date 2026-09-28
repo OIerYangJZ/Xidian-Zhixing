@@ -290,6 +290,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                         const SizedBox(height: 12),
                         _buildAgreement(t),
+                        // Administrator accounts are separate; school
+                        // staff may have no student account at all.
+                        TextButton(
+                          key: const Key('mobile-login-admin'),
+                          onPressed: () => context.push('/admin/login'),
+                          child: Text(
+                            uiText(
+                              context,
+                              zh: '管理员登录',
+                              en: 'Administrator sign-in',
+                            ),
+                            style: ZxType.caption.copyWith(color: t.text3),
+                          ),
+                        ),
                       ],
                     ),
                   ),

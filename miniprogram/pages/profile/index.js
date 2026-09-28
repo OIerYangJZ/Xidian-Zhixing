@@ -20,7 +20,9 @@ const MENU = [
   { key: 'college', label: '学院专区', icon: 'building', tone: 'info', url: '/pages/campus/college/index' },
   { key: 'clubs', label: '社团', icon: 'users', tone: 'success', url: '/pages/clubs/index' },
   { key: 'mailbox', label: '信箱', icon: 'mail', tone: 'accent', url: '/pages/profile/feedback/index' },
-  { key: 'admin', label: '管理', icon: 'shield', tone: 'neutral', url: '/pages/admin/index', adminOnly: true, note: '仅管理员' },
+  // Administrator accounts are separate from student ones: anyone may open
+  // the administrator login; signing in there does not touch this account.
+  { key: 'admin', label: '管理后台', icon: 'shield', tone: 'neutral', url: '/pages/admin/login/index', note: '管理员账号登录' },
   { key: 'settings', label: '设置', icon: 'sliders', tone: 'neutral', url: '/pages/profile/settings/index', note: '账号 · 隐私 · 通知 · 外观' }
 ];
 
@@ -50,7 +52,7 @@ const buildFollowUser = (raw = {}) => {
 Page({
   data: {
     quickEntries: QUICK_ENTRIES,
-    menu: MENU.filter((item) => !item.adminOnly),
+    menu: MENU,
     userInfo: null,
     followers: [],
     following: [],
@@ -136,7 +138,7 @@ Page({
       const userInfo = buildProfile(profileResponse.data);
       this.setData({
         userInfo,
-        menu: MENU.filter((item) => !item.adminOnly || userInfo.isAdmin),
+        menu: MENU,
         followers: followers.map(buildFollowUser),
         following: following.map(buildFollowUser)
       });

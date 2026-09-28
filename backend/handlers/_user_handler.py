@@ -124,7 +124,6 @@ def handle_get_me(
                 "postCount": post_count,
                 "followingCount": count_following(db, uid),
                 "followerCount": count_followers(db, uid),
-                "isAdmin": bool(user.get("isAdmin", False)),
                 "userLevel": current_user_level(user),
                 "userLevelLabel": user_level_label(current_user_level(user)),
                 "isLevelOneUser": is_level_one_user(user),

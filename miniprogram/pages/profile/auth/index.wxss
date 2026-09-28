@@ -97,3 +97,6 @@
 .box--on { background: var(--zx-primary); border-color: var(--zx-primary); }
 .box--error { border-color: var(--zx-danger); }
 .link { color: var(--zx-primary); font-weight: 600; }
+
+/* 管理员登录: quiet, under the agreement. */
+.admin-entry { margin-top: 40rpx; text-align: center; font-size: 26rpx; color: var(--zx-text-3); text-decoration: underline; }

@@ -1,5 +1,6 @@
 import {
   actAdminAccount,
+  adminLogout,
   addTag,
   createAdminAccount,
   createKnowledgeSource,
@@ -44,7 +45,7 @@ import {
   updateAdminConfig,
   updateKnowledgeSource
 } from '../../api/admin';
-import { requireLoginPage } from '../../utils/auth_guard';
+import { clearAdminSession, getAdminInfo, getAdminToken, redirectToAdminLogin } from '../../utils/admin_session';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 
 const TABS = [
@@ -226,10 +227,34 @@ Page({
     submitting: false
   },
 
+  // Needs an administrator session only, not a student one (utils/admin_session).
   onLoad() {
     applyThemeAndLanguage(this);
-    if (!requireLoginPage()) return;
+    if (!getAdminToken()) {
+      redirectToAdminLogin();
+      return;
+    }
+    this.setData({ admin: getAdminInfo() });
     this.bootstrap();
+  },
+
+  // Ends the administrator session only; a student session stays.
+  logoutAdmin() {
+    wx.showModal({
+      title: '退出管理员',
+      content: '退出管理员账号？你的学生账号（如有）不受影响。',
+      confirmText: '退出',
+      success: async (res) => {
+        if (!res.confirm) return;
+        try {
+          await adminLogout();
+        } catch (error) {
+          // Signing out locally is what matters.
+        }
+        clearAdminSession();
+        wx.navigateBack({ fail: () => wx.reLaunch({ url: '/pages/profile/auth/index' }) });
+      }
+    });
   },
 
   onShow() {
@@ -604,11 +629,9 @@ Page({
       ban: '封禁用户',
       unban: '解除封禁',
       cancel: '注销账号',
-      restore: '恢复账号',
-      grant_admin: '设为管理员',
-      revoke_admin: '移除管理员'
+      restore: '恢复账号'
     };
-    const needsNote = ['mute', 'ban', 'cancel', 'grant_admin', 'revoke_admin'].includes(action);
+    const needsNote = ['mute', 'ban', 'cancel'].includes(action);
     if (needsNote) {
       this.askNote({ title: titleMap[action], placeholderText: '处理备注', confirmText: '提交' }, (reviewNote) => {
         this.runAction(() => handleAdminUser(id, { action, reviewNote }));

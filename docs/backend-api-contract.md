@@ -129,7 +129,7 @@ There is no email/password login route. `handle_register`, `handle_verify`, `han
 | college | str | read-only: the name of the college section the identity mapping (`BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS`) assigns this student, `""` if none |
 | verified | bool | |
 | verifiedAt | str | |
-| banned, muted, deleted, isAdmin | bool | |
+| banned, muted, deleted | bool | |
 | allowStrangerDm, showContactable | bool | privacy |
 | notifyComment, notifyReply, notifyLike, notifyFavorite, notifyRepost, notifyMention, notifyReportResult, notifySystem | bool | default true |
 | favoriteCount, postCount, followingCount, followerCount | int | postCount includes pending/rejected own posts |
@@ -471,7 +471,7 @@ There are no user-specific post-list endpoints. Use `GET /api/posts?authorId=<id
 
 ## 12. Admin (paths only)
 
-Admin auth uses `POST /api/admin/auth/login`, which returns an admin token (a separate in-memory session store) used as the Bearer token. A user account with `isAdmin` also works as a secondary admin. The session floor does not apply.
+Admin auth uses `POST /api/admin/auth/login`, which returns an admin token (a separate in-memory session store) used as the Bearer token. Administrator accounts are separate from student accounts: a student token is never accepted on admin endpoints (401), `isAdmin` is no longer sent anywhere, and the `grant_admin` / `revoke_admin` user actions are gone. Clients keep the admin token apart from the student one, so either can be signed in without the other. The session floor does not apply.
 
 - POST `/api/admin/auth/login` · POST `/api/admin/auth/logout` · GET `/api/admin/auth/me` · PATCH `/api/admin/auth/password`
 - GET `/api/admin/overview`

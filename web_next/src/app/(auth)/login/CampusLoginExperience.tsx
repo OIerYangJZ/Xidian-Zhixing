@@ -310,6 +310,8 @@ export function CampusLoginExperience() {
               <span className="campus-login__legal-links">
                 <a href="/terms">{t('使用条款', 'Terms')}</a>
                 <a href="/privacy-policy">{t('隐私说明', 'Privacy')}</a>
+                {/* Administrator accounts are separate; school staff may have no student account. */}
+                <a href="/admin/">{t('管理员登录', 'Administrator sign-in')}</a>
               </span>
             </div>
           </div>

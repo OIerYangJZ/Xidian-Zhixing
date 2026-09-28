@@ -11,7 +11,6 @@ import {
   Settings,
 } from '@/svg_components';
 import { useSessionUserData } from '@/hooks/useSessionUserData';
-import { useSession } from '@/lib/backend/session';
 import { useNotificationsCountQuery } from '@/hooks/queries/useNotificationsCountQuery';
 import { useCreatePostModal } from '@/hooks/useCreatePostModal';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -23,7 +22,6 @@ import { MenuBarItem } from './MenuBarItem';
 import { ProfilePhotoOwn } from './ui/ProfilePhotoOwn';
 
 /** The Flutter admin console, published beside this site (see scripts/package_release.sh). */
-const ADMIN_CONSOLE_ROUTE = '/admin/';
 
 function DesktopComposeButton() {
   const { launchCreatePost } = useCreatePostModal();
@@ -61,7 +59,6 @@ function MobileComposeButton() {
 export function MenuBar() {
   const { t } = useLanguage();
   const [user] = useSessionUserData();
-  const { data: session } = useSession();
   const profileRoute = profileHref(user?.id) || '/settings/account';
   const { data: notificationCount } = useNotificationsCountQuery();
   const items = [
@@ -73,9 +70,6 @@ export function MenuBar() {
     { children: t('通知', 'Notifications'), Icon: NotificationBell, route: '/notifications', badge: notificationCount },
     { children: t('我的', 'Profile'), Icon: Profile, route: profileRoute },
     { children: t('设置', 'Settings'), Icon: Settings, route: '/settings' },
-    ...(session?.user?.role === 'ADMIN'
-      ? [{ children: t('管理后台', 'Admin console'), Icon: GridFeedCards, route: ADMIN_CONSOLE_ROUTE }]
-      : []),
   ];
   const mobileRoutes = ['/feed', '/campus', '/ai', '/messages', profileRoute];
   const mobileItems = mobileRoutes

@@ -29,6 +29,17 @@ export function SettingsPanel() {
           detail: t('更改头像、名称和个人介绍。', 'Change your photo, name, and bio.'),
           href: '/edit-profile',
         },
+        {
+          // Administrator accounts are separate: signing in there keeps
+          // this account signed in.  The console is its own app (/admin/).
+          label: t('管理后台', 'Admin console'),
+          detail: t(
+            '用管理员账号登录，与学生账号相互独立，不会退出当前账号。',
+            'Sign in with an administrator account; it is separate from this one.',
+          ),
+          href: '/admin/',
+          external: true,
+        },
       ],
     },
     {
@@ -108,20 +119,30 @@ export function SettingsPanel() {
           <p className="mt-1 text-sm text-muted-foreground">{group.description}</p>
           {group.rows.length > 0 && (
             <div className="mt-3 divide-y divide-border border-y border-border">
-              {group.rows.map((row) => (
-                <Link
-                  key={row.label}
-                  href={row.href}
-                  className="flex min-h-14 items-center justify-between gap-4 py-3 hover:text-foreground">
-                  <span>
-                    <span className="block text-sm font-medium">{row.label}</span>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">{row.detail}</span>
-                  </span>
-                  <span className="text-lg text-muted-foreground" aria-hidden="true">
-                    ›
-                  </span>
-                </Link>
-              ))}
+              {group.rows.map((row) => {
+                const body = (
+                  <>
+                    <span>
+                      <span className="block text-sm font-medium">{row.label}</span>
+                      <span className="mt-0.5 block text-xs text-muted-foreground">{row.detail}</span>
+                    </span>
+                    <span className="text-lg text-muted-foreground" aria-hidden="true">
+                      ›
+                    </span>
+                  </>
+                );
+                const className = 'flex min-h-14 items-center justify-between gap-4 py-3 hover:text-foreground';
+                // Outside this app: a full page load, not client routing.
+                return 'external' in row && row.external ? (
+                  <a key={row.label} href={row.href} className={className}>
+                    {body}
+                  </a>
+                ) : (
+                  <Link key={row.label} href={row.href} className={className}>
+                    {body}
+                  </Link>
+                );
+              })}
             </div>
           )}
           {index === 3 && (

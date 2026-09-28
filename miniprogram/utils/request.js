@@ -1,5 +1,6 @@
 import { baseUrl, envName } from '../config/env';
 import { clearLoginAndRedirect, redirectToAppeal } from './auth_guard';
+import { clearAdminSession, getAdminToken, redirectToAdminLogin } from './admin_session';
 
 // 防止多个并发请求失败时弹出多个 Toast
 let _lastToastTime = 0;
@@ -39,17 +40,25 @@ const requestFailMessage = (err, elapsedMs, timeoutMs) => {
 
 /**
  * 封装微信的 wx.request
+ *
+ * options.admin: an administrator request, carrying the administrator token
+ * (utils/admin_session) instead of the student one; a 401 then ends the
+ * administrator session only.  options.anonymous: no token at all (the
+ * administrator login itself).
  */
 const request = (options) => {
   return new Promise((resolve, reject) => {
-    const token = wx.getStorageSync('token');
+    const isAdmin = Boolean(options.admin);
     const requestUrl = options.url || '';
-    const isPublicAuthPath = requestUrl === '/api/auth/xidian/session'
+    const isPublicAuthPath = Boolean(options.anonymous)
+      || requestUrl === '/api/auth/xidian/session'
       || requestUrl.startsWith('/api/auth/xidian/session/');
+    const token = isPublicAuthPath ? '' : (isAdmin ? getAdminToken() : wx.getStorageSync('token'));
 
     if (!token && !isPublicAuthPath) {
-      clearLoginAndRedirect();
-      reject({ statusCode: 401, data: { message: '请先登录' } });
+      if (isAdmin) redirectToAdminLogin();
+      else clearLoginAndRedirect();
+      reject({ statusCode: 401, data: { message: isAdmin ? '请先登录管理员账号' : '请先登录' } });
       return;
     }
 
@@ -80,7 +89,16 @@ const request = (options) => {
         // HTTP 状态码 2xx 表示成功
         if (statusCode >= 200 && statusCode < 300) {
           resolve(data);
+        } else if (statusCode === 401 && isAdmin && token) {
+          // The administrator session ended (expired, signed out elsewhere,
+          // server restarted); the student session is left alone.
+          clearAdminSession();
+          wx.showToast({ title: '管理员登录已失效，请重新登录', icon: 'none' });
+          redirectToAdminLogin();
+          reject(res);
         } else if (
+          !isAdmin
+          && 
           statusCode === 401
           && token
           && (!options.keepSessionOnUnauthorized || (data && data.message === '请先登录'))
@@ -93,7 +111,8 @@ const request = (options) => {
           });
           reject(res);
         } else if (
-          statusCode === 403
+          !isAdmin
+          && statusCode === 403
           && token
           && data && data.data && data.data.accountState === 'banned'
         ) {

@@ -625,7 +625,6 @@ def _upsert_user_from_xidian_identity(
             "notifySystem": True,
             "createdAt": created_at,
             "deleted": False,
-            "isAdmin": False,
             "banned": False,
             "muted": False,
         }
@@ -693,7 +692,6 @@ def _issue_auth_payload(
     return {
         "token": token,
         "verified": True,
-        "isAdmin": bool(user.get("isAdmin", False)),
         "email": campus_email,
         "studentId": student_id,
         # Carried so the client can go straight to the appeal screen instead of
@@ -1044,7 +1042,6 @@ def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None
             "notifySystem": True,
             "createdAt": created_at,
             "deleted": False,
-            "isAdmin": False,
             "banned": False,
             "muted": False,
         }
@@ -1316,7 +1313,6 @@ def handle_verify(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
             "notifySystem": True,
             "createdAt": created_at,
             "deleted": False,
-            "isAdmin": False,
             "banned": False,
             "muted": False,
         }
@@ -1355,7 +1351,6 @@ def handle_verify(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
             "data": {
                 "token": token,
                 "verified": True,
-                "isAdmin": bool(user.get("isAdmin", False)),
                 "email": email,
                 "studentId": user["studentId"],
             }

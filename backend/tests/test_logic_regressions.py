@@ -829,38 +829,34 @@ def test_private_comment_like_is_not_a_visibility_bypass(
     assert db["likes"] == []
 
 
-def test_user_admin_is_secondary_and_cannot_enter_primary_user_actions(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from handlers import _admin_handler
-    from services._db_service import build_authenticated_user_admin, default_db
+def test_a_student_session_is_never_an_administrator() -> None:
+    # Administrator accounts are separate: even an account that still carries
+    # the retired is_admin flag gets nothing from its student token.
+    from services._db_service import auth_admin, default_db
 
     db = default_db()
-    user_admin = _user("secondary-admin", "2500205@stu.xidian.edu.cn")
-    target = _user("admin-target", "2500206@stu.xidian.edu.cn")
-    user_admin["isAdmin"] = True
-    db["users"].extend([user_admin, target])
-    authenticated = build_authenticated_user_admin(user_admin)
-    assert authenticated["role"] == "secondary"
-    assert authenticated["isPrimary"] is False
+    student = _user("former-admin", "2500205@stu.xidian.edu.cn")
+    student["isAdmin"] = True
+    db["users"].append(student)
+    db["sessions"]["student-token"] = student["id"]
+    handler = FakeJsonHandler()
+    handler.headers["Authorization"] = "Bearer student-token"
+    admin, token = auth_admin(handler, db)
+    assert admin is None and token == "student-token"
 
-    monkeypatch.setattr(
-        _admin_handler,
-        "_require_primary_admin",
-        lambda handler, _db: (
-            _admin_handler.json_error(
-                handler,
-                HTTPStatus.FORBIDDEN,
-                "需要一级管理员权限",
-            )
-            or None
-        ),
-    )
+
+def test_granting_admin_to_a_student_is_gone(monkeypatch: pytest.MonkeyPatch) -> None:
+    from handlers import _admin_handler
+    from services._db_service import default_db
+
+    db = default_db()
+    target = _user("admin-target", "2500206@stu.xidian.edu.cn")
+    db["users"].append(target)
+    _patch_admin(monkeypatch, {"action": "grant_admin"})
     handler = FakeJsonHandler()
     _admin_handler.handle_admin_user_action(handler, db, target["id"])
-
-    assert handler.status_code == HTTPStatus.FORBIDDEN
-    assert target["isAdmin"] is False
+    assert handler.status_code == HTTPStatus.BAD_REQUEST
+    assert not target.get("isAdmin")
 
 
 @pytest.mark.parametrize(

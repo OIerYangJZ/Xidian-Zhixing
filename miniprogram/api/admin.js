@@ -1,7 +1,8 @@
 import request from '../utils/request';
 import { getData, resolveUrl, responseContractError, toArray } from '../utils/format';
 
-const adminOptions = { keepSessionOnUnauthorized: true };
+// Administrator requests carry the administrator token (utils/admin_session).
+const adminOptions = { admin: true };
 // The backend waits up to 300 s (upsert) / 600 s (reindex) on the knowledge
 // service, so these calls must outlast that instead of the default 15 s.
 const knowledgeWriteOptions = { ...adminOptions, timeout: 310 * 1000 };
@@ -12,6 +13,21 @@ const normalizeImage = (item = {}) => ({
   id: String(item.id || ''),
   url: resolveUrl(item.url || '')
 });
+
+// Administrator accounts are separate from student accounts.
+export const adminLogin = async (username, password) => {
+  const response = await request.post('/api/admin/auth/login', { username, password }, { anonymous: true, silentErrorToast: true });
+  const data = getData(response, {});
+  if (typeof data.token !== 'string' || !data.token) {
+    throw responseContractError('管理员登录响应缺少 token');
+  }
+  return data;
+};
+
+export const adminLogout = async () => {
+  const response = await request.post('/api/admin/auth/logout', {}, { ...adminOptions, silentErrorToast: true });
+  return getData(response, {});
+};
 
 export const getCurrentAdmin = async () => {
   const response = await request.get('/api/admin/auth/me', {}, adminOptions);

@@ -2,10 +2,17 @@
   <view wx:if="{{noPermission}}" class="zx-empty">
     <view class="zx-i zx-i-shield empty-icon"></view>
     <view class="zx-empty__title">没有管理权限</view>
-    <view class="zx-empty__message">当前账号不是管理员</view>
+    <view class="zx-empty__message">当前管理员账号没有这项权限</view>
   </view>
 
   <view wx:else>
+    <view class="zx-row admin-bar">
+      <view class="zx-i zx-i--sm zx-i-shield"></view>
+      <text class="zx-label admin-name">{{admin.username || '管理员'}}</text>
+      <text class="zx-caption">{{admin.roleLabel || (admin.isPrimary ? '一级管理员' : '二级管理员')}}</text>
+      <view class="zx-spacer"></view>
+      <view class="zx-btn zx-btn--ghost zx-btn--small" bindtap="logoutAdmin">退出管理员</view>
+    </view>
     <scroll-view class="admin-tabs" scroll-x enable-flex>
       <view
         wx:for="{{tabs}}"
@@ -15,7 +22,7 @@
         bindtap="switchTab"
       >{{item.label}}</view>
     </scroll-view>
-    <view wx:if="{{admin && !admin.isPrimary}}" class="zx-caption scope-note">二级管理员可处理置顶和社团申请、维护知识库；其他管理请用网页版管理后台。</view>
+    <view wx:if="{{admin && !admin.isPrimary}}" class="zx-caption scope-note">二级管理员可处理置顶和社团申请、维护分区、热榜和知识库；审核、用户和配置等需要一级管理员账号。</view>
 
     <!-- On 系统 the error sits under its sub-tabs, so the others stay reachable. -->
     <view wx:if="{{errorMessage && activeTab !== 'system'}}" class="zx-empty">
@@ -119,7 +126,7 @@
         <view wx:for="{{users}}" wx:key="id" class="admin-card user-card">
           <view class="card-head">
             <view class="card-title">{{item.displayName}}</view>
-            <view class="zx-badge zx-badge--neutral status-pill">{{item.isAdmin ? '管理员' : item.statusText}}</view>
+            <view class="zx-badge zx-badge--neutral status-pill">{{item.statusText}}</view>
           </view>
           <view class="card-meta">{{item.email || item.studentId || item.id}}</view>
           <view class="user-stats">
@@ -135,8 +142,6 @@
             <view wx:else class="action-button" data-id="{{item.id}}" data-action="unban" bindtap="actUser">解封</view>
             <view wx:if="{{!item.deleted}}" class="action-button danger" data-id="{{item.id}}" data-action="cancel" bindtap="actUser">注销</view>
             <view wx:else class="action-button" data-id="{{item.id}}" data-action="restore" bindtap="actUser">恢复</view>
-            <view wx:if="{{!item.isAdmin}}" class="action-button primary" data-id="{{item.id}}" data-action="grant_admin" bindtap="actUser">设管理员</view>
-            <view wx:else class="action-button" data-id="{{item.id}}" data-action="revoke_admin" bindtap="actUser">移除管理</view>
           </view>
         </view>
       </view>

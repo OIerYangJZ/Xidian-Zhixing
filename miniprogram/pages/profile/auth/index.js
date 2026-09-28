@@ -151,6 +151,10 @@ Page({
     }
   },
 
+  goAdminLogin() {
+    wx.navigateTo({ url: '/pages/admin/login/index' });
+  },
+
   goTerms() {
     wx.navigateTo({ url: '/pages/profile/legal/index?type=user-agreement' });
   },
