@@ -24,14 +24,13 @@ export default async function Page() {
         select: { metadata: true, durationMs: true },
       })
     : [];
-  const traceByMessageId = new Map<string, { trace: AgentTraceEvent[]; summary?: string; durationMs?: number }>();
+  const traceByMessageId = new Map<string, { trace: AgentTraceEvent[]; durationMs?: number }>();
   for (const record of traces) {
     if (!record.metadata || typeof record.metadata !== 'object' || Array.isArray(record.metadata)) continue;
     const metadata = record.metadata as Record<string, unknown>;
     if (metadata.mode !== 'pydantic_ai_file_tools' || typeof metadata.assistantMessageId !== 'string') continue;
     traceByMessageId.set(metadata.assistantMessageId, {
       trace: Array.isArray(metadata.agentEvents) ? (metadata.agentEvents as AgentTraceEvent[]) : [],
-      summary: typeof metadata.summary === 'string' ? metadata.summary : undefined,
       durationMs: record.durationMs ?? undefined,
     });
   }
@@ -48,7 +47,6 @@ export default async function Page() {
         ? (message.sources as unknown as AIConversationData['messages'][number]['sources'])
         : [],
       trace: traceByMessageId.get(message.id)?.trace,
-      summary: traceByMessageId.get(message.id)?.summary,
       durationMs: traceByMessageId.get(message.id)?.durationMs,
       createdAt: message.createdAt.toISOString(),
     })),

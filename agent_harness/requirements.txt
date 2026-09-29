@@ -1,4 +1,4 @@
-pydantic-ai-slim[openai]==2.51.0
+pydantic-ai-slim[openai,duckduckgo]==2.51.0
 fastapi>=0.115,<1
 uvicorn>=0.34,<1
 python-dotenv>=1,<2

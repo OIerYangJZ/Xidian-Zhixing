@@ -30,7 +30,9 @@
 
 ## 本地校园 Agent
 
-校园问答由独立的 Pydantic AI Harness 提供。模型通过 `find_files`、`search_docs` 和 `read_file` 按需查看本地已发布资料，服务不构建向量索引。聊天使用 SSE 流式展示思考状态、工具调用参数和返回内容；展开工具步骤可检查候选文件与读取原文，回答支持 Markdown/GFM，执行轨迹保存在 AI 调用记录中。将 `AGENT_HARNESS_BASE_URL`、`AGENT_HARNESS_API_KEY`、`AGENT_HARNESS_MODEL` 和 `AGENT_HARNESS_DB` 写入本机 `.env.local`，再启动 Harness：
+校园问答由独立的 Pydantic AI Harness 提供。Agent 一次批量并行检索本地已发布资料、学校官网/新闻网/校内单位配置的公开网页，以及 DuckDuckGo 搜索到的互联网网页；结果按 URL 规范化去重，并可批量读取公开网页原文。校园网页列表在 `agent_harness/campus_sources.json`，可通过 `AGENT_HARNESS_CAMPUS_SOURCES` 指向另一份 JSON。网页只做公开只读 GET，Agent 会给实际打开的页面生成引用。聊天使用 SSE 展示简短进度状态和真实工具调用参数/结果，不再生成事后拼接的长推理摘要。
+
+未来接入个人课表等校园 API 时，Agent 通过 `agent_harness/campus_connectors.py` 注册操作；Next.js 后端为已登录用户签发短时 HMAC 身份声明，Harness 根据服务端授予的 scope 决定可用能力。当前没有注册个人数据 API 或用户授权范围，所以课表等能力会明确返回未接入。Next.js 与 Harness 共用 `.env.local` 中的 `AGENT_HARNESS_INTERNAL_SECRET` 后才启用身份声明。将 `AGENT_HARNESS_BASE_URL`、`AGENT_HARNESS_API_KEY`、`AGENT_HARNESS_MODEL` 和 `AGENT_HARNESS_DB` 写入本机 `.env.local`，再启动 Harness：
 
 ```powershell
 python -m pip install -r agent_harness/requirements.txt

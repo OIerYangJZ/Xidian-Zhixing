@@ -1,6 +1,7 @@
 import 'server-only';
 import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
+import { createAgentPrincipalToken } from '@/lib/ai/harnessPrincipal';
 import prisma from '@/lib/prisma/prisma';
 
 export type AgentSource = {
@@ -53,7 +54,12 @@ export async function answerWithAgentHarness(
     response = await fetch(`${harnessUrl}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question, language, history }),
+      body: JSON.stringify({
+        question,
+        language,
+        history,
+        principal_token: createAgentPrincipalToken(userId),
+      }),
       signal: AbortSignal.timeout(120_000),
     });
   } catch {

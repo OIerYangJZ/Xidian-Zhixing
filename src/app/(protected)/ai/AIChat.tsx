@@ -24,7 +24,6 @@ type AIMessageData = {
   sources: AISource[];
   createdAt: string;
   trace?: AgentTraceEvent[];
-  summary?: string;
   durationMs?: number;
   status?: string;
   streaming?: boolean;
@@ -90,6 +89,12 @@ function toolLabel(tool: string, language: string) {
     find_files: ['按标题查找资料', 'Find files by title'],
     search_docs: ['检索资料正文', 'Search document text'],
     read_file: ['读取原文文件', 'Read source file'],
+    read_files: ['批量读取资料原文', 'Read source files'],
+    get_current_datetime: ['读取当前北京时间', 'Read current Beijing time'],
+    search_all_sources: ['并行检索本地与网页', 'Search local and web sources'],
+    read_web_pages: ['批量读取网页原文', 'Read public web pages'],
+    list_campus_api_capabilities: ['查看已授权校园接口', 'List campus API access'],
+    call_campus_api: ['调用校园功能接口', 'Call campus API'],
   };
   return labels[tool]?.[language === 'zh' ? 0 : 1] || tool;
 }
@@ -113,7 +118,7 @@ function AgentTrace({ message, language }: { message: AIMessageData; language: s
       ...call,
       returned: message.trace?.find((event) => event.type === 'tool_result' && event.toolCallId === call.toolCallId),
     }));
-  if (!message.summary && calls.length === 0 && message.durationMs === undefined) return null;
+  if (calls.length === 0 && message.durationMs === undefined) return null;
 
   const activityLabel = message.streaming
     ? language === 'zh'
@@ -129,14 +134,6 @@ function AgentTrace({ message, language }: { message: AIMessageData; language: s
         {activityLabel}
       </summary>
       <div className="space-y-3 border-t border-border/80 p-3">
-        {message.summary && (
-          <section>
-            <p className="mb-1 font-semibold text-foreground">
-              {language === 'zh' ? '推理摘要（按实际调用轨迹整理）' : 'Reasoning summary (from actual tool trace)'}
-            </p>
-            <p className="whitespace-pre-wrap leading-5 text-muted-foreground">{message.summary}</p>
-          </section>
-        )}
         {calls.map((call, index) => (
           <details key={call.toolCallId} className="rounded-md border border-border/70 bg-card">
             <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5">
@@ -412,7 +409,6 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
                         ? {
                             ...item,
                             ...message,
-                            summary: typeof payload.summary === 'string' ? payload.summary : undefined,
                             durationMs: typeof payload.durationMs === 'number' ? payload.durationMs : undefined,
                             status: t('已完成', 'Complete'),
                             streaming: false,

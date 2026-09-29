@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { apiError } from '@/lib/apiResponse';
 import { getServerUser } from '@/lib/getServerUser';
+import { createAgentPrincipalToken } from '@/lib/ai/harnessPrincipal';
 import prisma from '@/lib/prisma/prisma';
 
 type HarnessEvent = {
@@ -94,6 +95,7 @@ export async function POST(request: Request) {
         question,
         language: body?.language === 'en' ? 'en' : 'zh',
         history,
+        principal_token: createAgentPrincipalToken(user.id),
       }),
       signal: AbortSignal.timeout(300_000),
     });
@@ -184,7 +186,6 @@ export async function POST(request: Request) {
                       mode: 'pydantic_ai_file_tools',
                       conversationId: conversation!.id,
                       assistantMessageId: assistantMessage.id,
-                      summary: typeof event.summary === 'string' ? event.summary : '',
                       toolTrace: (Array.isArray(event.toolTrace) ? event.toolTrace : []) as Prisma.InputJsonValue,
                       agentEvents: agentEvents.map(limitStoredEvent) as Prisma.InputJsonValue,
                     },
@@ -208,7 +209,6 @@ export async function POST(request: Request) {
                     createdAt: message.createdAt.toISOString(),
                   },
                   traceId,
-                  summary: event.summary,
                   durationMs: typeof event.durationMs === 'number' ? event.durationMs : undefined,
                 }),
               );
