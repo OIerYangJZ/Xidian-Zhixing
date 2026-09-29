@@ -83,7 +83,10 @@ export async function GET(request: Request, props: { params: Promise<{ userId: s
       () =>
         prisma.post.findMany({
           where: {
-            userId: { in: [...followingIds, user.id] },
+            OR: [
+              { userId: { in: [...followingIds, user.id] }, displayIdentity: { not: 'ANONYMOUS' } },
+              { displayIdentity: 'ANONYMOUS' },
+            ],
             ...visiblePostWhere,
             ...(cursor && {
               createdAt: isNewer ? { gt: new Date(cursor.createdAt) } : { lt: new Date(cursor.createdAt) },
@@ -97,7 +100,10 @@ export async function GET(request: Request, props: { params: Promise<{ userId: s
         cursor
           ? prisma.post.findMany({
               where: {
-                userId: { in: [...followingIds, user.id] },
+                OR: [
+                  { userId: { in: [...followingIds, user.id] }, displayIdentity: { not: 'ANONYMOUS' } },
+                  { displayIdentity: 'ANONYMOUS' },
+                ],
                 ...visiblePostWhere,
                 createdAt: new Date(cursor.createdAt),
               },

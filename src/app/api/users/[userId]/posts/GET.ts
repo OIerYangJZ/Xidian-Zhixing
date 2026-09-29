@@ -23,6 +23,7 @@ export async function GET(request: Request, props: { params: Promise<{ userId: s
   const rawPosts = await prisma.post.findMany({
     where: {
       userId: params.userId,
+      ...(user?.id === params.userId ? {} : { displayIdentity: 'USER' as const }),
       status: 'PUBLISHED',
       moderationCases: { none: { status: 'OPEN' } },
       ...(user && {

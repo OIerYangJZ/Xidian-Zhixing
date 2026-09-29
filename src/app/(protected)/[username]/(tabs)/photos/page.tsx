@@ -2,6 +2,7 @@ import { GetVisualMedia } from '@/types/definitions';
 import prisma from '@/lib/prisma/prisma';
 import { fileNameToUrl } from '@/lib/s3/fileNameToUrl';
 import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+import { getServerUser } from '@/lib/getServerUser';
 import { getProfile } from '../../getProfile';
 import { Gallery } from './Gallery';
 
@@ -16,8 +17,23 @@ async function getVisualMedia(username: string) {
   const profile = await getProfile(username);
   if (!profile) return [];
 
+  const [viewer] = await getServerUser();
+
   const media = await prisma.visualMedia.findMany({
-    where: { userId: profile.id },
+    where: {
+      userId: profile.id,
+      ...(viewer?.id === profile.id
+        ? {}
+        : {
+            post: {
+              is: {
+                displayIdentity: 'USER' as const,
+                status: 'PUBLISHED' as const,
+                moderationCases: { none: { status: 'OPEN' as const } },
+              },
+            },
+          }),
+    },
     orderBy: { id: 'desc' },
   });
 

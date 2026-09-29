@@ -36,10 +36,9 @@ export async function useUpdateProfileAndCoverPhoto({
       return NextResponse.json({ error: 'Unsupported file type.' }, { status: 400 });
     }
 
-    // Upload image to S3
     const buffer = Buffer.from(await file.arrayBuffer());
     const fileName = `${Date.now()}-${uuid()}.${fileExtension}`;
-    await uploadObject(buffer, fileName, fileExtension);
+    await uploadObject(buffer, fileName);
 
     await prisma.user.update({
       where: {

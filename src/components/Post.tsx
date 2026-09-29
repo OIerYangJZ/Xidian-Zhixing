@@ -20,6 +20,7 @@ import { usePostBookmarkMutations } from '@/hooks/mutations/usePostBookmarkMutat
 import { useToast } from '@/hooks/useToast';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useDialogs } from '@/hooks/useDialogs';
 import { ToggleStepper } from './ui/ToggleStepper';
 import { Comments } from './Comments';
 import { PostVisualMediaContainer } from './PostVisualMediaContainer';
@@ -80,6 +81,7 @@ export const Post = memo(
   }) => {
     const { t, language } = useLanguage();
     const { showToast } = useToast();
+    const { prompt } = useDialogs();
     const { likeMutation, unLikeMutation } = usePostLikesMutations({ postId });
     const { bookmarkMutation, removeBookmarkMutation } = usePostBookmarkMutations({ postId });
     const qc = useQueryClient();
@@ -174,6 +176,24 @@ export const Post = memo(
         });
       }
     };
+    const reportPost = () => {
+      prompt({
+        title: t('举报动态', 'Report post'),
+        message: t('请简要说明举报原因，管理员会查看。', 'Briefly explain the reason for your report.'),
+        promptType: 'textarea',
+        onSubmit: async (details) => {
+          const response = await fetch('/api/reports', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ postId, reason: 'OTHER', details }),
+          });
+          showToast({
+            title: response.ok ? t('举报已提交', 'Report submitted') : t('举报失败', 'Could not report'),
+            type: response.ok ? 'success' : 'error',
+          });
+        },
+      });
+    };
     const variants = useMemo(
       () => ({
         animate: {
@@ -223,10 +243,12 @@ export const Post = memo(
     });
 
     return (
+      // The replies control below provides keyboard access; clicking other card space is a pointer shortcut.
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
       <article
         className="feed-separator cursor-pointer border-b px-[12px] py-0 transition-colors hover:bg-foreground/[0.012] sm:px-[16px]"
         onClick={(event) => {
-          const target = event.target;
+          const { target } = event;
           if (
             target instanceof Element &&
             target.closest(
@@ -296,7 +318,14 @@ export const Post = memo(
               ) : null}
             </div>
             <div className="absolute right-0 top-0">
-              {isOwnPost && <PostOptions postId={postId} content={content} visualMedia={visualMedia} />}
+              {isOwnPost && (
+                <PostOptions
+                  postId={postId}
+                  content={content}
+                  visualMedia={visualMedia}
+                  displayIdentity={displayIdentity}
+                />
+              )}
             </div>
           </div>
           {content && (
@@ -364,6 +393,15 @@ export const Post = memo(
               className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
               <ShareIcon className="h-5 w-5" />
             </button>
+            {!isOwnPost && (
+              <button
+                type="button"
+                onClick={reportPost}
+                className="px-2 py-1 text-xs hover:text-destructive"
+                aria-label={t('举报动态', 'Report post')}>
+                {t('举报', 'Report')}
+              </button>
+            )}
           </div>
         </div>
 

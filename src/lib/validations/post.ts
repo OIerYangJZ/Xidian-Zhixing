@@ -11,6 +11,7 @@ export const postWriteSchema = z
         message: 'Content should not contain only spaces.',
       }),
     ),
+    displayIdentity: z.enum(['USER', 'ANONYMOUS', 'CLUB']).optional(),
     // `files` can be a:
     // * a `Blob` or a URL
     // * an array of `Blob`s or an array of URLs

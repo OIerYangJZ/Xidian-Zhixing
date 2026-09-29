@@ -12,6 +12,7 @@ type ConversationSummary = {
   updatedAt: string;
   participant: Peer;
   lastMessage: Message | null;
+  unread: boolean;
 };
 type ConversationDetail = { id: string; participants: Peer[]; messages: Message[] };
 
@@ -26,6 +27,18 @@ export function MessagesInbox() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const archiveConversation = async () => {
+    if (!activeId) return;
+    const response = await fetch(`/api/messages/${activeId}`, { method: 'PATCH' });
+    if (!response.ok) {
+      setError(t('对话归档失败。', 'Could not archive conversation.'));
+      return;
+    }
+    setConversations((items) => items.filter((item) => item.id !== activeId));
+    setActiveId('');
+    setPeer(null);
+    setMessages([]);
+  };
 
   const openConversation = useCallback(
     async (id: string, summaryPeer?: Peer) => {
@@ -133,6 +146,13 @@ export function MessagesInbox() {
     };
   }, [openConversation, t]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      loadConversations().catch(() => setError(t('消息刷新失败。', 'Could not refresh messages.')));
+    }, 10000);
+    return () => window.clearInterval(timer);
+  }, [loadConversations, t]);
+
   return (
     <main className="flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom))] min-h-0 flex-col md:h-dvh">
       <PageHeader title={t('消息', 'Messages')} />
@@ -180,6 +200,12 @@ export function MessagesInbox() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">
                     {conversation.participant.name || conversation.participant.username}
+                    {conversation.unread && (
+                      <span
+                        className="ml-2 inline-block h-2 w-2 rounded-full bg-primary"
+                        aria-label={t('未读', 'Unread')}
+                      />
+                    )}
                   </span>
                   <span className="mt-1 block truncate text-xs text-muted-foreground">
                     {conversation.lastMessage?.content || t('开始一段新对话', 'Start a new conversation')}
@@ -213,6 +239,14 @@ export function MessagesInbox() {
               </h2>
               {peer?.username && <p className="mt-0.5 text-xs text-muted-foreground">@{peer.username}</p>}
             </div>
+            {activeId && (
+              <button
+                type="button"
+                onClick={archiveConversation}
+                className="ml-auto text-xs text-muted-foreground hover:text-foreground">
+                {t('归档', 'Archive')}
+              </button>
+            )}
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4" aria-live="polite">
             {loading ? (

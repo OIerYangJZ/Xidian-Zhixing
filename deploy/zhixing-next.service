@@ -1,0 +1,18 @@
+[Unit]
+Description=Xidian Zhixing Next.js
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=zhixing
+Group=zhixing
+WorkingDirectory=/opt/zhixing/current
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/zhixing/zhixing.env
+ExecStart=/usr/bin/node /opt/zhixing/current/node_modules/next/dist/bin/next start -p 3002
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

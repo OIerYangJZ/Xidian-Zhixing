@@ -13,10 +13,14 @@ export async function POST(request: Request, props: { params: Promise<{ conversa
   if (!parsed.success) return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
 
   const participants = await prisma.conversationParticipant.findMany({
-    where: { conversationId: params.conversationId, archivedAt: null },
+    where: { conversationId: params.conversationId },
     select: { userId: true },
   });
-  if (!participants.some(({ userId }) => userId === user.id)) {
+  const membership = await prisma.conversationParticipant.findFirst({
+    where: { conversationId: params.conversationId, userId: user.id, archivedAt: null },
+    select: { id: true },
+  });
+  if (!membership) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
   }
 
@@ -36,6 +40,10 @@ export async function POST(request: Request, props: { params: Promise<{ conversa
       data: { conversationId: params.conversationId, senderId: user.id, content: parsed.data.content },
     }),
     prisma.conversation.update({ where: { id: params.conversationId }, data: { updatedAt: new Date() } }),
+    prisma.conversationParticipant.updateMany({
+      where: { conversationId: params.conversationId, userId: { not: user.id } },
+      data: { archivedAt: null },
+    }),
   ]);
 
   return NextResponse.json(message, { status: 201 });

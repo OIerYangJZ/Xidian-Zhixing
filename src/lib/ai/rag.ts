@@ -448,9 +448,9 @@ function contextText(items: KnowledgeItem[]) {
   for (const [index, item] of items.entries()) {
     const number = index + 1;
     parts.push(
-      `[S${number}] 校园知识《${item.title}》 原文日期:${item.publishedAt || '未标明'} 来源:${item.sourceUrl || item.sourceName || '校园知识库'}\n${
-        item.content
-      }`,
+      `[S${number}] 校园知识《${item.title}》 原文日期:${item.publishedAt || '未标明'} 来源:${
+        item.sourceUrl || item.sourceName || '校园知识库'
+      }\n${item.content}`,
     );
     if (
       item.documentId &&

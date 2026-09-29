@@ -1,5 +1,6 @@
 import { useCreatePostModalContextApi } from '@/contexts/CreatePostModalContext';
 import { GetVisualMedia } from '@/types/definitions';
+import type { DisplayIdentity } from '@prisma/client';
 
 export function useCreatePostModal() {
   const { setShown, setShouldOpenFileInputOnMount, setToEditValues } = useCreatePostModalContextApi();
@@ -13,16 +14,19 @@ export function useCreatePostModal() {
   const launchEditPost = ({
     initialContent,
     initialVisualMedia,
+    initialDisplayIdentity,
     postId,
   }: {
     initialContent: string;
     initialVisualMedia: GetVisualMedia[];
+    initialDisplayIdentity: DisplayIdentity;
     postId: number;
   }) => {
     setToEditValues({
       postId,
       initialContent,
       initialVisualMedia,
+      initialDisplayIdentity,
     });
     setShown(true);
   };

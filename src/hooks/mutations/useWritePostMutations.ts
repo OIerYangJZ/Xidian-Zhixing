@@ -2,6 +2,7 @@ import { InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query
 import { chunk } from 'lodash';
 import { useSession } from 'next-auth/react';
 import { GetVisualMedia, GetPost, PostIds } from '@/types/definitions';
+import type { DisplayIdentity } from '@prisma/client';
 import { POSTS_PER_PAGE } from '@/constants';
 import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
 import { useToast } from '../useToast';
@@ -18,10 +19,12 @@ async function readPostResponse(response: Response) {
 export function useWritePostMutations({
   content,
   visualMedia,
+  displayIdentity,
   exitCreatePostModal,
 }: {
   content: string;
   visualMedia: GetVisualMedia[];
+  displayIdentity: DisplayIdentity;
   exitCreatePostModal: () => void;
 }) {
   const qc = useQueryClient();
@@ -33,6 +36,7 @@ export function useWritePostMutations({
   const generateFormData = async (): Promise<FormData> => {
     const formData = new FormData();
     if (content) formData.append('content', content);
+    formData.append('displayIdentity', displayIdentity);
 
     const visualMediaFilesPromises = visualMedia.map(async ({ url }) => {
       if (url.startsWith('blob:')) {

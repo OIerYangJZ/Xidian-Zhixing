@@ -31,6 +31,7 @@ const campusImages: Array<{ src: string; alt: [string, string]; title: [string, 
     place: ['图书馆 · 秋日', 'Library · Autumn'],
   },
 ];
+const campusImageStyles = campusImages.map((image) => ({ backgroundImage: `url("${image.src}")` }));
 
 export function CampusLoginExperience() {
   const { t } = useLanguage();
@@ -176,7 +177,7 @@ export function CampusLoginExperience() {
             <div
               key={image.src}
               className={`campus-login__photo-layer${activeIndex === index ? 'is-active' : ''}`}
-              style={{ backgroundImage: `url("${image.src}")` }}
+              style={campusImageStyles[index]}
               aria-hidden="true"
             />
           ))}

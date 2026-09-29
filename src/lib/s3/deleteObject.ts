@@ -1,12 +1,7 @@
 import 'server-only';
-import { DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { s3Client } from './s3Client';
+import { unlink } from 'fs/promises';
+import { storagePath } from '@/lib/media/storagePath';
 
 export async function deleteObject(fileName: string) {
-  const command = new DeleteObjectCommand({
-    Bucket: process.env.S3_BUCKET_NAME,
-    Key: fileName,
-  });
-
-  await s3Client.send(command);
+  await unlink(storagePath(fileName));
 }
