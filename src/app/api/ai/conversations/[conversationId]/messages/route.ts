@@ -1,4 +1,4 @@
-import { AiServiceError, answerWithCampusKnowledge } from '@/lib/ai/rag';
+import { AgentHarnessError, answerWithAgentHarness } from '@/lib/ai/harness';
 import { apiError, apiSuccess } from '@/lib/apiResponse';
 import { getServerUser } from '@/lib/getServerUser';
 import prisma from '@/lib/prisma/prisma';
@@ -44,18 +44,20 @@ export async function POST(request: Request, props: { params: Promise<{ conversa
   }
 
   try {
-    const result = await answerWithCampusKnowledge(user.id, conversation.id, content);
+    const result = await answerWithAgentHarness(user.id, conversation.id, userMessage.id, content);
     return apiSuccess({ userMessage, ...result });
   } catch (error) {
     await prisma.aiMessage.delete({ where: { id: userMessage.id } });
-    if (error instanceof AiServiceError) {
+    if (error instanceof AgentHarnessError) {
       const status = error.code.endsWith('not_configured') ? 503 : 502;
       const message =
-        error.code === 'rag_not_configured'
-          ? '校园知识服务尚未配置。'
+        error.code === 'corpus_not_configured'
+          ? '本地校园资料库尚未配置。'
           : error.code === 'ai_not_configured'
-          ? 'AI 模型服务尚未配置。'
-          : 'AI 服务暂时不可用。';
+          ? 'DeepSeek API 尚未配置。'
+          : error.code === 'harness_unavailable'
+          ? 'AI Agent 服务暂时无法连接。'
+          : 'DeepSeek 服务暂时不可用。';
       return apiError(message, status, { code: error.code });
     }
     return apiError('AI 服务暂时不可用。', 502, { code: 'ai_upstream_error' });
