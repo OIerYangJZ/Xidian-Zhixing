@@ -1,0 +1,508 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>教育部关于一流本科课程建设的实施意见-西安电子科技大学教师发展中心</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="教育部关于一流本科课程建设的实施意见">
+<META Name="keywords" Content="西安电子科技大学教师发展中心,教育部,教育,关于,于一,一流,本科课程,本科,课程,程建,建设,实施,意见" />
+<META Name="description" Content="教高〔2019〕8号各省、自治区、直辖市教育厅（教委）,新疆生产建设兵团教育局,有关部门（单位）教育司（局），部属各高等学校、部省合建各高等学校：　　课程是人才培养的核心要素，课程质量直接决定人才培养质量。为贯彻落实习近平总书记关于教育的重要论述和全国教育大会精神，落实新时代全国高等学校本科教育工作会议要求，必须深化教育教学改革，必须把教学改革成果落实到课程建设上。现就一流本科课程建设提出如下实施意见..." />
+
+    <link rel="stylesheet" href="../../css/style.css" />
+    <script type="text/javascript" src="../../js/jquery.js"></script>
+    <script type="text/javascript" src="../../js/superslide.js"></script>
+    <style>
+    
+#vsb_content_2 TABLE{
+    margin:0 auto !important;}
+    </style>
+    
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../nry.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1071,'/nry.jsp',2802,1720849302)</script>
+</head>
+<body>
+   <!--头部开始-->
+  <div class="head">
+    <div class="top">
+      <div class="main">
+        <div class="logo">
+          
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="21教师发展中心"><img src="../../img/logo.png" width="552" height="67" border="0" alt="21教师发展中心" title="21教师发展中心"></a>
+        </div>
+        <div class="fr">
+          
+
+<ul style="float: right;">
+
+            <li><a href="https://www.xidian.edu.cn/">学校首页&emsp;|</a></li>
+            <li><a href="http://mooc1.chaoxing.com/course/221457285.html">云端教育教学节</a></li>
+</ul>
+
+
+
+    <div class="clear"></div>
+          <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+            color: #fff;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        height: 35px;
+    width: 220px;
+    border-radius: 50px;
+    border: 1px solid #fff;
+    background: #004fa8;
+    padding: 0 20px 0;
+    margin-top: 12px;
+    outline: none;}
+    #appu2 .tj{/*
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;*/
+        position: absolute;
+    top: 22px;
+    right: 13px;
+    outline: none;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+            <input class="tj img" name="submit_button" type="image" value="" src="../../img/search.png" v-on:click="onSubmit()"/>
+          
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1720849302";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1720849302";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+          </div>
+        </div>
+        <div class="clear"></div>
+      </div>
+    </div>
+    <!--导航开始-->
+    <div class="nav">
+      <div class="main">
+          <ul id="nav" class="nav clearfix">
+              <li class="nLi  on ">
+                <h3><a href="../../index.htm" title="首页">首页</a></h3>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../zxgk1/bmjj.htm" title="中心概况">中心概况</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../zxgk1/bmjj.htm" title="部门简介">部门简介</a></li>
+                    <li><a href="../../zxgk1/lxwm.htm" title="联系我们">联系我们</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jspx/xrzjspx.htm" title="教师培训">教师培训</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jspx/xrzjspx.htm" title="新入职教师培训">新入职教师培训</a></li>
+                    <li><a href="../../jspx/jxztbg.htm" title="教学专题报告">教学专题报告</a></li>
+                    <li><a href="../../jspx/yxjxsl.htm" title="院系教学沙龙">院系教学沙龙</a></li>
+                    <li><a href="../../jspx/wl_zx_px.htm" title="网络（在线）培训">网络（在线）培训</a></li>
+                    <li><a href="../../jspx/xwyxb_yth.htm" title="校外研修班&amp;研讨会">校外研修班&amp;研讨会</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jxpj.htm" title="教学评价">教学评价</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jxpj/jxcxj.htm" title="教学创新奖">教学创新奖</a></li>
+                    <li><a href="../../jxpj/jxzrz.htm" title="教学准入证">教学准入证</a></li>
+                    <li><a href="../../jxpj/jxjd.htm" title="教学鉴定">教学鉴定</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jxjs.htm" title="教学竞赛">教学竞赛</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jxjs/qnjsjkjs.htm" title="青年教师讲课竞赛">青年教师讲课竞赛</a></li>
+                    <li><a href="../../jxjs/ktjxcxds.htm" title="课堂教学创新大赛">课堂教学创新大赛</a></li>
+                    <li><a href="../../jxjs/kcszbs.htm" title="课程思政比赛">课程思政比赛</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../pxzy.htm" title="培训资源">培训资源</a></h3>
+
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../xzzx.htm" title="下载中心">下载中心</a></h3>
+
+              </li>
+</ul>
+      </div>
+    </div>
+    <!--导航结束-->
+    <script>jQuery("#nav").slide({ type:"menu", titCell:".nLi", targetCell:".sub",effect:"slideDown",delayTime:300,triggerTime:0,returnDefault:true});</script>
+  </div>
+    <!--头部结束-->
+    <!--banner开始-->
+    <div id="slideBox" class="slideBox" style="height:300px;display:none;">
+        <div class="bd">
+              <script language="javascript" src="/system/resource/js/dynclicks.js"></script><ul>
+            <li><a><img src="../../img/banner.jpg" style="height: 300px;width: 1920px;"></a></li>
+</ul>
+        </div>
+      </div>
+    <!--banner结束-->
+
+ 
+
+<!--============================主体 开始=============================-->    
+
+
+<div class="clear"></div>
+ 
+    <section class="main">
+            <div class="right n_neiye">
+
+              <section class="n_title">
+                <div class="position">
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+                &gt;
+                <a href="../../index/zcyl.htm">政策引领</a>
+                &gt;
+                正文
+</div>
+              </section>
+              
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><div class="detail ar_article">
+    <h2 align="center">教育部关于一流本科课程建设的实施意见</h2>
+    <div class="tittle"><span>发布时间：2021-04-29</span><span>点击数：<script>_showDynClicks("wbnews", 1720849302, 2802)</script></span> </span></div>
+                
+
+          
+    <div id="vsb_content"><div class="v_news_content">
+<style><!--  /* Font Definitions */  @font-face {font-family:宋体; panose-1:2 1 6 0 3 1 1 1 1 1;} @font-face {font-family:"Cambria Math"; panose-1:2 4 5 3 5 4 6 3 2 4;} @font-face {font-family:Calibri; panose-1:2 15 5 2 2 2 4 3 2 4;} @font-face {font-family:微软雅黑; panose-1:2 11 5 3 2 2 4 2 2 4;} @font-face {font-family:"\@微软雅黑"; panose-1:2 11 5 3 2 2 4 2 2 4;} @font-face {font-family:"\@宋体"; panose-1:2 1 6 0 3 1 1 1 1 1;}  /* Style Definitions */  p.MsoNormal, li.MsoNormal, div.MsoNormal {margin:0cm; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; font-size:10.5pt; font-family:"Calibri","sans-serif";} p.MsoHeader, li.MsoHeader, div.MsoHeader {mso-style-link:"页眉 Char"; margin:0cm; margin-bottom:.0001pt; text-align:center; vsb_temp-mode:char; border:none; padding:0cm; font-size:9.0pt; font-family:"Calibri","sans-serif";} p.MsoFooter, li.MsoFooter, div.MsoFooter {mso-style-link:"页脚 Char"; margin:0cm; margin-bottom:.0001pt; vsb_temp-mode:char; font-size:9.0pt; font-family:"Calibri","sans-serif";} p {margin-right:0cm; margin-left:0cm; font-size:12.0pt; font-family:宋体;} span.Char {mso-style-name:"页眉 Char"; mso-style-link:页眉;} span.Char0 {mso-style-name:"页脚 Char"; mso-style-link:页脚;}  /* Page Definitions */  @page Section1 {size:595.3pt 841.9pt; margin:72.0pt 90.0pt 72.0pt 90.0pt; vsb_temp:15.6pt;} div.Section1 {page:Section1;} --></style>
+<div class="Section1" style="vsb_temp: 15.6pt;">
+ <p style="background: white; margin: 0cm 0cm 0pt; text-align: right; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;;">教高〔<span lang="EN-US">2019</span>〕<span lang="EN-US">8</span>号</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">各省、自治区、直辖市教育厅（教委）<span lang="EN-US">,</span>新疆生产建设兵团教育局<span lang="EN-US">,</span>有关部门（单位）教育司（局），部属各高等学校、部省合建各高等学校：</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　课程是人才培养的核心要素，课程质量直接决定人才培养质量。为贯彻落实习近平总书记关于教育的重要论述和全国教育大会精神，落实新时代全国高等学校本科教育工作会议要求，必须深化教育教学改革，必须把教学改革成果落实到课程建设上。现就一流本科课程建设提出如下实施意见。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　<strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none;">一、总体要求</span></strong></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（一）指导思想</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　以习近平新时代中国特色社会主义思想为指导，贯彻落实党的十九大精神，落实立德树人根本任务，把立德树人成效作为检验高校一切工作的根本标准，深入挖掘各类课程和教学方式中蕴含的思想政治教育元素，建设适应新时代要求的一流本科课程，让课程优起来、教师强起来、学生忙起来、管理严起来、效果实起来，形成中国特色、世界水平的一流本科课程体系，构建更高水平人才培养体系。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（二）总体目标</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　全面开展一流本科课程建设，树立课程建设新理念，推进课程改革创新，实施科学课程评价，严格课程管理，立起教授上课、消灭“水课”、取消“清考”等硬规矩，夯实基层教学组织，提高教师教学能力，完善以质量为导向的课程建设激励机制，形成多类型、多样化的教学内容与课程体系。经过三年左右时间，建成万门左右国家级和万门左右省级一流本科课程（简称一流本科课程“双万计划”）。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（三）基本原则</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　——坚持分类建设。依据高校办学定位和人才培养目标定位，建设适应创新型、复合型、应用型人才培养需要的一流本科课程，实现不同类型高校一流本科课程建设全覆盖。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　——坚持扶强扶特。着力引导“双一流”建设高校、部省合建高校发挥引领示范作用，重点打造一批高水平课程，为卓越拔尖人才培养提供有力支撑。重点支持已有建设基础、取得明显教学成效的课程，让优的更优、强的更强。重视特色课程建设，实现一流本科课程多样化。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　——提升高阶性。课程目标坚持知识、能力、素质有机融合，培养学生解决复杂问题的综合能力和高级思维。课程内容强调广度和深度，突破习惯性认知模式，培养学生深度分析、大胆质疑、勇于创新的精神和能力。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　——突出创新性。教学内容体现前沿性与时代性，及时将学术研究、科技发展前沿成果引入课程。教学方法体现先进性与互动性，大力推进现代信息技术与教学深度融合，积极引导学生进行探究式与个性化学习。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　——增加挑战度。课程设计增加研究性、创新性、综合性内容，加大学生学习投入，科学“增负”，让学生体验“跳一跳才能够得着”的学习挑战。严格考核考试评价，增强学生经过刻苦学习收获能力和素质提高的成就感。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　<strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none;">二、建设内容</span></strong></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（一）转变观念，理念新起来。以新理念引领一流本科课程建设。牢固树立“三个不合格”理念，竖起“高压线”，不抓本科教育的高校不是合格的高校，不重视本科教育的书记校长不是合格的书记校长，不参与本科教学的教授不是合格的教授。推动课程思政的理念形成广泛共识，构建全员全程全方位育人大格局。确立学生中心、产出导向、持续改进的理念，提升课程的高阶性，突出课程的创新性，增加课程的挑战度。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（二）目标导向，课程优起来。以目标为导向加强课程建设。立足经济社会发展需求和人才培养目标，优化重构教学内容与课程体系，破除课程千校一面，杜绝必修课因人设课，淘汰“水课”，立起课程建设新标杆。“双一流”建设高校、部省合建高校要明确要求两院院士、国家“千人计划”“万人计划”专家、“长江学者奖励计划”入选者、国家杰出青年科学基金获得者等高层次人才建设名课、讲授基础课和专业基础课，建设一批中国特色、世界水平的一流本科课程。聚焦新工科、新医科、新农科、新文科建设，体现多学科思维融合、产业技术与学科理论融合、跨专业能力融合、多学科项目实践融合，建设一批培养创新型、复合型人才的一流本科课程。服务区域经济社会发展主战场，深化产教融合协同育人，建设一批培养应用型人才的一流本科课程。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（三）提升能力，教师强起来。以培养培训为关键点提升教师教学能力。高校要实现基层教学组织全覆盖，教师全员纳入基层教学组织，强化教学研究，定期集体备课、研讨课程设计，加强教学梯队建设，完善助教制度，发挥好“传帮带”作用。实现青年教师上岗培训全覆盖，新入职教师必须经过助课、试讲、考核等环节，获得教师教学发展中心等学校培训部门颁发的证书，方可主讲课程。实现教师职业培训、终身学习全覆盖，推动教师培训常态化，将培训学分作为教师资格定期注册、教师考核的必备条件。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（四）改革方法，课堂活起来。以提升教学效果为目的创新教学方法。强化课堂设计，解决好怎么讲好课的问题，杜绝单纯知识传递、忽视能力素质培养的现象。强化现代信息技术与教育教学深度融合，解决好教与学模式创新的问题，杜绝信息技术应用的简单化、形式化。强化师生互动、生生互动，解决好创新性、批判性思维培养的问题，杜绝教师满堂灌、学生被动听的现象。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（五）科学评价，学生忙起来。以激发学习动力和专业志趣为着力点完善过程评价制度。加强对学生课堂内外、线上线下学习的评价，强化阅读量和阅读能力考查，提升课程学习的广度。加强研究型、项目式学习，丰富探究式、论文式、报告答辩式等作业评价方式，提升课程学习的深度。加强非标准化、综合性等评价，提升课程学习的挑战性。“双一流”建设高校、部省合建高校要扩大学生课程学习选择面，强化课程难度与挑战度。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（六）强化管理，制度严起来。以提高制度执行力为重点严格课程管理。高等学校要严格执行教授为本科生授课制度，连续三年不承担本科课程的教授、副教授，转出教师系列。严格执行国家对高校的生师比要求，完备师资队伍。严格执行课程准入制度，发挥校内教学指导委员会课程把关作用，拒绝“水课”进课堂。严格考试纪律，严把考试和毕业出口关，坚决取消“清考”。严格课程质量评估，在专业认证、教学评估中增加课程评价权重。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（七）政策激励，教学热起来。以教学贡献为核心内容制定激励政策。加大课程建设的支持力度，加大优秀课程和教师的奖励力度，加大教学业绩在专业技术职务评聘中的权重，营造重视本科课程改革与建设的良好氛围。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　<strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none;">三、实施一流本科课程双万计划</span></strong></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（一）认定万门左右国家级一流本科课程。注重创新型、复合型、应用型人才培养课程建设的创新性、示范引领性和推广性，在高校培育建设基础上，从<span lang="EN-US">2019</span>年到<span lang="EN-US">2021</span>年，完成<span lang="EN-US">4000</span>门左右国家级线上一流课程（国家精品在线开放课程）、<span lang="EN-US">4000</span>门左右国家级线下一流课程、<span lang="EN-US">6000</span>门左右国家级线上线下混合式一流课程、<span lang="EN-US">1500</span>门左右国家虚拟仿真实验教学一流课程、<span lang="EN-US">1000</span>门左右国家级社会实践一流课程认定工作，具体推荐认定办法见附件。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（二）认定万门左右省级一流本科课程。各省级教育行政部门根据区域高等教育改革发展需求，参照本实施意见要求，具体组织实施本地区一流本科课程建设计划。推荐国家级一流课程，注重解决本地区高校长期存在的教育教学问题，因地制宜、因校制宜、因课制宜建设省级一流本科课程，并报我部备案。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　<strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none;">四、组织管理</span></strong></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（一）教育部负责统筹指导一流本科课程建设工作，组织有关专家和机构研究制定一流本科课程建设、应用与管理的相关标准规范。公布国家级一流本科课程推荐认定结果。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（二）省级教育行政部门研究制定省级一流本科课程建设实施方案，制定推动本地区一流本科课程建设与教学改革配套政策，建设省级一流本科课程。加强省级课程服务平台的管理，积极推动一流本科课程开放共享。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（三）高校要优化课程体系，做好一流本科课程建设规划。组建优秀教师团队建设一流本科课程。建立校内课程建设激励机制，健全支持政策，完善课程管理和评价机制。“双一流”建设高校、部省合建高校要率先建设一流本科课程。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（四）高等学校教学指导委员会要加强课程建设理论研究和分类指导，组织制订相关专业一流本科课程建设指南，引导高校汇聚优秀教师联合建设课程群，共享优质课程资源。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（五）课程服务平台承担一流本科课程服务和数据安全保障的主体责任，配合开展课程审查和线上教学活动。要不断更新并提升技术和数据服务水平，监控和打击不良学习行为。加强课程平台间的交流与合作。<span lang="EN-US">&nbsp;</span></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（六）中央部门所属高校统筹利用“中央高校教育教学改革专项”等各类资源支持一流本科课程建设。地方高校统筹地方财政高等教育资金和中央支持地方高校改革发展资金支持一流本科课程建设。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　附件：“双万计划”国家级一流本科课程推荐认定办法</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; text-align: right; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">教育部</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; text-align: right; line-height: 24pt;"><span lang="EN-US" style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">2019</span><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">年<span lang="EN-US">10</span>月<span lang="EN-US">24</span>日</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none; color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">附件</span></strong></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; text-align: center; line-height: 24pt;"><strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none; color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">“双万计划”国家级一流本科课程</span></strong></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; text-align: center; line-height: 24pt;"><strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none; color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">推荐认定办法</span></strong></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　<strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none;">一、推荐范围</span></strong></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　普通本科高校纳入人才培养方案且设置学分的本科课程均可推荐，包括思想政治理论课、公共基础课、专业基础课、专业课以及通识课等独立设置的本科理论课程、实验课程和社会实践课程等。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　<strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none;">二、推荐类型与计划</span></strong></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（一）线上一流课程。即国家精品在线开放课程，突出优质、开放、共享，打造中国慕课品牌。完成<span lang="EN-US">4000</span>门左右国家精品在线开放课程认定，构建内容更加丰富、结构更加合理、类别更加全面的国家级精品慕课体系。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（二）线下一流课程。主要指以面授为主的课程，以提升学生综合能力为重点，重塑课程内容，创新教学方法，打破课堂沉默状态，焕发课堂生机活力，较好发挥课堂教学主阵地、主渠道、主战场作用。认定<span lang="EN-US">4000</span>门左右国家级线下一流课程。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（三）线上线下混合式一流课程。主要指基于慕课、专属在线课程（<span lang="EN-US">SPOC</span>）或其他在线课程，运用适当的数字化教学工具，结合本校实际对校内课程进行改造，安排<span lang="EN-US">20%</span>—<span lang="EN-US">50%</span>的教学时间实施学生线上自主学习，与线下面授有机结合开展翻转课堂、混合式教学，打造在线课程与本校课堂教学相融合的混合式“金课”。大力倡导基于国家精品在线开放课程应用的线上线下混合式优质课程申报。认定<span lang="EN-US">6000</span>门左右国家级线上线下混合式一流课程。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（四）虚拟仿真实验教学一流课程。着力解决真实实验条件不具备或实际运行困难，涉及高危或极端环境，高成本、高消耗、不可逆操作、大型综合训练等问题。完成<span lang="EN-US">1500</span>门左右国家虚拟仿真实验教学一流课程认定，形成专业布局合理、教学效果优良、开放共享有效的高等教育信息化实验教学体系。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（五）社会实践一流课程。以培养学生综合能力为目标，通过“青年红色筑梦之旅”、“互联网＋”大学生创新创业大赛、创新创业和思想政治理论课社会实践等活动，推动思想政治教育、专业教育与社会服务紧密结合，培养学生认识社会、研究社会、理解社会、服务社会的意识和能力，建设社会实践一流课程。课程应为纳入人才培养方案的非实习、实训课程，配备理论指导教师，具有稳定的实践基地，学生<span lang="EN-US">70%</span>以上学时深入基层，保证课程规范化和可持续发展。认定<span lang="EN-US">1000</span>门左右国家级社会实践一流课程。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　<strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none;">三、推荐条件</span></strong></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　推荐课程须至少经过两个学期或两个教学周期的建设和完善，取得实质性改革成效，在同类课程中具有鲜明特色、良好的教学效果，并承诺入选后将持续改进。符合相关类型课程基本形态和特殊要求的同时，在以下多个方面具备实质性创新，有较大的借鉴和推广价值。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（一）教学理念先进。坚持立德树人，体现以学生发展为中心，致力于开启学生内在潜力和学习动力，注重学生德智体美劳全面发展。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（二）课程教学团队教学成果显著。课程团队教学改革意识强烈、理念先进，人员结构及任务分工合理。主讲教师具备良好的师德师风，具有丰富的教学经验、较高学术造诣，积极投身教学改革，教学能力强，能够运用新技术提高教学效率、提升教学质量。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（三）课程目标有效支撑培养目标达成。课程目标符合学校办学定位和人才培养目标，注重知识、能力、素质培养。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（四）课程教学设计科学合理。围绕目标达成、教学内容、组织实施和多元评价需求进行整体规划，教学策略、教学方法、教学过程、教学评价等设计合理。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（五）课程内容与时俱进。课程内容结构符合学生成长规律，依据学科前沿动态与社会发展需求动态更新知识体系，契合课程目标，教材选用符合教育部和学校教材选用规定，教学资源丰富多样，体现思想性、科学性与时代性。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（六）教学组织与实施突出学生中心地位。根据学生认知规律和接受特点，创新教与学模式，因材施教，促进师生之间、学生之间的交流互动、资源共享、知识生成，教学反馈及时，教学效果显著。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（七）课程管理与评价科学且可测量。教师备课要求明确，学生学习管理严格。针对教学目标、教学内容、教学组织等采用多元化考核评价，过程可回溯，诊断改进积极有效。教学过程材料完整，可借鉴可监督。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　<strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none;">四、推荐方式</span></strong></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　除线上一流课程、虚拟仿真实验教学一流课程继续按有关文件实施外，线下一流课程、线上线下混合式一流课程和社会实践一流课程采用以下推荐方式。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（一）推荐总额</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　教育部按照国家级线下一流课程、线上线下混合式一流课程和社会实践一流课程三年计划总数确定推荐总额，分别下达至中央部门所属高校和各省级教育行政部门。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（二）分赛道推荐</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　按照中央部门所属高校、地方高校的办学定位和培养目标特点分赛道推荐，名额分列。部省合建高校推荐课程纳入中央部门所属高校赛道。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（三）推荐方式</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　中央部门所属高校、各省级教育行政部门根据教育部下达的三年推荐额度，在规定的年度上限数额内推荐。教育部直属高校直接报教育部，其他中央部门所属高校、部省合建高校经主管部门同意后报教育部；地方高校由省级教育行政部门统一报教育部。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　（四）推荐材料要求</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　课程团队须提交申报书、时长<span lang="EN-US">10</span>分钟内的说课视频（包括教学理念、课程设计、课程实施、改革成效等）和其他佐证材料。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　<strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none;">五、认定方式</span></strong></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　教育部分年度组织专家对推荐课程进行认定，经公示后向社会发布。对课程团队成员存在师德师风问题、学术不端问题、五年内出现过重大教学事故，课程内容存在思想性科学性问题的，实行一票否决。</span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　<strong><span style="padding: 0cm; border: 1pt rgb(0, 0, 0); border-image: none;">六、认定课程管理</span></strong></span></p>
+ <p style="background: white; margin: 0cm 0cm 0pt; line-height: 24pt;"><span style="color: rgb(75, 75, 75); font-family: &quot;微软雅黑&quot;,&quot;sans-serif&quot;; font-size: 13.5pt;">　　教育部对认定的国家级一流课程实施动态管理，对课程实际应用、教学效果和共享等进行跟踪监测。认定为国家级一流课程的课程须继续建设五年，其建设和改革成果在指定的网站上集中展示和分享，且定期更新资源和数据。对于未持续更新完善、出现严重质量问题、课程团队成员出现师德师风等问题的课程，将予以撤销。</span></p>
+ <p class="MsoNormal"><a name="_GoBack"></a><span lang="EN-US">&nbsp;</span></p>
+</div>
+</div></div><div id="div_vote_id"></div>
+  
+    <section id="ar_fot">        
+        <h5 class="fl"><span>上一篇：</span><a href="2902.htm">中华人民共和国保守国家秘密法</a></h5>      
+    <h5 class="fr"><span>下一篇：</span><a href="2721.htm">普通高等学校本科教育教学审核评估实施方案（2021—2025年）</a></h5>  
+    <div class="clear"></div>     
+    </section>
+              
+
+
+
+
+
+
+
+</div>
+</form>
+
+        <SECTION class="detail"></SECTION>
+            </div>
+  </section>
+    
+    
+    <!--============================主体 结束=============================-->
+
+
+
+    <!--底部开始-->
+     <div class="foot">
+      <div class="main">
+        <div class="left">
+          <div class="tit">联系我们</div>
+          <script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>电话：029-81891791 &nbsp; &nbsp;029-81891792</p> 
+<p>邮箱：jsfz@xidian.edu.cn</p> 
+<p>邮编：710126</p> 
+<p>地址：西安电子科技大学南校区行政楼118办公室</p>
+        </div>
+        <div class="center">
+          <img src="../../img/foot_logo.png" alt="">
+        </div>
+<img src="../../sj-img/ewm.jpg" style="width:133px;margin: 60px 0px 0px 0px;">
+        <div class="right">
+          <div class="tit">友情链接</div>
+          <select name="qq" onchange="javascript:window.open(this.options[this.selectedIndex].value)" class="lj1">
+              <option value="#">—— 校内链接 ——</option>
+               <script language="javascript" src="/system/resource/js/openlink.js"></script><option value="https://www.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64967)">西安电子科技大学</option>
+<option value="https://news.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64966)">新闻网</option>
+<option value="https://jwc.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64965)">西电教务处</option>
+<option value="https://bksy.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64990)">本科生院</option>
+
+           </select>
+           <select class="lj1" onchange="window.location=this.value;">
+              <option value="#"> —— 常用链接 ——</option>
+               <option value="http://www.moe.gov.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64970)">中华人民共和国教育部</option>
+<option value="http://jyt.shaanxi.gov.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64969)">陕西省教育厅</option>
+<option value="http://www.cfd.tsinghua.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64968)">清华大学教师发展中心</option>
+<option value="http://cetl.pku.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64991)">北京大学教师教学发展中心</option>
+<option value="http://jfzx.xjtu.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64992)">西安交通大学教师教学发展中心</option>
+
+           </select>
+           <select class="lj1" onchange="window.location=this.value;">
+              <option value="#"> —— 其他链接 ——</option>
+               
+           </select>
+        </div>
+      </div>
+      <!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright © 2013-2017 西安电子科技大学 教师教学发展中心 &nbsp;技术支持： <a href="https://xxzx.xidian.edu.cn/" target="_blank">信息网络技术中心</a> &nbsp; &nbsp;西安聚力</p>
+    </div>
+      <!--底部结束-->
+  </body>
+  </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

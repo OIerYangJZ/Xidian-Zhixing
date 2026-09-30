@@ -1,0 +1,36 @@
+<view class="{{pageMotion}} settings-page {{themeClass}}">
+  <settings-header title="{{c.settings}}" theme-class="{{themeClass}}" english="{{currentLanguage === 'en'}}" busy="{{loggingOut}}" />
+  <view class="settings-account settings-link-row" bindtap="navigateTo" data-url="/pages/profile/account-security/index" hover-class="settings-pressed" role="button" aria-label="{{c.account}}">
+    <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="settings-avatar" src="{{userInfo && userInfo.avatarUrl}}" mode="aspectFill" /><view wx:else class="settings-avatar"><text wx:if="{{userInfo}}">{{userInfo.avatarInitial}}</text><view wx:else class="ui-icon icon-person"></view></view>
+    <view class="settings-row-body"><view class="account-name">{{userInfo ? (userInfo.nickname || userInfo.alias) : c.account}}</view><view class="settings-caption">{{c.accountHint}}</view></view><view class="ui-icon icon-chevron-right settings-chevron"></view>
+  </view>
+  <view wx:if="{{loading}}" class="account-state">{{c.loading}}</view>
+  <view wx:elif="{{errorMessage}}" class="account-state settings-error">{{errorMessage}} <button class="settings-text-button" bindtap="fetchUserInfo">{{c.retry}}</button></view>
+  <view class="settings-section">
+    <view class="settings-section-title">{{c.preferences}}</view>
+    <view class="settings-title">{{c.appearance}}</view>
+    <view class="appearance-options" role="radiogroup" aria-label="{{c.appearance}}">
+      <view wx:for="{{modeOptions}}" wx:key="value" class="appearance-slot">
+        <button class="appearance-option {{currentModeOption === item.value ? 'active' : ''}}" data-mode="{{item.value}}" bindtap="onModeTap" role="radio" aria-checked="{{currentModeOption === item.value}}">
+          <view class="appearance-preview preview-{{item.value}}" aria-hidden="true"><view class="preview-line"></view><view class="preview-line short"></view><view class="preview-control"><view></view><view></view><view></view></view><view wx:if="{{currentModeOption === item.value}}" class="preview-check ui-icon icon-check"></view></view>
+          <text class="appearance-label">{{item.label}}</text>
+        </button>
+      </view>
+    </view>
+    <view class="settings-inline-state {{preferenceError ? 'error' : ''}}">{{preferenceMessage}}</view>
+    <picker mode="selector" range="{{languages}}" value="{{languageIndex}}" bindchange="onLanguageChange"><view class="settings-row"><view class="ui-icon icon-language settings-row-icon"></view><view class="settings-row-body settings-title">{{c.language}}</view><text class="settings-value">{{languages[languageIndex]}}</text><view class="ui-icon icon-chevron-right settings-chevron"></view></view></picker>
+    <view class="settings-row settings-link-row" data-url="/pages/profile/privacy/index" bindtap="navigateTo" hover-class="settings-pressed" role="button"><view class="ui-icon icon-lock settings-row-icon"></view><view class="settings-row-body"><view class="settings-title">{{c.privacy}}</view><view class="settings-caption">{{c.privacyHint}}</view></view><view class="ui-icon icon-chevron-right settings-chevron"></view></view>
+  </view>
+  <view class="settings-section">
+    <view class="settings-section-title">{{c.services}}</view>
+    <view class="settings-row settings-link-row" data-url="/pages/campus/auth-center/index" bindtap="navigateTo" hover-class="settings-pressed" role="button"><view class="ui-icon icon-campus settings-row-icon"></view><view class="settings-row-body"><view class="settings-title">{{c.campus}}</view><view class="settings-caption">{{c.campusHint}}</view></view><view class="ui-icon icon-chevron-right settings-chevron"></view></view>
+    <view class="settings-row settings-link-row" data-url="/pages/profile/ai-settings/index" bindtap="navigateTo" hover-class="settings-pressed" role="button"><view class="ui-icon icon-ai settings-row-icon"></view><view class="settings-row-body"><view class="settings-title">{{c.ai}}</view><view class="settings-caption">{{c.aiHint}}</view></view><view class="ui-icon icon-chevron-right settings-chevron"></view></view>
+  </view>
+  <view class="settings-section">
+    <view class="settings-section-title">{{c.support}}</view>
+    <view class="settings-row settings-link-row" data-url="/pages/profile/feedback/index" bindtap="navigateTo" hover-class="settings-pressed" role="button"><view class="ui-icon icon-chat settings-row-icon"></view><view class="settings-row-body settings-title">{{c.feedback}}</view><view class="ui-icon icon-chevron-right settings-chevron"></view></view>
+    <view class="settings-row settings-link-row" data-url="/pages/profile/about/index" bindtap="navigateTo" hover-class="settings-pressed" role="button"><view class="ui-icon icon-info settings-row-icon"></view><view class="settings-row-body settings-title">{{c.about}}</view><view class="ui-icon icon-chevron-right settings-chevron"></view></view>
+  </view>
+  <view class="settings-actions"><button class="settings-button secondary" loading="{{loggingOut}}" disabled="{{loggingOut}}" bindtap="handleLogout">{{c.logout}}</button></view>
+  <view wx:if="{{logoutError}}" class="settings-note settings-error">{{logoutError}}</view>
+</view>

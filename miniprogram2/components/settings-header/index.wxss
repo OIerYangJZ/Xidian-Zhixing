@@ -1,0 +1,12 @@
+@import "../../styles/tokens.wxss";
+@import "../../styles/icons.wxss";
+:host { display:block; }
+.settings-header { position:fixed; top:0; left:0; right:0; z-index:60; padding-bottom:8px; background:var(--app-surface); color:var(--app-text-primary); box-sizing:border-box; border-bottom:1px solid var(--app-divider); }
+.header-line { display:flex; align-items:center; padding-left:8px; box-sizing:border-box; }
+.header-back { display:flex; align-items:center; justify-content:center; flex:0 0 40px; width:40px !important; min-width:40px; max-width:40px; height:40px; padding:0; margin:0 !important; background:transparent; color:inherit; border:0; border-radius:0; transition:transform .16s ease, opacity .16s ease; }
+.header-back::after { border:0; }
+.header-back .ui-icon { width:23px; height:23px; }
+.header-title { flex:1; min-width:0; padding:0 8px; font-size:17px; font-weight:700; line-height:19px; overflow-wrap:anywhere; }
+.header-actions { display:flex; flex-shrink:0; align-items:center; }
+.header-pressed { transform:scale(.9); opacity:.65; }
+@media (prefers-reduced-motion:reduce) { .header-back { transition:none; } }

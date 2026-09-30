@@ -1,0 +1,109 @@
+<view class="{{pageMotion}} chat-page {{themeClass}}">
+  <view class="chat-header">
+    <view wx:if="{{selectMode}}" class="chat-header-select">
+      <view class="header-action" bindtap="exitSelectMode">关闭</view>
+      <view class="header-title">已选择 {{selectedMessageIds.length}} 条</view>
+      <view class="header-action danger" bindtap="batchRecall">删除</view>
+    </view>
+    <view wx:else class="chat-header-normal">
+      <view class="peer-entry" bindtap="openPeerProfile">
+        <image wx:if="{{peerAvatar}}" class="peer-avatar" src="{{peerAvatar}}" mode="aspectFill"></image>
+        <view wx:else class="peer-avatar">{{peerInitial}}</view>
+        <view class="peer-meta">
+          <view class="peer-name">{{peerName || '聊天'}}</view>
+        </view>
+      </view>
+      <view class="header-more" bindtap="showOptionsSheet" role="button" aria-label="会话选项"><view class="ui-icon icon-more"></view></view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && messages.length === 0 && !firstMessageWarningDismissed}}" class="warning-banner">
+    <text>对方回复或关注你后，可以继续发送消息。</text>
+    <view class="warning-close" bindtap="dismissFirstMessageWarning">×</view>
+  </view>
+
+  <view class="message-list motion-content">
+    <view wx:if="{{loading}}" class="empty">加载中...</view>
+    <view wx:elif="{{errorMessage}}" class="empty">
+      <view>{{errorMessage}}</view>
+      <button bindtap="retryLoadMessages">重新加载</button>
+    </view>
+    <view wx:elif="{{!messageItems.length}}" class="empty">还没有消息</view>
+    <view wx:else>
+      <view wx:for="{{messageItems}}" wx:key="id">
+        <view wx:if="{{item.type === 'time'}}" class="time-label">{{item.label}}</view>
+        <view
+          wx:else
+          class="message-row {{item.message.fromMe ? 'mine' : ''}}"
+          data-index="{{item.message.index}}"
+          bindtap="onMessageTap"
+          bindlongpress="onMessageLongPress"
+          >
+          <view wx:if="{{!item.message.fromMe}}" class="avatar-wrap" catchtap="openPeerProfile">
+            <image wx:if="{{peerAvatar}}" class="avatar" src="{{peerAvatar}}" mode="aspectFill"></image>
+            <view wx:else class="avatar">{{peerInitial}}</view>
+          </view>
+
+          <view class="bubble-column {{item.message.fromMe ? 'mine-column' : ''}}">
+            <view class="bubble {{item.message.fromMe ? 'mine' : ''}} {{item.message.selected ? 'selected' : ''}}">
+              <view wx:if="{{item.message.hasReplyContent}}" class="reply-block">
+                <view class="reply-sender">{{item.message.replyToSender || (item.message.fromMe ? '我' : '对方')}}</view>
+                <view class="reply-content">{{item.message.replyToContent}}</view>
+              </view>
+              <view wx:if="{{item.message.isRecalled}}" class="recalled-placeholder">{{item.message.content}}</view>
+              <view wx:else class="bubble-content">{{item.message.content}}</view>
+              <view class="bubble-meta">
+                <text class="bubble-time">{{item.message.displayTime}}</text>
+                <view wx:if="{{item.message.fromMe && item.message.deliveryStatus === 'failed'}}" class="failed-actions">
+                  <text class="failed-indicator">!</text>
+                  <text class="retry-link" data-index="{{item.message.index}}" catchtap="retrySend">点击重试</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view wx:if="{{item.message.fromMe}}" class="avatar-wrap mine-avatar" catchtap="openMyProfile">
+            <image wx:if="{{myAvatar}}" class="avatar" src="{{myAvatar}}" mode="aspectFill"></image>
+            <view wx:else class="avatar">{{myInitial}}</view>
+          </view>
+
+          <view wx:if="{{selectMode}}" class="select-circle {{item.message.selected ? 'active' : ''}}" data-message-id="{{item.message.id}}" catchtap="toggleSelect"></view>
+        </view>
+      </view>
+      <view id="bottom-anchor"></view>
+    </view>
+  </view>
+
+  <view wx:if="{{showForwardPicker || showForwardPickerLeaving}}" class="forward-layer {{showForwardPickerLeaving && !showForwardPicker ? 'is-leaving' : ''}}">
+    <view class="picker-mask motion-mask" bindtap="closeForwardPicker"></view>
+    <view class="picker-sheet motion-sheet" catchtap="noop">
+      <view class="picker-title">转发给</view>
+      <view wx:if="{{forwardTargets.length}}" class="picker-list">
+        <view wx:for="{{forwardTargets}}" wx:key="id" class="picker-item" data-index="{{index}}" bindtap="chooseForwardTarget">
+          <image wx:if="{{item.avatarUrl}}" class="picker-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+          <view wx:else class="picker-avatar">{{item.avatarInitial}}</view>
+          <view class="picker-body">
+            <view class="picker-name">{{item.name}}</view>
+            <view class="picker-subtitle">{{item.lastMessage || '开始聊天吧'}}</view>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="empty picker-empty">暂无可转发会话</view>
+      <view class="picker-cancel" bindtap="closeForwardPicker">取消</view>
+    </view>
+  </view>
+
+  <view wx:if="{{!selectMode}}" class="chat-actions">
+    <view wx:if="{{replyToId}}" class="reply-preview" bindtap="clearReply">
+      <view class="reply-preview-head">
+        <text class="reply-preview-title">回复 {{replyToSender}}</text>
+        <text class="reply-preview-close">×</text>
+      </view>
+      <view class="reply-preview-text">{{replyToContent}}</view>
+    </view>
+    <view class="input-row">
+      <input class="chat-input" value="{{content}}" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" placeholder="输入消息" />
+      <button class="send-button" loading="{{sending}}" disabled="{{sending || !content}}" bindtap="sendMessage" aria-label="发送消息"><view class="ui-icon icon-arrow"></view></button>
+    </view>
+  </view>
+</view>

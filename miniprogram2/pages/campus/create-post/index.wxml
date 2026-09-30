@@ -1,0 +1,235 @@
+<view class="{{pageMotion}} page create-page {{themeClass}}">
+  <view class="create-appbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; padding-right: {{navRight}}px;">
+    <view class="appbar-icon-button" bindtap="confirmDiscard" aria-label="关闭">
+      <view class="ui-icon icon-close"></view>
+    </view>
+    <button
+      class="publish-button {{canPublish ? '' : 'disabled'}}"
+      disabled="{{!canPublish || isUploading || isPublishing}}"
+      loading="{{isPublishing}}"
+      bindtap="submitPost"
+
+    >发布</button>
+  </view>
+
+  <scroll-view class="create-content" scroll-y show-scrollbar="{{false}}" style="top: {{navTop + navHeight + 12}}px; bottom: {{keyboardHeight > 0 ? keyboardHeight + 96 : 126}}px;">
+    <view class="composer-shell">
+      <view class="composer-avatar">
+        <image wx:if="{{userAvatarUrl && !useAnonymousAlias}}" src="{{userAvatarUrl}}" mode="aspectFill"></image>
+        <text wx:else>{{useAnonymousAlias ? '匿' : userAvatarInitial}}</text>
+      </view>
+      <view class="composer-main">
+    <view class="composer-identity" bindtap="toggleVisibilitySelector" role="button" aria-label="可见范围"><text>{{privateOnly ? '仅自己' : '所有人'}}</text><view class="ui-icon icon-chevron-right"></view></view>
+    <view wx:if="{{loadErrorMessage}}" class="section-rule-tip">
+      <view>{{loadErrorMessage}}</view>
+      <button bindtap="retryLoadInitialData">重新加载</button>
+    </view>
+
+
+    <input
+      wx:if="{{showTitle || title}}"
+      class="title-input"
+      placeholder="标题（选填）"
+      placeholder-class="input-placeholder"
+      maxlength="50"
+      value="{{title}}"
+      bindinput="onTitleInput"
+      adjust-position="{{false}}" bindkeyboardheightchange="onKeyboardHeightChange"
+    />
+
+    <view class="content-editor">
+      <textarea
+        class="content-input"
+        placeholder="有什么新鲜事？"
+        placeholder-style="color: {{resolvedDisplayMode === 'dark' ? '#a6b1ba' : '#536471'}};"
+        placeholder-class="textarea-placeholder"
+        maxlength="2000"
+        value="{{content}}"
+        cursor="{{contentCursor}}"
+        bindinput="onContentInput"
+        bindblur="onContentBlur"
+        adjust-position="{{false}}"
+        bindkeyboardheightchange="onKeyboardHeightChange"
+        cursor-spacing="24"
+        auto-height
+      />
+    </view>
+
+    <view class="anonymous-row" wx:if="{{useAnonymousAlias}}">
+      <view class="eye-off-icon small"></view>
+      <input
+        class="anonymous-input"
+        placeholder="自定义匿名昵称（选填）"
+        placeholder-class="anonymous-placeholder"
+        maxlength="20"
+        value="{{anonymousAlias}}"
+        bindinput="onAnonymousAliasInput"
+        adjust-position="{{false}}" bindkeyboardheightchange="onKeyboardHeightChange"
+      />
+    </view>
+
+    <view class="status-badge-row" wx:if="{{selectedStatus}}">
+      <view class="status-badge {{selectedStatus.value}}">
+        {{selectedStatus.label}}
+      </view>
+    </view>
+
+    <scroll-view class="image-preview-list" wx:if="{{images.length}}" scroll-x>
+      <view class="image-preview-strip">
+        <view class="image-preview-cell" wx:for="{{images}}" wx:key="localPath">
+          <image
+            src="{{item.localPath}}"
+            mode="aspectFill"
+            data-path="{{item.localPath}}"
+            bindtap="previewImage"
+          ></image>
+          <view class="image-loading" wx:if="{{item.uploading}}">上传中...</view>
+          <view class="image-remove" data-index="{{index}}" catchtap="removeImage">
+            <view class="ui-icon icon-close"></view>
+          </view>
+        </view>
+        <view class="image-preview-add" bindtap="chooseImages">
+          <view class="ui-icon icon-plus"></view>
+        </view>
+      </view>
+    </scroll-view>
+      </view>
+    </view>
+  </scroll-view>
+
+    <view class="bottom-editor-bar {{keyboardHeight > 0 ? 'keyboard-open' : ''}}" style="bottom:{{keyboardHeight}}px;">
+    <view class="inline-selector-area" wx:if="{{tagSelectorOpen || statusSelectorOpen || pinSelectorOpen || visibilitySelectorOpen || moreOptionsOpen}}">
+      <view class="selector-head" wx:if="{{!moreOptionsOpen && !tagSelectorOpen}}"><text>发布设置</text><button class="sheet-close" bindtap="closeInlineSelectors" aria-label="关闭"><view class="ui-icon icon-close"></view></button></view>
+      <view wx:if="{{moreOptionsOpen}}">
+        <view class="selector-head"><text>发布选项</text><button class="sheet-close" bindtap="closeInlineSelectors" aria-label="关闭"><view class="ui-icon icon-close"></view></button></view>
+            <view class="compact-selector">
+      <view class="compact-selector-row" bindtap="toggleSectionSelector">
+        <text class="compact-selector-label">分区</text>
+        <text class="compact-selector-pill {{sectionIndex >= 0 ? '' : 'placeholder'}}">{{sectionIndex >= 0 ? sections[sectionIndex].sectionName : '不选分区'}}</text>
+        <text class="selector-arrow">{{sectionSelectorOpen ? '⌃' : '⌄'}}</text>
+      </view>
+      <view class="selector-chip-wrap" wx:if="{{sectionSelectorOpen}}">
+        <view
+          wx:for="{{sections}}"
+          wx:key="id"
+          data-index="{{index}}"
+          class="pill-chip {{sectionIndex === index ? 'active' : ''}}"
+          bindtap="onSectionTap"
+        >{{item.sectionName}}</view>
+      </view>
+    </view>
+
+    <view class="compact-selector" wx:if="{{clubs.length}}">
+      <view class="compact-selector-row" bindtap="toggleClubIdentity">
+        <text class="compact-selector-label">身份</text>
+        <text class="compact-selector-pill">{{clubIdentityIndex >= 0 ? clubs[clubIdentityIndex].name : '个人发布'}}</text>
+        <text class="selector-arrow">{{clubIdentityOpen ? '⌃' : '⌄'}}</text>
+      </view>
+      <view class="selector-chip-wrap" wx:if="{{clubIdentityOpen}}">
+        <view data-index="-1" class="pill-chip {{clubIdentityIndex < 0 ? 'active' : ''}}" bindtap="onClubIdentityTap">个人发布</view>
+        <view
+          wx:for="{{clubs}}"
+          wx:key="id"
+          data-index="{{index}}"
+          class="pill-chip {{clubIdentityIndex === index ? 'active' : ''}}"
+          bindtap="onClubIdentityTap"
+        >{{item.name}}</view>
+      </view>
+    </view>
+
+
+        <view class="setting-row"><text>添加标题</text><switch checked="{{showTitle}}" bindchange="toggleTitle" color="#1d9bf0" /></view>
+        <view class="setting-row"><text>匿名发布</text><switch checked="{{useAnonymousAlias}}" bindchange="toggleAnonymous" color="#1d9bf0" /></view>
+        <button class="setting-link" bindtap="toggleStatusSelector">帖子状态<text>{{selectedStatus ? selectedStatus.label : '未设置'}}</text></button>
+        <button wx:if="{{isLevelOneUser}}" class="setting-link" bindtap="togglePinSelector">置顶<text>{{pinOptions[pinIndex].label}}</text></button>
+      </view>
+      <view class="status-selector" wx:if="{{statusSelectorOpen}}">
+        <view
+          wx:for="{{statusOptions}}"
+          wx:key="value"
+          data-index="{{index}}"
+          class="option-pill {{postStatusIndex === index ? 'active' : ''}}"
+          bindtap="onStatusTap"
+        >
+          <view class="status-option-icon {{item.icon}}"></view>
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+
+      <view class="tag-selector-sheet" wx:if="{{tagSelectorOpen}}">
+        <view class="selector-head">
+          <text>插入标签</text>
+          <view class="selector-actions">
+            <text class="selector-close" bindtap="closeTagSelector">×</text>
+          </view>
+        </view>
+        <view class="tag-option-wrap">
+          <view
+          wx:for="{{tagOptions}}"
+            wx:key="*this"
+            data-tag="{{item}}"
+            class="option-pill"
+            bindtap="insertTag"
+          >{{item}}</view>
+        </view>
+        <view class="custom-tag-row">
+          <input
+            class="custom-tag-input"
+            placeholder="自定义标签"
+            placeholder-class="custom-tag-placeholder"
+            value="{{customTagText}}"
+            bindinput="onCustomTagInput"
+            adjust-position="{{false}}" bindkeyboardheightchange="onKeyboardHeightChange"
+            confirm-type="done"
+            bindconfirm="addCustomTag"
+          />
+          <view class="custom-tag-add" bindtap="addCustomTag">添加</view>
+        </view>
+      </view>
+
+      <view class="pin-selector" wx:if="{{pinSelectorOpen}}">
+        <view class="pin-selector-title">
+          <view class="pin-icon active"></view>
+          <text>发帖后立即置顶</text>
+        </view>
+        <view class="tag-option-wrap">
+          <view
+            wx:for="{{pinOptions}}"
+            wx:key="label"
+            data-index="{{index}}"
+            class="option-pill {{pinIndex === index ? 'active' : ''}}"
+            bindtap="onPinTap"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="visibility-selector" wx:if="{{visibilitySelectorOpen}}">
+        <view
+          wx:for="{{visibilityOptions}}"
+          wx:key="value"
+          data-value="{{item.value}}"
+          class="visibility-item {{(privateOnly && item.value === 'private') || (!privateOnly && item.value === 'public') ? 'active' : ''}}"
+          bindtap="onVisibilityTap"
+        >
+          <view class="visibility-icon {{item.icon}}"></view>
+          <text>{{item.label}}</text>
+          <text class="visibility-check" wx:if="{{(privateOnly && item.value === 'private') || (!privateOnly && item.value === 'public')}}">✓</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="upload-row" wx:if="{{isUploading}}">
+      <view class="upload-spinner"></view>
+      <text>图片上传中...</text>
+    </view>
+
+    <button class="reply-permission" bindtap="chooseReplyPermission"><view class="ui-icon icon-chat"></view><text>{{allowComment ? '所有人都可以回复' : '已关闭回复'}}</text></button>
+    <view class="toolbar-row">
+      <button class="toolbar-icon-button" bindtap="chooseImages" disabled="{{isUploading || isPublishing || images.length >= 20}}" aria-label="添加图片"><view class="image-outline-icon"></view></button>
+      <button class="toolbar-icon-button" bindtap="toggleTagSelector" aria-label="添加话题"><view class="tag-icon"></view></button>
+      <button class="toolbar-icon-button" bindtap="openMoreOptions" aria-label="更多发布选项"><view class="ui-icon icon-more"></view></button>
+      <view class="toolbar-spacer"></view>
+      <view class="content-counter {{contentLength >= 1900 ? 'error' : ''}}">{{contentLength}} / 2000</view>
+    </view>
+  </view>
+</view>

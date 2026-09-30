@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>跃动身心，赋能前行  ——“运动是良医”教职工运动技能公益培训，绘就“幸福西电”新画卷-西安电子科技大学体育部</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="跃动身心，赋能前行  ——“运动是良医”教职工运动技能公益培训，绘就“幸福西电”新画卷">
+<META Name="keywords" Content="西安电子科技大学体育部,运动,绘,培训,公益,幸福,良医,教职工,技能,前行,赋,西电,身心,新,跃动,画卷" />
+<META Name="description" Content="（通讯员：党章  尹霞）在快节奏的现代生活中，如何平衡高强度的教学科研工作与身心健康，是每一位高校教职工都会面临的共同课题。为积极响应“健康中国”战略，切实提升广大教职工的身心素质与生活品质，2026年西电春季学期第七期“运动是良医”教职工运动技能公益培训活动成功举办。本期活动吸引了全校300余名教职工热情参与，通过多元化的项目设计与高水准的专业指导，将体育精神深度融入校园生活，为打造“幸福西电”注入蓬勃活力。..." />
+
+
+
+
+
+<META charset="UTF-8">
+<META name="description" content=""><LINK rel="stylesheet" href="../../css/reset.css"><LINK rel="stylesheet" href="../../css/style.css"><script type="text/javascript" src="../../js/bdtxk.js"></script><script type="text/javascript" src="../../js/slide.js"></script><script type="text/javascript" src="../../js/index.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1021,'/content.jsp',7372,1641759486)</script>
+</HEAD>
+<BODY><!-- header start -->
+<DIV id="header" class="w100">
+<DIV class="container">
+<DIV class="header_top">
+<DIV class="logo fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+
+<A href="../../index.htm" title="体育部2020"><IMG alt="" src="../../images/logo.png"> </A></DIV>
+<DIV class="hd_r_top fr">
+<DIV class="search fr"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError" style="padding:3px;margin:0px;display:inline;font-family:宋体;font-size:12px;">
+
+    <input autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" class="txt" value="请输入关键字！">
+    <input type="image" src="../../images/search_icon.png" align="absmiddle" v-on:click="onSubmit()" class="btn">
+ </div>
+        
+        
+        
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1641759486";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1641759486";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></DIV>
+<DIV class="hd_r_link fr"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><A href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 61540)" target="_blank">学校主页</A> 
+<A href="http://tyben.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 62678)" target="_blank">English</A> 
+</DIV></DIV></DIV><!-- nav start -->
+<DIV id="nav">
+<DIV class="nav_menu"><UL class="nav_list">
+<LI><A href="../../index.htm" title="首页">首页</A> 
+</LI>
+<LI><A href="../../bmgk1/bmjj.htm" title="部门概况">部门概况</A> 
+<DL class="menu">
+<DD><A href="../../bmgk1/bmjj.htm" title="部门简介">部门简介</A> </DD>
+<DD><A href="../../bmgk1/lsyg.htm" title="历史沿革">历史沿革</A> </DD>
+<DD><A href="../../bmgk1/xrld.htm" title="现任领导">现任领导</A> </DD>
+<DD><A href="../../bmgk1/jgsz.htm" title="机构设置">机构设置</A> </DD>
+<DD><A href="../../bmgk1/wyh.htm" title="委员会">委员会</A> </DD>
+<DD><A href="../../bmgk1/xcsp.htm" title="宣传视频">宣传视频</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../szdw.htm" title="师资队伍">师资队伍</A> 
+<DL class="menu">
+<DD><A href="../../szdw/js.htm" title="教授">教授</A> </DD>
+<DD><A href="../../szdw/fjs.htm" title="副教授">副教授</A> </DD>
+<DD><A href="../../szdw/js1.htm" title="讲师">讲师</A> </DD>
+<DD><A href="../../szdw/zj.htm" title="助教">助教</A> </DD>
+<DD><A href="../../szdw/zzgtjs.htm" title="专职公体教师">专职公体教师</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../djgz.htm" title="党建工作">党建工作</A> 
+<DL class="menu">
+<DD><A href="../../djgz/zzjg.htm" title="组织机构">组织机构</A> </DD>
+<DD><A href="../../djgz/gzdt.htm" title="工作动态">工作动态</A> </DD>
+<DD><A href="../../djgz/ztxx.htm" title="专题学习">专题学习</A> </DD>
+<DD><A href="../../djgz/ghgz.htm" title="工会工作">工会工作</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyjlb.htm" title="体育俱乐部">体育俱乐部</A> 
+<DL class="menu">
+<DD><A href="../../tyjlb/jlbjx.htm" title="俱乐部教学">俱乐部教学</A> </DD>
+<DD><A href="../../tyjlb/yjsjx.htm" title="研究生教学">研究生教学</A> </DD>
+<DD><A href="../../tyjlb/wskc.htm" title="网上课程">网上课程</A> </DD>
+<DD><A href="http://jpkc.xidian.edu.cn/dxty/" title="精品课程">精品课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../zspy.htm" title="招生培养">招生培养</A> 
+<DL class="menu">
+<DD><A href="../../zspy/sszs.htm" title="硕士招生">硕士招生</A> </DD>
+<DD><A href="../../zspy/sspy1.htm" title="硕士培养">硕士培养</A> </DD>
+<DD><A href="../../zspy/yddzsh.htm" title="运动队招生">运动队招生</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyky.htm" title="体育科研">体育科研</A> 
+<DL class="menu">
+<DD><A href="../../tyky/ktlx.htm" title="课题立项">课题立项</A> </DD>
+<DD><A href="../../tyky/xscg.htm" title="学术成果">学术成果</A> </DD>
+<DD><A href="../../tyky/kyhj.htm" title="科研获奖">科研获奖</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../ydjs.htm" title="运动竞赛">运动竞赛</A> 
+<DL class="menu">
+<DD><A href="../../ydjs/gspydd.htm" title="高水平运动队">高水平运动队</A> </DD>
+<DD><A href="../../ydjs/ptsydd.htm" title="普通生运动队">普通生运动队</A> </DD>
+<DD><A href="../../ydjs/xnjs.htm" title="校内竞赛">校内竞赛</A> </DD>
+<DD><A href="../../ydjs/syxw.htm" title="首页新闻">首页新闻</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../rydt.htm" title="荣誉殿堂">荣誉殿堂</A> 
+<DL class="menu">
+<DD><A href="../../rydt/xdqgry.htm" title="西电全国荣誉">西电全国荣誉</A> </DD>
+<DD><A href="../../rydt/xdsnry.htm" title="西电省内荣誉">西电省内荣誉</A> </DD>
+<DD><A href="../../rydt/xdxnry.htm" title="西电校内荣誉">西电校内荣誉</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../gzzd.htm" title="规章制度">规章制度</A> 
+</LI>
+<LI><A href="../../rczp.htm" title="人才招聘">人才招聘</A> 
+</LI>
+<LI><A href="#" title="下载专区">下载专区</A> 
+<DL class="menu">
+<DD><A href="../../xzzq1/xzzq.htm" title="下载专区">下载专区</A> </DD>
+<DD><A href="../../xzzq1/jxkyyb.htm" title="教学科研用表">教学科研用表</A> </DD>
+<DD><A href="../../xzzq1/rsfwxx.htm" title="人事服务信息">人事服务信息</A> </DD>
+<DD><A href="../../xzzq1/wskc.htm" title="网上课程">网上课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../cggl.htm" title="场馆管理">场馆管理</A> 
+<DL class="menu">
+<DD><A href="../../cggl/cgjs.htm" title="场馆介绍">场馆介绍</A> </DD>
+<DD><A href="../../cggl/glgd.htm" title="管理规定">管理规定</A> </DD>
+<DD><A href="../../cggl/cgsq.htm" title="场馆申请">场馆申请</A> </DD>
+</DL>
+</LI>
+</UL></DIV></DIV><!-- end nav --></DIV></DIV><!-- end header --><!-- ej_banner start -->
+<DIV id="ej_banner" class="w100">
+<DIV class="ej_banner_con">    <IMG alt="" src="../../images/ej_banner.jpg"> </DIV>
+<DIV class="ej_banner_bd">
+<DIV class="lmmc"><!-- header start -->
+新闻动态</DIV></DIV></DIV><!-- end ej_banner --><!-- main start -->
+<DIV id="main" class="w100">
+<DIV class="container">
+<DIV class="main_con clearfix">
+<DIV class="main_con_l fl">
+<DIV class="sidebar"><UL>
+</UL>
+</DIV></DIV>
+<DIV class="main_con_r fr">
+<DIV class="main_hd">
+<DIV class="dqwz"><div>
+    位置: 
+                        <a href="../../index.htm">首页</a>
+                >
+                <a href="../../xwdt.htm">新闻动态</a>
+                >
+                正文
+</div>
+
+</DIV><SPAN class="line"></SPAN></DIV>
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="nr">
+	<div class="main_bd">
+	         <div class="con_title">
+   <h2 class="title">跃动身心，赋能前行  ——“运动是良医”教职工运动技能公益培训，绘就“幸福西电”新画卷</h2>
+   <p class="info">来源：<span class="xxly">
+    </span>时间：<span class="time1">2026-07-18</span>点击数：<i class="djs"><script>_showDynClicks("wbnews", 1641759486, 7372)</script></i></p>
+                 </div>
+
+
+
+    <div id="vsb_content_2" class="content"><div class="v_news_content">
+<p class="vsbcontent_start" style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">（通讯员：党章&nbsp; 尹霞）在快节奏的现代生活中，如何平衡高强度的教学科研工作与身心健康，是每一位高校教职工都会面临的共同课题。为积极响应“健康中国”战略，切实提升广大教职工的身心素质与生活品质，2026年西电春季学期第七期“运动是良医”教职工运动技能公益培训活动成功举办。本期活动吸引了全校300余名教职工热情参与，通过多元化的项目设计与高水准的专业指导，将体育精神深度融入校园生活，为打造“幸福西电”注入蓬勃活力。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">本期公益培训精准对接教职工的健康需求，精心设置了网球、乒乓球、瑜伽、体态健康、八段锦及游泳六大核心项目。同时，体育部组织了专业过硬教学能力强的资深教师进行授课，他们不仅传授了规范的技术动作，更针对教职工长期伏案工作带来的职业劳损，提供了个性化的运动处方。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/A/68/8F/1CDF91F19286FADA4987D59D99E_7003C342_2C3CA.jpeg" vsbhref="vurl" vurl="/_vsl/A688F1CDF91F19286FADA4987D59D99E/7003C342/2C3CA" vheight=" 324pt" vwidth=" 432pt" orisrc="/__local/9/8E/13/D20B7F82091DEE6E1353BD44161_B617A75B_66FA9.jpeg" class="img_vsb_content" style="width: 432pt;height: 324pt"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/A/69/1C/471507F993FB8D0FA1BEAE75D05_E7536F33_3E035.jpeg" vsbhref="vurl" vurl="/_vsl/A691C471507F993FB8D0FA1BEAE75D05/E7536F33/3E035" vheight=" 324.05pt" vwidth=" 432pt" orisrc="/__local/B/B7/8C/A7002419A9130670DBEBF8730CF_69D6E3AE_86378.jpeg" class="img_vsb_content" style="width: 432pt;height: 324.05pt"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/F/8D/32/410AD6FBB0CFB3A4C38F0EEE25D_8AE4409A_488E3.jpeg" vsbhref="vurl" vurl="/_vsl/F8D32410AD6FBB0CFB3A4C38F0EEE25D/8AE4409A/488E3" vheight=" 324.05pt" vwidth=" 432pt" orisrc="/__local/8/ED/05/423D88B94E52271D45984021E7D_9770389A_97BD3.jpeg" class="img_vsb_content" style="width: 432pt;height: 324.05pt"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/4/5B/CC/BD8B2C5C648E3018D9724DC6DED_BFE417B5_41DA5.jpeg" vsbhref="vurl" vurl="/_vsl/45BCCBD8B2C5C648E3018D9724DC6DED/BFE417B5/41DA5" vheight=" 324.05pt" vwidth=" 432pt" orisrc="/__local/E/C2/74/070DA41808EC30E547CA6E14706_77E1854E_8DF73.jpeg" class="img_vsb_content" style="width: 432pt;height: 324.05pt"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/F/DC/3E/FBD1F46D22CCE3DBE7728D8D87F_0C4D23D2_552B0.jpeg" vsbhref="vurl" vurl="/_vsl/FDC3EFBD1F46D22CCE3DBE7728D8D87F/0C4D23D2/552B0" vheight=" 324.05pt" vwidth=" 432pt" orisrc="/__local/D/B0/44/A8F50FBDEF1B7D979C87EABA9C3_A2BDA6C6_A9A3B.jpeg" class="img_vsb_content" style="width: 432pt;height: 324.05pt"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/4/5D/AB/107E2E189842416031EA5C8080D_B35EDBC9_32FB5.jpeg" vsbhref="vurl" vurl="/_vsl/45DAB107E2E189842416031EA5C8080D/B35EDBC9/32FB5" vheight=" 205.4pt" vwidth=" 432pt" orisrc="/__local/5/E0/BF/C72D1215224EB308FB5DBE9CC2F_40ED5377_6D94E.jpeg" class="img_vsb_content" style="width: 432pt;height: 205.4pt"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">在乒乓球实训环节，教练团队针对上旋球、下旋球的运行与击打原理开展拆解教学，同时对参训教职工的站位与移动步伐进行一对一手把手纠正，帮助参训教职工切实掌握全身协调发力的技术要领。在网球实训场地，教练以握拍方法、移动步法、基础挥拍动作等核心基础技术为教学切入点，通过动作示范与分解动作练习，指导参训教职工正确构建并运用“踝—膝—髋—肩”动力链完成蹬地转体发力流程，系统纠正了普遍存在的过度依赖手臂挥拍、脚步移动不充分等常见技术误区。在参训教职工关注度最高的体态健康与瑜伽课程中，指导教师承担了康复指导功能：通过精准的骨骼与肌肉触诊，为参训教职工调整圆肩驼背的不良体态，同时传授可随时随地开展的“办公室微拉伸”动作体系；在体位训练环节，指导教师细致讲解每一个体式的精准发力与标准体位要求，引导参训教职工在深长呼吸中感知肌肉拉伸，有效释放了长期伏案工作积累的肩颈张力。在八段锦课程中，指导教师结合中医经络理论，对八段锦“调身、调息、调心”的核心三要素进行逐步骤拆解讲解，从站桩姿势纠正到呼吸与动作的配合指导，逐步帮助参训教职工疏通经络、舒缓长期伏案引发的肩颈僵硬。当参训教职工能够在舒缓的运动节奏中实现“形、气、神”三者合一，身心同步放松的通透感使多数参训教职工给出了较高的正向评价。在游泳课程中，教练从“水中流线型身体控制”与“呼吸节奏把控”等基础内容开展分层教学，帮助参训教职工克服水恐惧心理，逐步实现划水动作的轻盈化与高效化。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/F/54/75/4D7B67BD670DD41FBDE57CC9D16_594837B9_25902.jpeg" width="576" height="432" border="0" vspace="0" hspace="0" title="" alt="" vsbhref="vurl" vurl="/_vsl/F54754D7B67BD670DD41FBDE57CC9D16/594837B9/25902" vheight=" 432px" vwidth=" 576px" orisrc="/__local/B/85/E0/3BE3BCA84EBD15831AA7B3D23B7_1F45CE88_4B1CB.jpeg" class="img_vsb_content" style="width: 576px; height: 432px;"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/D/92/B2/02484D86D9E7DC85266D7526CAC_AE018B17_3B45F.jpeg" width="576" height="432" border="0" vspace="0" hspace="0" title="" alt="" vsbhref="vurl" vurl="/_vsl/D92B202484D86D9E7DC85266D7526CAC/AE018B17/3B45F" vheight=" 432px" vwidth=" 576px" orisrc="/__local/E/1E/CE/1C108ED7C7F2DBEE61ABEE0BF5A_96AF17D5_386CA.jpeg" class="img_vsb_content" style="width: 576px; height: 432px;"> <img src="/__local/3/B2/BD/67C27578F7B3A4412B84A126DD1_0F601406_2F580.jpeg" width="576" height="431" border="0" vspace="0" hspace="0" title="" alt="" vsbhref="vurl" vurl="/_vsl/3B2BD67C27578F7B3A4412B84A126DD1/0F601406/2F580" vheight=" 431px" vwidth=" 576px" orisrc="/__local/5/38/96/ABAA1A7264F4C0841BBAFDF5505_06DA67F9_69508.jpeg" class="img_vsb_content" style="width: 576px; height: 431px;"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/C/D1/B6/0164D3E7A4D1C0453883F1B5A22_DAACEF80_2398E.jpeg" width="576" height="432" border="0" vspace="0" hspace="0" title="" alt="" vsbhref="vurl" vurl="/_vsl/CD1B60164D3E7A4D1C0453883F1B5A22/DAACEF80/2398E" vheight=" 432px" vwidth=" 576px" orisrc="/__local/F/2A/7F/AA3A805BCE7D44496E1577FAC6F_A2A8521F_4A4D4.jpeg" class="img_vsb_content" style="width: 576px; height: 432px;"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/6/A6/0C/94A04209FC03EEF3F0785538904_B3293FBE_2E252.jpeg" vsbhref="vurl" vurl="/_vsl/6A60C94A04209FC03EEF3F0785538904/B3293FBE/2E252" vheight=" 324.1pt" vwidth=" 432pt" orisrc="/__local/F/E5/89/8D8AB69771DF2557FF3D2BC5740_1418D093_660A5.jpeg" class="img_vsb_content" style="width: 432pt;height: 324.1pt"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/3/9B/E6/59E96EE64D4ADB27CF34C2640CE_8DFFAB83_2C6DA.jpeg" vsbhref="vurl" vurl="/_vsl/39BE659E96EE64D4ADB27CF34C2640CE/8DFFAB83/2C6DA" vheight=" 323.9pt" vwidth=" 432pt" orisrc="/__local/8/61/03/5740D8B950F1714830FF0320C14_4ED01135_63713.jpeg" class="img_vsb_content" style="width: 432pt;height: 323.9pt"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/C/08/DB/9D034695B553B84984F7C61FE9F_76EB69E8_12747.jpeg" width="576" height="432" border="0" vspace="0" hspace="0" title="" alt="" vsbhref="vurl" vurl="/_vsl/C08DB9D034695B553B84984F7C61FE9F/76EB69E8/12747" vheight=" 432px" vwidth=" 576px" orisrc="/__local/A/D9/74/8F3E5063E8F1849ACDE4711BC92_C7099B51_27A94.jpeg" class="img_vsb_content" style="width: 576px; height: 432px;"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/6/5B/CF/FBD0D84B7E9349447E384A07D3A_D72E8F82_15BB2.jpeg" width="576" height="432" border="0" vspace="0" hspace="0" title="" alt="" vsbhref="vurl" vurl="/_vsl/65BCFFBD0D84B7E9349447E384A07D3A/D72E8F82/15BB2" vheight=" 432px" vwidth=" 576px" orisrc="/__local/5/71/BB/3F1036B9398894E13111613A487_05013918_2E6F0.jpeg" class="img_vsb_content" style="width: 576px; height: 432px;"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/0/83/43/F8AACD35D9C71B020C7711A3083_0D19592F_FADA.jpeg" width="576" height="432" border="0" vspace="0" hspace="0" title="" alt="" vsbhref="vurl" vurl="/_vsl/08343F8AACD35D9C71B020C7711A3083/0D19592F/FADA" vheight=" 432px" vwidth=" 576px" orisrc="/__local/A/15/DD/386FA6B5472BD57FC50ABCBD792_42455263_222F8.jpeg" class="img_vsb_content" style="width: 576px; height: 432px;"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/F/7F/C6/8E8490BE6665432A69F00580D1B_FCF71A50_2B140.jpeg" vsbhref="vurl" vurl="/_vsl/F7FC68E8490BE6665432A69F00580D1B/FCF71A50/2B140" vheight=" 275.9pt" vwidth=" 432pt" orisrc="/__local/C/2D/72/97A38D3F77642D9C812CD8D75B0_3F0005CB_5CE23.jpeg" class="img_vsb_content" style="width: 432pt;height: 275.9pt"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">健康体魄的塑造绝非一日之功。短期的集中培训只是“授人以渔”的起点，唯有将科学方法内化为日常习惯，保持长期、持续的运动输出，才能真正实现身体机能的蜕变与提升。这种健康向上的生活方式，正逐步与严谨的教学科研工作实现有效融合，让“快乐工作、健康生活”成为西电校园的新常态。</span></p><p class="vsbcontent_end" style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">以运动赋能，与健康同行。“运动是良医”教职工运动技能公益培训是学校对教职工深切关怀的具象化表达，也是体育部坚决落实学校推进幸福西电战略的具体举措，后续体育部将继续与校工会、教工部一道，持续推进公益培训，带领引导广大教职工将科学运动融入日常生活，深切增强广大师生幸福感和获得感，让健康成为西电人最亮丽的名片，让每一位教职工都能在奋斗的道路上拥有更加饱满的精神与更加幸福的人生，为学校高质量发展凝聚强劲的身心力量。</span></p>
+</div></div><div id="div_vote_id"></div>
+    
+<div class="page">
+  <p><span>上一条：</span><a href="7392.htm">西电在陕西省第十八届运动会（大学生组）乒乓球比赛中斩获一金二银三铜</a></p>
+  <p><span>下一条：</span><a href="7362.htm">CUBAL | 载誉收官！西电男篮斩获CUBAL二级联赛全国第六</a></p>
+</div>
+
+
+</div></div>
+</form>
+</DIV></DIV></DIV></DIV><!-- end main --><!-- footer start -->
+<DIV id="footer" class="w100">
+<DIV class="container">
+<DIV class="foot_con clearfix">
+<DIV class="foot_top">
+<DIV class="address fl"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>北校区地址:西安市太白南路2号 邮编：710071</p> 
+<p>南校区地址:西安市西沣路兴隆段266号 邮编：710126</p> 
+<p>电话：（029）81891207 办公邮箱：tiyubu1294@126.com</p> 
+<p>意见投诉信箱：tyb@xidian.edu.cn</p> 
+<p>师德师风监督电话：（029）81891207</p></DIV>
+<DIV class="ft_ewm fr">    
+
+<IMG alt="" src="../../images/erweima.jpg"> 
+<P class="title">官方微信</P>
+</DIV></DIV>
+<DIV class="copyright"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright&nbsp;© 2007-2021 西安电子科技大学体育部 版权所有 技术支持： <a href="https://xxzx.xidian.edu.cn/" style="text-decoration: none; color: white">信息网络技术中心 </a>&nbsp;&nbsp;西安聚力</p></DIV></DIV></DIV></DIV><!-- end footer --><!-- back start -->
+<DIV id="back"></DIV><!-- end back -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

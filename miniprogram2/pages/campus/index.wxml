@@ -1,0 +1,93 @@
+<view class="{{pageMotion}} page campus-page {{themeClass}} {{compact ? 'compact' : ''}}">
+  <social-header fixed back profile="{{userInfo}}" brand="{{false}}">
+    <view slot="center" class="social-page-title">校园</view>
+    <button slot="actions" class="campus-customize-button" bindtap="openCustomizer" aria-label="自定义校园工作台"><view class="ui-icon icon-filter"></view></button>
+  </social-header>
+  <view class="workbench-tabs" style="top: {{navTop + navHeight + 8}}px;">
+    <button data-view="today" class="workbench-tab section-tab {{activeView === 'today' ? 'active' : ''}}" bindtap="switchView" hover-class="section-tab-pressed"><text>今天</text></button>
+    <button data-view="services" class="workbench-tab section-tab {{activeView === 'services' ? 'active' : ''}}" bindtap="switchView" hover-class="section-tab-pressed"><text>全部服务</text></button>
+    <view class="section-tab-cursor" style="width:50%; transform:translateX({{activeView === 'today' ? 0 : 100}}%);" aria-hidden="true"><view class="section-tab-line"></view></view>
+  </view>
+  <scroll-view class="campus-scroll" scroll-y enhanced show-scrollbar="{{false}}" scroll-into-view="{{scrollAnchor}}" refresher-enabled refresher-triggered="{{refreshing}}" refresher-background="{{resolvedDisplayMode === 'dark' ? '#171b21' : '#ffffff'}}" bindrefresherrefresh="refreshData" style="top: {{navTop + navHeight + 56}}px; height: calc(100vh - {{navTop + navHeight + 56}}px - var(--tab-height));">
+    <view id="workbench-top"></view>
+    <view hidden="{{activeView !== 'today'}}" class="workbench-view motion-content {{contentMotion}}">
+      <view class="workbench-heading"><view><view class="date-heading">{{dayLabel || '今日校园'}}</view><view class="date-caption">{{selectedDate === todayDate ? '今日安排' : '日程预览'}}<text wx:if="{{readTime}}"> · 读取于 {{readTime}}</text></view></view><button class="heading-action" bindtap="openWeeklySchedule" aria-label="查看完整课表"><view class="ui-icon icon-calendar-days"></view></button></view>
+      <block wx:if="{{showSchedule}}">
+        <view class="week-strip" wx:if="{{weekDays.length}}">
+          <view wx:for="{{weekDays}}" wx:key="date" class="week-slot">
+            <button class="week-day {{selectedDate === item.date ? 'selected' : ''}}" data-date="{{item.date}}" bindtap="selectDay" aria-label="{{item.date}}，{{item.count}} 项安排">
+              <text class="weekday">{{item.isToday ? '今天' : item.weekday}}</text><text class="day-number">{{item.number}}</text><view class="day-indicator {{item.count ? 'has-schedule' : ''}}"></view>
+            </button>
+          </view>
+        </view>
+        <view wx:if="{{loading && !weekDays.length}}" class="campus-loading"><view class="skeleton skeleton-heading"></view><view class="skeleton skeleton-line"></view><view class="skeleton skeleton-line short"></view></view>
+        <view wx:elif="{{scheduleError}}" class="module-state"><view class="state-title">日程暂时无法读取</view><view class="state-copy">{{scheduleError}}</view><button class="text-command" bindtap="retryLoad">重试</button></view>
+        <block wx:else>
+          <view wx:if="{{focusSchedule}}" class="next-schedule schedule-{{focusSchedule.tone}}" data-source="{{focusSchedule.source}}" bindtap="openSchedule" hover-class="tap-active" role="button">
+            <view class="next-label"><view class="status-mark"></view><text>{{focusLabel}}</text><text class="next-countdown">{{countdown}}</text></view>
+            <view class="next-title">{{focusSchedule.title}}</view>
+            <view class="next-meta"><text class="next-time">{{focusSchedule.timeRange}}</text><view class="ui-icon icon-campus"></view><text class="next-location">{{focusSchedule.location || '地点未提供'}}</text></view>
+            <view wx:if="{{focusSchedule.current}}" class="schedule-progress"><view class="progress-fill" style="width: {{focusSchedule.progress}}%;"></view></view>
+          </view>
+          <view wx:else class="module-state empty-schedule"><view class="empty-schedule-copy"><view class="state-title">暂无日程</view><view class="state-copy">未读取到当日课程、考试或实验。</view></view><button class="text-command" bindtap="openWeeklySchedule">查看课表</button></view>
+        </block>
+      </block>
+      <view class="shortcuts-section">
+        <view class="section-heading"><text>常用</text><button class="section-icon-button" bindtap="openCustomizer" aria-label="编辑常用入口"><view class="ui-icon icon-filter"></view></button></view>
+        <view wx:if="{{serviceError}}" class="module-state"><view class="state-title">服务暂时无法读取</view><view class="state-copy">{{serviceError}}</view><button class="text-command" bindtap="retryLoad">重试</button></view>
+        <view wx:elif="{{loading && !services.length}}" class="loading-state">正在加载服务</view>
+        <view wx:elif="{{!shortcuts.length}}" class="shortcut-empty"><text>还没有常用入口</text><button class="text-command" bindtap="openCustomizer">添加常用</button></view>
+        <view wx:else class="shortcut-grid">
+          <view wx:for="{{shortcuts}}" wx:key="id" class="shortcut-slot"><button class="shortcut" data-id="{{item.id}}" bindtap="openService" hover-class="shortcut-pressed" aria-label="{{item.name}}"><view class="shortcut-icon tone-{{item.tone}}"><view class="ui-icon icon-{{item.icon}}"></view></view><text class="shortcut-name">{{item.name}}</text></button></view>
+        </view>
+        <button class="all-services-link" bindtap="showAllServices"><text>全部校园服务</text><view class="ui-icon icon-chevron-right"></view></button>
+      </view>
+      <view wx:if="{{showSchedule && !scheduleError && scheduleRows.length}}" class="agenda-section">
+        <view class="section-heading"><text>当日安排</text><text class="section-count">{{scheduleCount}} 项</text></view>
+        <view class="agenda-row schedule-{{item.tone}} {{item.ended ? 'ended' : ''}}" wx:for="{{scheduleRows}}" wx:key="id" data-source="{{item.source}}" bindtap="openSchedule" hover-class="tap-active">
+          <view class="agenda-time"><text>{{item.startTime || '--:--'}}</text><text class="agenda-end">{{item.endTime}}</text></view>
+          <view class="timeline-track"><view class="timeline-dot"></view></view>
+          <view class="agenda-body"><view class="agenda-label"><text class="source-label">{{item.sourceLabel || (item.tone === 'exam' ? '考试' : item.tone === 'experiment' ? '实验' : '课程')}}</text><text wx:if="{{item.current}}" class="current-label">进行中</text></view><view class="agenda-title">{{item.title}}</view><view class="agenda-meta">{{item.location || '地点未提供'}}<text wx:if="{{item.teacher}}"> · {{item.teacher}}</text><text wx:if="{{item.seatNo}}"> · 座位 {{item.seatNo}}</text></view></view>
+        </view>
+      </view>
+      <view wx:if="{{profileError}}" class="module-state"><view class="state-title">账户信息暂时无法读取</view><view class="state-copy">{{profileError}}</view><button class="text-command" bindtap="retryLoad">重试</button></view>
+    </view>
+    <view hidden="{{activeView !== 'services'}}" class="workbench-view motion-content {{contentMotion}}">
+      <view class="directory-heading"><view class="date-heading">校园服务</view><view class="directory-count">{{services.length}} 个入口</view></view>
+      <view class="service-search"><view class="ui-icon icon-search"></view><input value="{{searchKeyword}}" bindinput="onServiceSearch" placeholder="搜索课表、缴费、报修..." placeholder-style="color: {{resolvedDisplayMode === 'dark' ? '#a6b1ba' : '#536471'}};" confirm-type="search" /><button wx:if="{{searchKeyword}}" class="search-clear" bindtap="clearSearch" aria-label="清除搜索"><view class="ui-icon icon-close"></view></button></view>
+      <scroll-view class="service-categories" scroll-x enhanced show-scrollbar="{{false}}"><view class="category-track"><button wx:for="{{categories}}" wx:key="id" class="category {{activeGroup === item.id ? 'active' : ''}}" data-group="{{item.id}}" bindtap="selectGroup">{{item.name}}</button></view></scroll-view>
+      <view wx:if="{{serviceError}}" class="module-state"><view class="state-title">服务暂时无法读取</view><view class="state-copy">{{serviceError}}</view><button class="text-command" bindtap="retryLoad">重试</button></view>
+      <view wx:elif="{{loading && !services.length}}" class="loading-state">正在加载服务</view>
+      <view wx:elif="{{!visibleServices.length}}" class="module-state"><view class="state-title">{{searchKeyword ? '没有找到相关服务' : '此分类暂无服务'}}</view><button wx:if="{{searchKeyword}}" class="text-command" bindtap="clearSearch">清除搜索</button></view>
+      <view wx:else class="service-list">
+        <view wx:for="{{visibleServices}}" wx:key="id" class="service-row {{item.usable ? '' : 'limited'}}" data-id="{{item.id}}" bindtap="openService" hover-class="tap-active" role="button" aria-label="{{item.name}}，{{item.modeLabel}}">
+          <view class="service-icon tone-{{item.tone}}"><view class="ui-icon icon-{{item.icon}}"></view></view>
+          <view class="service-info"><view class="service-name">{{item.name}}</view><view class="service-caption">{{item.groupLabel}} · {{item.modeLabel}}</view></view><view class="ui-icon icon-{{item.isSchedule || item.isMap ? 'chevron-right' : item.usable ? 'share' : 'info'}} service-arrow"></view>
+        </view>
+      </view>
+    </view>
+    <view class="workbench-bottom"></view>
+  </scroll-view>
+  <view wx:if="{{customizing || customizingLeaving}}" class="customizer-layer {{customizingLeaving && !customizing ? 'is-leaving' : ''}}">
+    <view class="customizer-mask motion-mask" bindtap="closeCustomizer"></view>
+    <view class="customizer-sheet motion-sheet">
+      <view class="customizer-header"><view>自定义校园</view><button class="editor-close" bindtap="closeCustomizer" aria-label="关闭自定义"><view class="ui-icon icon-close"></view></button></view>
+      <scroll-view class="customizer-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="editor-section-heading"><text>常用入口</text><text class="editor-count">{{draftShortcutIds.length}} / 8</text></view>
+        <view wx:if="{{!draftShortcuts.length}}" class="editor-empty">尚未添加常用入口</view>
+        <view wx:for="{{draftShortcuts}}" wx:key="id" class="editor-order-row">
+          <view class="ui-icon icon-{{item.icon}} tone-{{item.tone}}"></view><text class="editor-service-name">{{item.name}}</text>
+          <button class="order-button" data-index="{{index}}" data-direction="-1" disabled="{{index === 0}}" bindtap="moveShortcut" aria-label="上移{{item.name}}"><view class="ui-icon icon-arrow up"></view></button>
+          <button class="order-button" data-index="{{index}}" data-direction="1" disabled="{{index === draftShortcuts.length - 1}}" bindtap="moveShortcut" aria-label="下移{{item.name}}"><view class="ui-icon icon-arrow down"></view></button>
+          <button class="order-button remove-shortcut" data-id="{{item.id}}" bindtap="toggleShortcut" aria-label="移除{{item.name}}"><view class="ui-icon icon-close"></view></button>
+        </view>
+        <view class="editor-section-heading"><text>添加服务</text></view>
+        <view class="editor-service-grid"><view wx:for="{{editorServices}}" wx:key="id" class="editor-service-slot"><button class="editor-service {{item.selected ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="toggleShortcut"><text>{{item.name}}</text><view class="ui-icon icon-{{item.selected ? 'check' : 'plus'}}"></view></button></view></view>
+        <view class="editor-section-heading"><text>显示偏好</text></view>
+        <view class="preference-row"><text>显示今日安排</text><switch checked="{{draftShowSchedule}}" bindchange="toggleScheduleDisplay" color="#1d9bf0" /></view>
+        <view class="preference-row"><text>紧凑布局</text><switch checked="{{draftCompact}}" bindchange="toggleCompactDisplay" color="#1d9bf0" /></view>
+      </scroll-view>
+      <view class="customizer-footer"><button class="reset-button" bindtap="resetLayout" aria-label="恢复默认布局"><view class="ui-icon icon-history"></view></button><button class="save-layout" bindtap="saveLayout">完成</button></view>
+    </view>
+  </view>
+</view>

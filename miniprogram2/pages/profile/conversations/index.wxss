@@ -1,0 +1,55 @@
+.conversations-page { height:100vh; overflow:hidden; padding-bottom:0; animation:none; }
+.social-icon-button { flex:0 0 36px; width:36px; min-width:36px; max-width:36px; height:32px; margin:0; padding:0; background:transparent; }
+.social-icon-button .ui-icon { width:22px; height:22px; }
+.message-search-wrap { position:fixed; left:0; right:0; z-index:55; height:62px; padding:8px 16px 12px; background:var(--app-background); }
+.message-search { display:flex; align-items:center; gap:12px; height:42px; padding:0 16px; border:1px solid transparent; border-radius:24px; background:var(--app-control); color:var(--app-text-secondary); transition:border-color .2s ease, background-color .2s ease; }
+.message-search.focused { border-color:var(--app-accent); background:var(--app-background); color:var(--app-accent); }
+.message-search .ui-icon { width:19px; height:19px; flex-shrink:0; }
+.message-search input { flex:1; min-width:0; height:40px; background:transparent; color:var(--app-text-primary); font-size:15px; }
+.search-clear { display:flex; align-items:center; justify-content:center; width:32px; height:40px; background:transparent; color:var(--app-text-secondary); }
+.search-clear .ui-icon { width:16px; height:16px; }
+.conversation-scroll { position:fixed; left:0; right:0; bottom:var(--tab-height); width:100%; }
+.conversation-shell { position:relative; overflow:hidden; }
+.conversation-actions { position:absolute; top:0; right:0; bottom:0; width:128rpx; display:flex; align-items:center; justify-content:center; background:var(--app-error); }
+.delete-button { width:100%; height:100%; background:transparent; color:var(--app-on-error); font-size:14px; }
+.conversation-row { position:relative; z-index:1; display:flex; align-items:flex-start; gap:12px; min-height:88px; padding:16px; border-bottom:1px solid var(--app-divider); background:var(--app-background); transition:transform .22s cubic-bezier(.2,.72,.24,1); }
+.avatar { display:flex; align-items:center; justify-content:center; flex:0 0 48px; width:48px; height:48px; border-radius:50%; background:var(--app-control); color:var(--app-text-secondary); font-size:19px; font-weight:700; }
+.conversation-body { flex:1; min-width:0; padding-top:2px; }
+.conversation-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.name-row { display:flex; align-items:center; min-width:0; gap:5px; }
+.name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px; font-weight:700; line-height:21px; }
+.blocked-tag { flex-shrink:0; font-size:11px; color:var(--app-text-secondary); }
+.time { flex-shrink:0; max-width:108px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--app-text-secondary); font-size:12px; }
+.preview-line { display:flex; align-items:center; gap:12px; margin-top:3px; }
+.message { flex:1; min-width:0; font-size:15px; line-height:22px; color:var(--app-text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.unread .message { color:var(--app-text-primary); font-weight:600; }
+.unread-dot { width:8px; height:8px; flex:0 0 8px; border-radius:50%; background:var(--app-accent); }
+.conversation-end { height:24px; }
+.message-empty { max-width:360px; margin:0 auto; padding:36px 28px; }
+.message-empty-title { font-size:28px; font-weight:800; line-height:1.35; }
+.message-empty-copy { margin-top:12px; color:var(--app-text-secondary); font-size:15px; line-height:1.6; }
+.empty-action { margin-top:24px; width:132px; }
+.new-message-button { min-height:44px; padding:0 20px; border-radius:24px; color:var(--app-on-primary); background:var(--app-primary); font-size:15px; font-weight:700; }
+.message-picker { position:fixed; inset:0; z-index:1100; }
+.picker-mask { position:absolute; inset:0; background:var(--app-scrim); }
+.picker-sheet { position:absolute; top:18%; bottom:0; left:0; right:0; display:flex; flex-direction:column; padding-bottom:env(safe-area-inset-bottom); background:var(--app-background); border-radius:8px 8px 0 0; animation:picker-in .28s cubic-bezier(.2,.72,.24,1) both; }
+.picker-header { display:flex; align-items:center; gap:12px; min-height:56px; padding:0 12px; border-bottom:1px solid var(--app-divider); font-size:19px; font-weight:700; }
+.picker-close { display:flex; align-items:center; justify-content:center; flex:0 0 40px; width:40px !important; min-width:40px; max-width:40px; margin:0 !important; height:44px; background:transparent; color:var(--app-text-primary); }
+.picker-close .ui-icon { width:22px; height:22px; }
+.recipient-search { display:flex; align-items:center; gap:10px; min-height:56px; padding:0 16px; border-bottom:1px solid var(--app-divider); color:var(--app-accent); }
+.recipient-search input { flex:1; min-width:0; height:44px; background:transparent; color:var(--app-text-primary); font-size:16px; }
+.recipient-search .ui-icon { width:20px; height:20px; }
+.recipient-submit { height:44px; padding:0 8px; background:transparent; color:var(--app-accent); font-size:14px; font-weight:700; }
+.recipient-submit { flex:0 0 52px; width:52px !important; margin:0 !important; }
+.search-clear { flex:0 0 32px; width:32px !important; min-width:32px; max-width:32px; margin:0 !important; }
+.delete-button { width:100% !important; margin:0 !important; }
+.empty-action { width:132px !important; margin-left:0 !important; margin-right:0 !important; }
+.recipient-list { flex:1; min-height:0; height:0; }
+.recipient-row { display:flex; align-items:center; gap:12px; min-height:84px; padding:14px 16px; border-bottom:1px solid var(--app-divider); }
+.recipient-info { flex:1; min-width:0; }
+.recipient-college { margin-top:3px; color:var(--app-text-secondary); font-size:13px; line-height:1.4; overflow-wrap:anywhere; }
+.recipient-row .ui-icon { width:20px; height:20px; color:var(--app-accent); }
+.recipient-status { padding:32px 20px; color:var(--app-text-secondary); font-size:15px; text-align:center; }
+.busy { opacity:.5; }
+@keyframes picker-in { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+@media (prefers-reduced-motion:reduce) { .conversation-row, .message-search { transition:none; } .picker-sheet { animation:none; } }

@@ -13,15 +13,15 @@ def main():
     p.add_argument('--workers',type=int,default=2)
     p.add_argument('--failed-report');args=p.parse_args()
     store=KnowledgeStore(args.db)
-    docs=[d for d in store.documents() if d.get('rawObjectKey') and not d['sourceUrl'].split('?')[0].lower().endswith(('.pdf','.docx','.xlsx'))]
+    docs=[d for d in store.documents() if d.get('rawObjectKey') and not d['sourceUrl'].split('?')[0].lower().endswith(('.pdf','.doc','.docx','.xls','.xlsx'))]
     if args.failed_report:
         ids={row['id'] for row in json.loads(Path(args.failed_report).read_text(encoding='utf8'))['failed']}
         docs=[d for d in docs if d['id'] in ids]
     def parse(old):
         print(json.dumps({'parsing':old['id'],'title':old['title']},ensure_ascii=False),flush=True)
-        # A missing capture must name itself: the failure path below disables the
-        # document, so a wrong KNOWLEDGE_RAW_DIR would otherwise retire the
-        # corpus one entry at a time with no indication of why.
+        # Reparse only normalizes the captured source. A missing object or an
+        # extraction error belongs in the report; the current published document
+        # stays available until its replacement has been reviewed.
         raw=raw_object_path(old['rawObjectKey'])
         if raw is None:
             raise FileNotFoundError(f"原始资料不在 KNOWLEDGE_RAW_DIR 中：{old['rawObjectKey']}")
@@ -33,8 +33,10 @@ def main():
         for chunk in chunks:
             for field in ('status','effectiveFrom','effectiveTo','supersedesId','campuses','educationLevels'):
                 chunk[field]=old.get(field)
-        doc['createdAt']=old.get('createdAt',doc['createdAt'])
-        doc['rawObjectKey']=old['rawObjectKey'];doc['parserVersion']='xiaodian-body-3';doc['chunkCount']=len(chunks)
+        for field in ('createdAt','fetchedAt','sourceSnapshotAt','sourceSnapshotRecordId','sourceSnapshotUpdatedAt'):
+            if field in old:
+                doc[field]=old[field]
+        doc['rawObjectKey']=old['rawObjectKey'];doc['parserVersion']='xiaodian-body-6';doc['chunkCount']=len(chunks)
         store.put_document(doc,chunks)
         print(json.dumps({'parsed':doc['id'],'chunks':len(chunks)},ensure_ascii=False),flush=True)
         return {'id':doc['id'],'title':title,'chunks':len(chunks),'date':published_at}
@@ -46,7 +48,6 @@ def main():
             try:
                 report['published'].append(task.result())
             except Exception as error:
-                store.set_status(doc['id'],'disabled')
                 report['failed'].append({'id':doc['id'],'url':doc['sourceUrl'],'error':str(error)})
             done=sum(map(len,report.values()))
             if done%25==0:

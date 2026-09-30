@@ -1,0 +1,33 @@
+@import "../../styles/icons.wxss";
+.post-row { display: flex; gap: 12px; padding: 0 12px 2px; border-bottom: 1px solid var(--app-divider); background: var(--app-surface); color: var(--app-text-primary); font-family: var(--font-body); box-sizing: border-box; transition:background-color .16s ease; }
+.post-row:active { background:var(--app-control); }
+.post-avatar-wrap { position: relative; width: 48px; height: 48px; flex: 0 0 48px; }
+.post-avatar { display: block; width: 48px; height: 48px; border-radius: 50%; background: var(--app-control); color: var(--app-text-secondary); font-size: 18px; font-weight: 700; line-height: 48px; text-align: center; }
+.post-follow-dot { position: absolute; right: -3px; bottom: -3px; width: 18px; height: 18px; border: 2px solid var(--app-surface); border-radius: 50%; background: var(--app-primary); color: var(--app-on-primary); font-size: 14px; line-height: 14px; text-align: center; box-sizing: border-box; }
+.post-body { flex: 1; min-width: 0; }
+.post-head { display: flex; align-items: center; gap: 4px; min-height: 20px; }
+.post-identity { display:flex; align-items:center; flex-wrap:wrap; gap:4px; flex:1; min-width:0; }
+.post-college { flex:0 1 auto; max-width:54%; color:var(--app-accent); font-size:11px; line-height:16px; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.post-author { min-width: 0; font-size: 14px; font-weight: 700; line-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.post-username { min-width: 0; overflow: hidden; color: var(--app-text-secondary); font-size: 13px; line-height: 20px; text-overflow: ellipsis; white-space: nowrap; }
+.post-time { flex: 0 0 auto; color: var(--app-text-secondary); font-size: 13px; line-height: 20px; white-space: nowrap; }
+.post-more { display: flex; align-items: center; justify-content: center; width: 28px; height: 24px; flex-shrink: 0; margin-left: auto; color: var(--app-text-secondary); }
+.post-more .ui-icon { width: 18px; height: 18px; }
+.post-text { margin-top: 2px; color: var(--app-text-primary); font-size: 14px; line-height: 20px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.post-text + .post-text { margin-top: 3px; }
+.post-tag { color: var(--app-accent); }
+.post-media { width: 100%; height: 200px; margin-top: 8px; border-radius: 12px; overflow: hidden; background: var(--app-control); border: 1px solid var(--app-divider); box-sizing: border-box; }
+.post-image { width: 100%; height: 100%; }
+.post-actions { display: flex; align-items: center; justify-content: space-between; min-height: 36px; margin-top: 4px; color: var(--app-text-secondary); }
+.post-action { display: flex; align-items: center; gap: 4px; min-width: 30px; min-height: 36px; padding: 0; margin: 0; background: transparent; color: inherit; font-size: 12px; line-height: 1; border: 0; border-radius: 0; transition:transform .14s ease, color .18s ease, opacity .14s ease; }
+.post-action:active { transform:scale(.82); opacity:.7; }
+.post-action::after { border: 0; }
+.post-action.post-share { flex:0 0 28px; width:28px !important; min-width:28px; max-width:28px; margin:0 !important; justify-content:center; }
+.post-action .ui-icon { flex:0 0 16px; width:16px; height:16px; }
+.post-action.active { color: var(--app-like); }
+.post-action.reposted { color: var(--app-success); }
+.post-action.favorited { color: var(--app-favorite); }
+.post-action.active .icon-heart, .post-action.favorited .icon-bookmark { opacity: 1; }
+.post-action.metric { cursor: default; }
+@media (prefers-reduced-motion: reduce) { .post-row, .post-action { transition:none; } }
+@media (max-width: 350px) { .post-row { padding-left: 10px; padding-right: 10px; gap: 9px; } .post-avatar-wrap, .post-avatar { width: 44px; height: 44px; flex-basis: 44px; line-height: 44px; } .post-action { gap: 3px; } }

@@ -1,0 +1,753 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="description" content="">
+        
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="format-detection" content="address=no">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0">
+        <title>西电联合主办第三届“电磁大数据非凡挑战赛”-西安电子科技大学学术网</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="西电联合主办第三届“电磁大数据非凡挑战赛”">
+<META Name="keywords" Content="西安电子科技大学学术网,学术交流,联合,数据,电磁,主办,西电,挑战赛" />
+<META Name="description" Content="（通讯员 马思翀）4月11日下午，第三届“电磁大数据·非凡挑战赛”决赛活动在西电北校区举行。此次大赛由中国电子科技集团公司第二十九研究所（以下简称“二十九所”）、西电等单位主办，西电电子工程学院承办。二十九所党委书记杨建桥、学校党委书记任小龙致开幕词，党委副书记、纪委书记郭俊参加活动。任小龙指出，挑战赛肩负着服务国家重大需求、发掘优秀人才的重要使命，已成为连接“产学研用”的坚实桥梁。他强调，作为电子信息领域高校的“..." />
+
+        <meta name="renderer" content="webkit">
+        <link rel="shortcut icon" href="#" />
+        <link rel="stylesheet" href="../../css25/style.css">
+        <link rel="stylesheet" href="../../css25/swiper.min.css">
+        <script src="../../js25/jquery.js"></script>
+        <script src="../../js25/set.js"></script>
+        <script src="../../js25/swiper.min.js"></script>
+        <!--<![endif]-->
+        <!-- Compatible files -->
+        <!--[if lte IE 9]>
+        <i class="ie_bg"></i><div class="ie9tips"> <img src="../../images/logo.png"> <p>本站不再支持您的浏览器，请使用360浏览器8及以上（极速模式）、IE10及以上、Chrome5、Safari6、Firefox 3.6及以上、 Opera 10.5及以上浏览器观看。请升级您的浏览器到更高的版本以获得更好的观看效果。</p></div>
+        <![endif]-->
+    <!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1005,'/content.jsp',21721,2088836965)</script>
+</head>
+    <body>
+        <!--============================头部 开始=============================-->
+        <section class="header_box">
+            <header id="header">
+                <div class="w152">
+                    <div class="header flex">
+        <div id="logo">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+<a href="../../index.htm"><img src="../../images25/logo.png"></a>	
+            </div>
+                        <div class="headerNav">
+                       <ul class="header_top flex">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><li>
+<a href="https://www.xidian.edu.cn/" target="_blank" onclick="_addDynClicks(&#34;wburl&#34;, 2088836965, 104755)">学校主页</a>
+<a href="https://dp.xidian.edu.cn/" target="_blank" onclick="_addDynClicks(&#34;wburl&#34;, 2088836965, 104756)">发展规划部/一流建设办公室主页</a>
+</li>
+
+
+
+                       
+<!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu2 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+        <div class="search-input f-cb clearfix">
+                            
+                        
+                                 <li class="search flex">
+                                    <input class="text" type="text" placeholder=""  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+                                    <input class="btn" type="image" src="../../images25/touming.png" name="submit_button"  v-on:click="onSubmit()">
+                                </li>   
+                                
+                                
+                            </div>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+
+
+
+
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "2088836965";
+    var token = gettoken(10);
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "2088836965";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+                               
+                            </ul>
+                        </div>
+                        </div>
+                        <nav id="nav">
+                            <div class="navBox">
+<ul class="ul1 flex">
+
+<li class="on">
+<a href="../../index.htm">
+	<h3>首页</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../kycg.htm">
+	<h3>科研成果</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../kjrw.htm">
+	<h3>科技人物</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../kyxs.htm">
+	<h3>科苑新声</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../xsjl.htm">
+	<h3>学术交流</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../xsjz.htm">
+	<h3>学术讲座</h3>
+</a>
+<div class="sub">
+
+	<div class="box">
+		<a href="../../xsjz/jzbd.htm">讲座报道</a>
+		
+	</div>
+
+	<div class="box">
+		<a href="../../xsjz/jzyg.htm">讲座预告</a>
+		
+	</div>
+</div>
+</li>
+
+<li class="on">
+<a href="../../tgrk.htm">
+	<h3>投稿入口</h3>
+</a>
+<div class="sub">
+
+	<div class="box">
+		<a href="../../tgrk/yxtg.htm">邮箱投稿</a>
+		
+	</div>
+</div>
+</li>
+</ul>
+                                
+                            </div>
+                        </nav>
+                    
+                </div>
+                </div>
+            </header>
+        </section>
+        <!-- 电脑搜索开始 -->
+        <div class="search-dialog-box">
+            <div class="search-bg"></div>
+            <div class="search-dialog">
+                <div class="search-inner">
+                    <div class="wrap-inner">
+                        <div class="search-input f-cb clearfix">
+
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="javascript:;" class="pub-close">
+                <span class="bg"></span>
+                <i></i>
+            </a>
+        </div>
+        <!-- 电脑搜索结束 -->
+        <!--pc header end-->
+        <!--wap header-->
+        <section class="m_header_box">
+            <header id="m_header">
+                <div id="logo">
+                    <div class="box_table">
+                        <div class="box_table_cell">
+                            
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+<a href="../../index.htm"><img src="../../images25/logo.png"></a>	
+                        </div>
+                    </div>
+                </div>
+
+                <div id="nav_btn_box">
+                    <div class="box_table">
+                        <div class="box_table_cell">
+                            <aside id="nav_btn">
+                                <div class="point" name="1" id="mbtn"> <span class="navbtn"></span> </div>
+                            </aside>
+                        </div>
+                    </div>
+                </div>
+            </header>
+        </section>
+        <nav id="m_nav">
+
+<p><a href="https://www.xidian.edu.cn/">学校主页</a></p>
+            
+
+
+<p><a href="https://dp.xidian.edu.cn/">发展规划部/一流建设办公室主页</a></p>
+            
+
+ 
+        <ul class="m_nav_list">
+<li class="title">
+<a class="a" href="../../index.htm">
+<h3>首页</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../kycg.htm">
+<h3>科研成果</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../kjrw.htm">
+<h3>科技人物</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../kyxs.htm">
+<h3>科苑新声</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../xsjl.htm">
+<h3>学术交流</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../xsjz.htm">
+<h3>学术讲座</h3>
+</a>
+<i></i>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../xsjz/jzbd.htm">讲座报道</a>
+</div>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../xsjz/jzyg.htm">讲座预告</a>
+</div>
+</li>
+<li class="title">
+<a class="a" href="../../tgrk.htm">
+<h3>投稿入口</h3>
+</a>
+<i></i>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../tgrk/yxtg.htm">邮箱投稿</a>
+</div>
+</li>
+</ul>
+            
+            <div class="close">×</div>
+            <div class="tc_search">
+
+<!-- 3.1.3版本 -->
+
+
+
+<style>
+    #appu7 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu7 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu7"></div>
+<script type="text/html" id="htmlu7">
+    <div id="appu7">
+        <div v-if="!isError">
+        <div class="search-input f-cb clearfix">
+                             
+                                
+                           <input type="text" name="showkeycode"  class="focus_js keyword" placeholder=""  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+                            <input class="btn_blue fl tc_close" type="image" src="../../images25/touming.png" name="submit_button"  v-on:click="onSubmit()" 
+ align="absmiddle"  style="cursor: hand" >
+                          
+                                
+                            </div>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+
+
+
+
+<script>
+    $("#divu7").html($("#htmlu7").text());
+</script>
+<script>
+    var appOwner = "2088836965";
+    var token = gettoken(10);
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu7",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu7 = document.querySelector("#appu7");
+   if (appElementu7 && appElementu7.__vue__) {
+
+   } else {
+      $("#divu7").html($("#htmlu7").text());
+      var appOwner = "2088836965";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou7 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu7(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu7();
+        }
+      };
+
+      function onSubmitu7(e) {
+        queryInfou7.query.keyWord= $("#appu7  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou7.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+
+            </div>
+        </nav>
+        <section class="nav_mask"></section>
+        <!--============================头部 结束=============================-->
+        <!--============================主体 开始=============================-->
+        <section id="nav_slide">
+            <div class="n_title"> 
+                <a id="bnt_back" href="javascript:history.back(-1);">
+                    <img src="../../images25/icon_bnt_back2.png" alt="" />
+                </a>
+                <h1 class="margin_auto_1">
+
+学术交流
+</h1>
+                <div id="bnt_sub_nav">
+                    <img src="../../images25/bnt_sub_nav2.png" alt="" />
+                </div>
+            </div>
+            <div id="sub_nav_content">
+
+<ul class="am-list admin-sidebar-list" id="collapase-nav-1">
+</ul>
+                
+            </div>
+        </section>
+        <div class="listBox">
+            <div class="w14 flex">
+                <div class="n_left">
+                    <div class="con">
+                        <h1><span>
+
+学术交流
+</span></h1>
+                        <div class="sider_nav">
+
+
+
+
+<ul>
+</ul>
+
+                        </div>  
+                    </div>
+                </div>
+                <div class="listNr">
+                    <section class="mianbao flex">
+                        <h5>
+学术交流</h5>
+
+ <div class="position">当前位置 :
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+               > 
+                <a href="../../xsjl.htm">学术交流</a>
+               > 
+                正文
+</div>
+
+
+
+                       
+                    </section>
+                                    <div class="show">
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div>
+    <div class="show01">
+<h5>西电联合主办第三届“电磁大数据非凡挑战赛”</h5>
+<p><i>发布：2025-04-14</i><i>来源：电子工程学院
+    </i></p>
+</div>
+   
+    <div id="vsb_content" class="show02"><div class="v_news_content">
+<p style="text-align: justify; text-indent: 2em; line-height: 2em;">（通讯员 <strong>马思翀</strong>）4月11日下午，第三届“电磁大数据·非凡挑战赛”决赛活动在西电北校区举行。此次大赛由中国电子科技集团公司第二十九研究所（以下简称“二十九所”）、西电等单位主办，西电电子工程学院承办。二十九所党委书记杨建桥、学校党委书记任小龙致开幕词，党委副书记、纪委书记郭俊参加活动。</p><p style="text-align: center"><img src="/__local/5/6A/17/052E4F87255E7B11FFC46A3C98A_AEC30853_5C0D5.jpg" width="620" title="微信图片_20250414222400.jpg" word_img="" height="413" border="0" vspace="0" alt="微信图片_20250414222400.jpg" vsbhref="vurl" vurl="/_vsl/56A17052E4F87255E7B11FFC46A3C98A/AEC30853/5C0D5" vheight=" 413px" vwidth=" 620px" orisrc="/__local/5/86/B5/0FA7BA3F0221C944D9249BBD3B4_05969F5F_4D4A89.jpg" class="img_vsb_content" style="width: 620px; height: 413px;"></p><p style="text-align: justify; text-indent: 2em; line-height: 2em;">任小龙指出，挑战赛肩负着服务国家重大需求、发掘优秀人才的重要使命，已成为连接“产学研用”的坚实桥梁。他强调，作为电子信息领域高校的“国家队”，西电始终坚持服务国家重大战略需求，培养信息领域拔尖创新人才，多年来深耕电磁智能技术前沿领域，取得了一系列原创性成果、培养了一大批优秀人才。他表示，学校将以本届大赛为契机，进一步深化与二十九所、西南交通大学等单位的合作，共同打造协同创新平台和人才培养高地，为我国电磁安全提供坚实的人才支撑。</p><p style="text-align: center"><img src="/__local/E/85/F8/858400A03E84B399711FB6501F5_2B7B8D1C_64641.jpg" width="620" title="微信图片_20250414222410.jpg" vsbhref="vurl" vurl="/_vsl/E85F8858400A03E84B399711FB6501F5/2B7B8D1C/64641" vheight="" vwidth="620" orisrc="/__local/A/79/2D/4E0BB9701A2EBFB204DB2D95569_EDEF5022_58CE2D.jpg" class="img_vsb_content"></p><p style="text-align: justify; text-indent: 2em; line-height: 2em;">杨建桥表示，人工智能浪潮正在深刻重塑电磁域格局。二十九所作为领域的开拓者、国家队，敏锐把握未来技术变革趋势，率先创新“电磁智能+”<span style="text-indent: 2em;">，推出了面向全国高校师生的电磁大数据非凡挑战赛。挑战赛的举办促进了电磁大数据领域的创新思维碰撞和关键技术突破，培养了一批卓越的青年人才。</span></p><p style="text-align: justify; text-indent: 2em; line-height: 2em;">本届挑战赛以“披沙拣金”为主题，共吸引了全国133所高校的348支团队参赛，参赛人数、作品质量、技术难度均创历史新高。参赛团队围绕电磁大数据泛参数调制信号解析处理问题展开竞争，历经为期101天的初赛，12支团队脱颖而出晋级决赛。</p><p style="text-align: justify; text-indent: 2em; line-height: 2em;">决赛现场，来自中国电科以及同济大学、西安交通大学、空军工程大学等院校的专家担任评委。12支团队按抽签顺序依次上台，用创新的模型设计、严密的逻辑、自信的表达、详实的实验结果展现出他们在电磁大数据领域的创新思维与研究成果。答辩环节评审团与选手深度探讨技术路径，通过“问诊式点评”为作品提供实战优化建议。</p><p style="text-align: center; text-indent: 2em; line-height: 2em;"><img src="/__local/0/FF/3E/19BCAD80DFF0C975659E2CF8EE1_5B87A51E_4BF88.jpg" word_img="" width="620" height="413" border="0" vspace="0" title="" alt="" vsbhref="vurl" vurl="/_vsl/0FF3E19BCAD80DFF0C975659E2CF8EE1/5B87A51E/4BF88" vheight=" 413px" vwidth=" 620px" orisrc="/__local/0/FF/9F/33C852241A8F015E080C5BD20E5_22BEB613_5279A.jpg" class="img_vsb_content" style="width: 620px; height: 413px;"></p><p style="text-align: center; text-indent: 2em; line-height: 2em;"><span style="text-indent: 2em; font-family: 楷体, 楷体_GB2312, SimKai;">杨建桥、</span><span style="text-indent: 2em; font-family: 楷体, 楷体_GB2312, SimKai;">郭俊为金奖团队颁奖</span></p><p style="text-align: justify; text-indent: 2em; line-height: 2em;">经过近四个小时的角逐，本届大赛的最终成绩揭晓。“电磁承锋”团队斩获金奖，LLM团队、NJUST_KMG团队摘得银奖，QiiQ团队、ZAB团队、ABC团队获得铜奖。杨建桥、郭俊为金奖团队颁奖，电子空间作战与应用重点实验室学术委员会资深委员李廷立、二十九所副总工程师杨政以及学校电子工程学院党委书记杨光暐、通信工程学院党委书记魏峻、人工智能学院党委书记张毅等为银奖和铜奖团队颁奖。</p><p style="text-align: center; text-indent: 2em; line-height: 2em;"><img src="/__local/E/08/A3/0CC73D56EB97CBA6B9EEB09F797_99CEA338_2F22E.png" word_img="" width="620" height="466" border="0" vspace="0" title="" alt="" vsbhref="vurl" vurl="/_vsl/E08A30CC73D56EB97CBA6B9EEB09F797/99CEA338/2F22E" vheight=" 466px" vwidth=" 620px" orisrc="/__local/9/DF/25/010159A7E06A0ED46C225C74FC3_30FEEDF2_7E687.png" class="img_vsb_content" style="width: 620px; height: 466px;"></p><p style="text-align: justify; text-indent: 2em; line-height: 2em;">学校电子工程学院、人工智能学院深度参与本届比赛赛题设计、数据构建工作。大赛有效促进了电磁大数据领域的创新思维碰撞，拓宽了人工智能技术在电磁场景中的应用前景，以科技创新筑牢电磁空间安全屏障，助力国防事业高质量发展。</p><p style="text-align: justify; text-indent: 2em; line-height: 2em;">学校党委研究生工作部、研究生院、科学研究院、校友事务与对外合作处等部门负责同志参加活动。</p>
+</div></div><div id="div_vote_id"></div>
+     
+<div class="show03">
+ <p>上一篇：<a href="21681.htm">“智绘苍穹·遥感赋能”陕西高分遥感宣传活动成功举办</a></p>
+<p>下一篇：<a href="20351.htm">区域科技创新中心搭建技术转移人才培养生态体系创新大会在西电举办</a></p>
+</div>
+
+
+
+
+
+</div>
+</form>
+
+
+                                       </div>
+                </div>
+            </div>
+        </div>
+        <!-- footer start -->
+            <div class="footer">
+            <div class="w14 flex">
+
+                <div class="text">
+
+<!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>版权所有：<a href="https://dp.xidian.edu.cn/" target="_blank">西安电子科技大学发展规划部 / 一流建设办公室</a></p><p>技术支持：信息网络技术中心&nbsp; &nbsp; &nbsp; &nbsp;西安聚力</p><p>工作邮箱：fgb-xsw@xidian.edu.cn&nbsp; &nbsp; &nbsp; 联系电话：029-81891892</p><p><a href="https://beian.miit.gov.cn/" target="_blank">陕ICP备05016463号</a> &nbsp; &nbsp; <a href="https://beian.mps.gov.cn/#/query/webSearch" target="_blank">陕公网安备61019002002681号</a></p>
+                    
+                </div>
+    
+
+
+<div class="pic"><img src="../../images25/logo.png"></div>
+
+                
+            </div>
+        </div>
+    
+
+        <!--============================底部 结束=============================-->
+        <!--============================动画 开始=============================-->
+        <script src="../../js25/style.js"></script>
+        <!--============================动画 结束=============================-->
+
+    </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

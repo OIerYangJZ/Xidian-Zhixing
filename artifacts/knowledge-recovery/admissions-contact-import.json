@@ -1,0 +1,15 @@
+{
+  "source": "local read-only radioState snapshot",
+  "targetDatabase": "isolated knowledge-recovery candidate",
+  "result": {
+    "action": "imported-from-snapshot",
+    "id": "doc-feb5e1812bd7cf1b389eae55",
+    "title": "联系招办-西安电子科技大学本科招生信息网",
+    "url": "https://zsb.xidian.edu.cn/lxwm/lxzb.htm",
+    "bodyChars": 641,
+    "chunks": 3,
+    "snapshotAt": "2026-09-20T07:09:36.098966+00:00",
+    "recordUpdatedAt": "2026-07-20T06:01:43Z",
+    "reindexRequired": true
+  }
+}

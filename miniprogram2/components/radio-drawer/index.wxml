@@ -1,0 +1,37 @@
+<view class="drawer-root {{openLeaving && !open ? 'is-leaving' : ''}}" wx:if="{{open || openLeaving}}">
+  <view class="drawer-mask motion-mask" bindtap="close" aria-label="{{english ? 'Close navigation' : '关闭导航'}}"></view>
+  <view class="drawer-panel motion-sidebar" style="padding-top: {{navTop}}px;" bindtouchstart="onPanelTouchStart" bindtouchend="onPanelTouchEnd" bindtouchcancel="onPanelTouchCancel">
+    <scroll-view class="drawer-scroll" scroll-y enhanced bounces="{{false}}" show-scrollbar="{{false}}">
+    <view class="drawer-profile" bindtap="goProfile" role="button" aria-label="{{english ? 'Profile' : '个人资料'}}">
+      <image wx:if="{{profile && profile.avatarUrl}}" class="drawer-avatar" src="{{profile.avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="drawer-avatar text-avatar">{{avatarInitial}}</view>
+      <view class="drawer-user">
+        <view class="drawer-name">{{profile.nickname || profile.alias || ''}}</view>
+        <view class="drawer-meta">{{profile.college || profile.major || profile.email || ''}}</view>
+      </view>
+    </view>
+    <view wx:if="{{errorMessage}}" class="drawer-empty-message"><view>{{errorMessage}}</view><button class="drawer-retry" bindtap="retryLoad">{{english ? 'Retry' : '重新加载'}}</button></view>
+    <view class="drawer-main">
+      <button class="drawer-row" bindtap="goFavorites"><view class="ui-icon icon-bookmark"></view><text>{{english ? 'Saved' : '收藏'}}</text></button>
+      <button class="drawer-row" bindtap="goHistory"><view class="ui-icon icon-history"></view><text>{{english ? 'Browsing history' : '历史记录'}}</text></button>
+      <button class="drawer-row" bindtap="goClubs"><view class="ui-icon icon-group"></view><text>{{english ? 'Clubs' : '社团'}}</text></button>
+      <button class="drawer-row" bindtap="goReports"><view class="ui-icon icon-list"></view><text>{{english ? 'My reports' : '我的举报'}}</text></button>
+    </view>
+    <view class="drawer-conversations" wx:if="{{conversations.length}}">
+      <button class="drawer-section-link" bindtap="goMessages">{{english ? 'Recent chats' : '最近私信'}}</button>
+      <view class="drawer-conversation" wx:for="{{conversations}}" wx:key="id" data-index="{{index}}" bindtap="goConversation">
+        <image wx:if="{{item.avatarUrl}}" class="mini-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+        <view wx:else class="mini-avatar">{{item.avatarInitial}}</view>
+        <view class="mini-body"><view class="mini-name">{{item.name}}</view><view class="mini-message">{{item.lastMessage}}</view></view>
+        <view wx:if="{{item.unreadCount}}" class="mini-badge">{{item.unreadCount}}</view>
+      </view>
+    </view>
+    <view class="drawer-bottom">
+      <button class="drawer-row" bindtap="goSettings"><view class="ui-icon icon-settings"></view><text>{{english ? 'Settings and privacy' : '设置与隐私'}}</text></button>
+      <button class="drawer-row" bindtap="goMailbox"><view class="ui-icon icon-mail"></view><text>{{english ? 'Feedback' : '意见反馈'}}</text></button>
+      <button wx:if="{{profile && profile.isAdmin}}" class="drawer-row" bindtap="goAdmin"><view class="ui-icon icon-lock"></view><text>{{english ? 'Administration' : '管理'}}</text></button>
+    </view>
+    <view class="drawer-scroll-end"></view>
+    </scroll-view>
+  </view>
+</view>

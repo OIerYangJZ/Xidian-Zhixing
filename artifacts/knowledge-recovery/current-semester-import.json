@@ -1,0 +1,73 @@
+{
+  "requested": 6,
+  "imported": [
+    {
+      "id": "doc-83ffdda53f15cac3285794de",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35742.htm",
+      "title": "关于2026~2027学年第一学期部分通识教育选修课停开的通知-本科生院 西安电子科技大学",
+      "publishedAt": "2026-09-18",
+      "chars": 1186,
+      "chunks": 6,
+      "parserVersion": "xiaodian-body-5"
+    },
+    {
+      "id": "doc-396ce982477a37e537eec4a5",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35702.htm",
+      "title": "关于2026～2027学年第一学期重修选课的通知-本科生院 西安电子科技大学",
+      "publishedAt": "2026-09-16",
+      "chars": 1384,
+      "chunks": 7,
+      "parserVersion": "xiaodian-body-5"
+    },
+    {
+      "id": "doc-6e2b126cc02ad7f5bb9cef11",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35602.htm",
+      "title": "关于开展2025～2026学年本科生学年总评工作的通知-本科生院 西安电子科技大学",
+      "publishedAt": "2026-09-14",
+      "chars": 3332,
+      "chunks": 17,
+      "parserVersion": "xiaodian-body-5"
+    },
+    {
+      "id": "doc-347830d324c062d3c2ed2620",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35452.htm",
+      "title": "关于2026~2027学年第一学期2026级学生选课的通知-本科生院 西安电子科技大学",
+      "publishedAt": "2026-09-09",
+      "chars": 2051,
+      "chunks": 10,
+      "parserVersion": "xiaodian-body-5"
+    },
+    {
+      "id": "doc-f92d28e3035b1bf6dfe29226",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35542.htm",
+      "title": "关于开展2026年秋季学期学生勤工助学工作的通知-本科生院 西安电子科技大学",
+      "publishedAt": "2026-09-14",
+      "chars": 1500,
+      "chunks": 8,
+      "parserVersion": "xiaodian-body-5"
+    },
+    {
+      "id": "doc-8f62efd89d4a97f384966205",
+      "url": "https://jwc.xidian.edu.cn/info/1012/23263.htm",
+      "title": "关于2023级学生综合层（A级）实验实践能力达标测试的通知-西安电子科技大学 教务处",
+      "publishedAt": null,
+      "chars": 2338,
+      "chunks": 12,
+      "parserVersion": "xiaodian-body-5"
+    }
+  ],
+  "failed": [],
+  "documentsAfter": 1081,
+  "publishedDocumentsAfter": 1017,
+  "chunksAfter": 9303,
+  "activeIndex": null,
+  "reindexRequired": true,
+  "dateParseCorrection": {
+    "url": "https://jwc.xidian.edu.cn/info/1012/23263.htm",
+    "oldPublishedAt": null,
+    "detailPageHeaderDate": "2026-09-08",
+    "parserVersion": "xiaodian-body-6",
+    "chunks": 12
+  },
+  "publishedChunksAfter": 9239
+}

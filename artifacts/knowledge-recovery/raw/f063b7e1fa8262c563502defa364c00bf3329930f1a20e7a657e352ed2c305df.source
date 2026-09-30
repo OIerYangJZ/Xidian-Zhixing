@@ -1,0 +1,248 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><HTML><HEAD><TITLE>研究生资助-西安电子科技大学 迎新网</TITLE><meta name="pageType" content="2">
+<meta name="pageTitle" content="研究生资助">
+<META Name="keywords" Content="西安电子科技大学 迎新网" />
+
+
+
+
+
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<META name="format-detection" content="telephone=no">
+<META name="format-detection" content="address=no">
+<META content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+<META name="viewport" content="width=device-width,initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"><LINK rel="stylesheet" href="../css/style.css"><script type="text/javascript" src="../js/bdtxk.js"></script><script type="text/javascript" src="../js/bdtxw.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../zhengwen.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1036,'/zhengwen.jsp',-1,1370298689)</script>
+</HEAD>
+<BODY>
+<DIV class="logo w100">
+<DIV class="logo w1200">
+<DIV class="logo-img">
+<a href="../index.htm" title="迎新网"><img src="../images/logo.png" border="0"></a></DIV>
+
+<DIV class="toplinks">
+<UL><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script>    <LI><a href="https://xxcapp.xidian.edu.cn/site/universalForm/index?id=15" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370298689, 41766)">本科生学号查询</a></li>
+    <LI><a href="https://xxcapp.xidian.edu.cn/site/universalForm/index?id=13" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370298689, 41761)">研究生学号查询</a></li>
+ </UL></DIV>
+    
+<div class="denglu">
+           <a href="https://xgxt.xidian.edu.cn/xsfw/sys/yxapp/*default/index.do" target="_blank"> <img src="../images/denglu.png" />
+            用户登录</a>
+        </div>
+</DIV></DIV><!-- 本例子代码 开始 ------------------------------------------->
+<DIV class="navBar">
+<UL class="nav clearfix">   
+   
+    <li class="m">
+                <h3><a href="../index.htm">首页</a></h3>
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../bdxz.htm">报到须知</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../bdxz/bksbdxz.htm" target="">本科生报到须知</a></li>                
+                    <li><a href="../bdxz/yjsbdxz.htm" target="">研究生报到须知</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../zczd.htm">学习攻略</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../zczd/xsnlcs.htm" target="">能力测试和试点班选拔</a></li>                
+                    <li><a href="../zczd/dxsaqbmjy.htm" target="">大学生安全保密教育</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../xszz.htm">学生资助</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="bkszz.htm" target="">本科生资助</a></li>                
+                    <li><a href="yjszz.htm" target="">研究生资助</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../szxy.htm">数字校园</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../szxy/wlsyrzsyzn.htm" target="">网络使用认证使用指南</a></li>                
+                    <li><a href="../szxy/wlsyrzsyzn1.htm" target="">学生邮件认证申请指南</a></li>                
+                    <li><a href="../szxy/wlsyrzsyzn2.htm" target="">一卡通使用流程及指南</a></li>                
+                    <li><a href="../szxy/rjzbh.htm" target="">软件正版化</a></li>                
+                    <li><a target="_blank" href="https://gis.xidian.edu.cn/#/live" target="target=" _blank"">西电720全景</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../zfqc.htm">绽放青春</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../zfqc/xshzc3.htm" target="">校团委</a></li>                
+                    <li><a href="../zfqc/xshzc.htm" target="">学生会</a></li>                
+                    <li><a href="../zfqc/yjsh.htm" target="">研究生会</a></li>                
+                    <li><a href="../zfqc/hlst.htm" target="">活力社团</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+
+<LI class="block"><!-- 滑动块 --></LI></UL></DIV><script type="text/javascript">
+
+(function(){
+    var ind = 0; //初始位置
+    var nav= jQuery(".nav");
+    var init = jQuery(".nav .m").eq(ind);
+    var block = jQuery(".nav .block"); //滑块
+    block.css({"left":init.position().left-1}); //初始化滑块位置
+    nav.hover(function(){},function(){ block.animate({"left":init.position().left-1},100); }); //移出导航滑块返回
+
+    jQuery(".nav").slide({ 
+            type:"menu", //效果类型
+            titCell:".m", // 鼠标触发对象
+            targetCell:".sub", // 效果对象，必须被titCell包含
+            delayTime:300, // 效果时间
+            triggerTime:0, //鼠标延迟触发时间
+            returnDefault:true,//on返回初始位置
+            defaultIndex:ind,//初始位置
+            startFun:function(i,c,s,tit){ //控制当前滑块位置
+                block.animate({"left":tit.eq(i).position().left-1},100);
+            }
+        });
+})()
+</script><!-- 本例子代码 结束 ------------------------------------------>
+<DIV class="banner"><img src="../images/banner1.png" style=" width:100%; height:234px;" /></DIV><!-- 轮播图 -->
+<DIV class="content w1200"><!--menu kaishi-->
+<DIV class="menu">
+<DIV class="menu-head">
+研究生资助</DIV>
+<DIV class="menu-content">
+<DIV class="menu-content-nav">
+<UL>
+    <LI><A href="bkszz.htm" onfocus="undefined">本科生资助</A> </LI>
+
+
+
+
+    <LI><A id="dangqian" href="yjszz.htm" onfocus="undefined">研究生资助</A> </LI>
+
+
+
+</UL>
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV></DIV></DIV>
+<DIV class="clear"></DIV><!--menu jieshu--><!--main kaishi-->
+<DIV class="main">
+<DIV class="main-nav"><SPAN>    <span>当前位置: </span>
+        
+                <a href="../index.htm">首页</a>
+               <span>></span>            
+                <a href="../xszz.htm">学生资助</a>
+               <span>></span>            
+                <a href="yjszz.htm">研究生资助</a>
+</SPAN></DIV>
+<DIV class="detail">
+
+
+
+
+
+<script language="javascript" src="/system/resource/js/ajax.js"></script><script language="javascript">_getBatchClickTimes('null',1370298689,'wbnews','u8')</script>
+<script>function seeContenta8(contentid,size,displayid){	document.getElementById(contentid).innerHTML = '[';	for(var i=0;i<=size;i++){		var allcontentid = contentid+(i+1);		if(allcontentid==displayid){			document.getElementById(contentid).innerHTML += " <span id='"+allcontentid+"' name='"+allcontentid+"'  >"+(i+1)+"</span> ";			document.getElementById(displayid).style.display = 'block';		}else{			document.getElementById(contentid).innerHTML += " <span style='cursor:pointer' id='"+allcontentid+"' name='"+allcontentid+"' onclick=seeContenta8('"+contentid+"','"+size+"','"+allcontentid+"')  >"+(i+1)+"</span> ";			document.getElementById(allcontentid).style.display = 'none';		}	}	document.getElementById(contentid).innerHTML += ']';}</script>
+<script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<script>_addDynClicks('wbnews',1370298689,1746)</script>
+<div class="detail_head">
+<div class="detail_head1">
+    关于申请2021～2022学年“特困研究生专项资助”的通知</div><div class="clear"></div>
+
+ <div class="content-bt-xia">
+            <span>(</span><span>发布时间：2021-08-07</span><span>被阅览数： <script>_showDynClicks("wbnews", 1370298689, 1746)</script>次</span><span>来源：</span><span>)</span>
+        </div> 
+
+
+    <div class="detail_main"><div id="vsb_content_1746_u81"><div id="vsb_content"><style><!--  /* Font Definitions */  @font-face {font-family:Wingdings; panose-1:5 0 0 0 0 0 0 0 0 0;} @font-face {font-family:宋体; panose-1:2 1 6 0 3 1 1 1 1 1;} @font-face {font-family:黑体; panose-1:2 1 6 9 6 1 1 1 1 1;} @font-face {font-family:"Cambria Math"; panose-1:2 4 5 3 5 4 6 3 2 4;} @font-face {font-family:Cambria; panose-1:2 4 5 3 5 4 6 3 2 4;} @font-face {font-family:Calibri; panose-1:2 15 5 2 2 2 4 3 2 4;} @font-face {font-family:方正小标宋简体;} @font-face {font-family:华文中宋; panose-1:2 1 6 0 4 1 1 1 1 1;} @font-face {font-family:华文新魏; panose-1:2 1 8 0 4 1 1 1 1 1;} @font-face {font-family:"\@宋体"; panose-1:2 1 6 0 3 1 1 1 1 1;} @font-face {font-family:"\@黑体"; panose-1:2 1 6 9 6 1 1 1 1 1;} @font-face {font-family:"\@华文新魏"; panose-1:2 1 8 0 4 1 1 1 1 1;} @font-face {font-family:"\@华文中宋"; panose-1:2 1 6 0 4 1 1 1 1 1;} @font-face {font-family:"\@方正小标宋简体";}  /* Style Definitions */  p.MsoNormal, li.MsoNormal, div.MsoNormal {margin:0cm; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; font-size:10.5pt; font-family:"Times New Roman","serif";} h1 {mso-style-link:"标题 1 Char"; margin-top:17.0pt; margin-right:0cm; margin-bottom:16.5pt; margin-left:0cm; text-align:justify; text-justify:inter-ideograph; line-height:240%; page-break-after:avoid; font-size:22.0pt; font-family:"Times New Roman","serif"; font-weight:bold;} h2 {mso-style-link:"标题 2 Char"; margin-top:13.0pt; margin-right:0cm; margin-bottom:13.0pt; margin-left:0cm; text-align:justify; text-justify:inter-ideograph; line-height:173%; page-break-after:avoid; font-size:16.0pt; font-family:"Arial","sans-serif"; font-weight:bold;} h3 {mso-style-link:"标题 3 Char"; margin:0cm; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; page-break-after:avoid; font-size:16.0pt; font-family:"Times New Roman","serif"; font-weight:bold;} h4 {mso-style-link:"标题 4 Char"; margin:0cm; margin-bottom:.0001pt; text-align:center; line-height:28.0pt; font-size:22.0pt; font-family:方正小标宋简体; font-weight:normal;} h5 {mso-style-link:"标题 5 Char"; margin:0cm; margin-bottom:.0001pt; text-align:center; line-height:30.0pt; font-size:22.0pt; font-family:"Times New Roman","serif"; letter-spacing:-1.5pt; font-weight:normal;} h6 {mso-style-link:"标题 6 Char"; margin:0cm; margin-bottom:.0001pt; text-align:center; line-height:28.0pt; font-size:22.0pt; font-family:方正小标宋简体; font-weight:normal;} p.MsoToc1, li.MsoToc1, div.MsoToc1 {margin:0cm; margin-bottom:.0001pt; line-height:200%; font-size:14.0pt; font-family:黑体; font-weight:bold;} p.MsoToc2, li.MsoToc2, div.MsoToc2 {margin-top:0cm; margin-right:0cm; margin-bottom:0cm; margin-left:21.0pt; margin-bottom:.0001pt; line-height:150%; font-size:12.0pt; font-family:"Times New Roman","serif";} p.MsoToc3, li.MsoToc3, div.MsoToc3 {margin-top:0cm; margin-right:0cm; margin-bottom:0cm; margin-left:42.0pt; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; font-size:10.5pt; font-family:"Times New Roman","serif";} p.MsoToc4, li.MsoToc4, div.MsoToc4 {margin:0cm; margin-bottom:.0001pt; font-size:10.5pt; font-family:"Times New Roman","serif";} p.MsoToc5, li.MsoToc5, div.MsoToc5 {margin-top:0cm; margin-right:0cm; margin-bottom:0cm; margin-left:84.0pt; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; font-size:10.5pt; font-family:"Times New Roman","serif";} p.MsoToc6, li.MsoToc6, div.MsoToc6 {margin-top:0cm; margin-right:0cm; margin-bottom:0cm; margin-left:105.0pt; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; font-size:10.5pt; font-family:"Times New Roman","serif";} p.MsoHeader, li.MsoHeader, div.MsoHeader {mso-style-link:"页眉 Char"; margin:0cm; margin-bottom:.0001pt; text-align:center; vsb_temp-mode:char; border:none; padding:0cm; font-size:9.0pt; font-family:"Calibri","sans-serif";} p.MsoFooter, li.MsoFooter, div.MsoFooter {mso-style-link:"页脚 Char"; margin:0cm; margin-bottom:.0001pt; vsb_temp-mode:char; font-size:9.0pt; font-family:"Calibri","sans-serif";} span.MsoPageNumber {font-family:"Times New Roman","serif";} p.MsoTitle, li.MsoTitle, div.MsoTitle {mso-style-link:"标题 Char"; margin-top:12.0pt; margin-right:0cm; margin-bottom:3.0pt; margin-left:0cm; text-align:center; font-size:48.0pt; font-family:"Cambria","serif"; font-weight:bold;} p.MsoBodyText, li.MsoBodyText, div.MsoBodyText {mso-style-link:"正文文本 Char"; margin:0cm; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; line-height:150%; font-size:12.0pt; font-family:宋体; color:black;} p.MsoDate, li.MsoDate, div.MsoDate {mso-style-link:"日期 Char"; margin-top:0cm; margin-right:0cm; margin-bottom:0cm; margin-left:5.0pt; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; font-size:12.0pt; font-family:"Times New Roman","serif";} a:link, span.MsoHyperlink {font-family:"Times New Roman","serif"; color:blue; text-decoration:underline;} a:visited, span.MsoHyperlinkFollowed {color:purple; text-decoration:underline;} p {margin-right:0cm; margin-left:0cm; font-size:12.0pt; font-family:宋体;} p.MsoAcetate, li.MsoAcetate, div.MsoAcetate {mso-style-link:"批注框文本 Char"; margin:0cm; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; font-size:9.0pt; font-family:"Times New Roman","serif";} p.MsoNoSpacing, li.MsoNoSpacing, div.MsoNoSpacing {margin:0cm; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; font-size:10.5pt; font-family:"Times New Roman","serif";} p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph {margin:0cm; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; text-indent:21.0pt; font-size:10.5pt; font-family:"Times New Roman","serif";} p.MsoTocHeading, li.MsoTocHeading, div.MsoTocHeading {margin-top:24.0pt; margin-right:0cm; margin-bottom:0cm; margin-left:0cm; margin-bottom:.0001pt; line-height:115%; page-break-after:avoid; font-size:14.0pt; font-family:"Cambria","serif"; color:#365F91; font-weight:bold;} span.1Char {mso-style-name:"标题 1 Char"; mso-style-link:"标题 1"; font-family:"Times New Roman","serif"; font-weight:bold;} span.2Char {mso-style-name:"标题 2 Char"; mso-style-link:"标题 2"; font-family:"Arial","sans-serif"; font-weight:bold;} span.3Char {mso-style-name:"标题 3 Char"; mso-style-link:"标题 3"; font-family:"Times New Roman","serif"; font-weight:bold;} span.4Char {mso-style-name:"标题 4 Char"; mso-style-link:"标题 4"; font-family:方正小标宋简体;} span.5Char {mso-style-name:"标题 5 Char"; mso-style-link:"标题 5"; font-family:"Times New Roman","serif"; letter-spacing:-1.5pt;} span.6Char {mso-style-name:"标题 6 Char"; mso-style-link:"标题 6"; font-family:方正小标宋简体;} span.Char {mso-style-name:"页眉 Char"; mso-style-link:页眉; font-family:"Times New Roman","serif";} span.Char0 {mso-style-name:"页脚 Char"; mso-style-link:页脚; font-family:"Times New Roman","serif";} p.p0, li.p0, div.p0 {mso-style-name:p0; margin-right:0cm; margin-left:0cm; font-size:12.0pt; font-family:宋体;} span.Char1 {mso-style-name:"日期 Char"; mso-style-link:日期; font-family:"Times New Roman","serif";} span.Char2 {mso-style-name:"正文文本 Char"; mso-style-link:正文文本; font-family:宋体; color:black;} p.p17, li.p17, div.p17 {mso-style-name:p17; margin-top:5.0pt; margin-right:0cm; margin-bottom:5.0pt; margin-left:0cm; font-size:12.0pt; font-family:宋体;} p.1, li.1, div.1 {mso-style-name:样式1; margin:0cm; margin-bottom:.0001pt; text-align:center; font-size:48.0pt; font-family:华文新魏;} p.2, li.2, div.2 {mso-style-name:样式2; margin:0cm; margin-bottom:.0001pt; text-align:center; line-height:28.0pt; font-size:22.0pt; font-family:方正小标宋简体;} p.a, li.a, div.a {mso-style-name:样式a; margin:0cm; margin-bottom:.0001pt; text-align:center; font-size:48.0pt; font-family:华文新魏;} p.b, li.b, div.b {mso-style-name:样式b; margin:0cm; margin-bottom:.0001pt; text-align:center; line-height:28.0pt; font-size:22.0pt; font-family:方正小标宋简体;} span.Char3 {mso-style-name:"批注框文本 Char"; mso-style-link:批注框文本; font-family:"Times New Roman","serif";} span.Char4 {mso-style-name:"标题 Char"; mso-style-link:标题; font-family:"Cambria","serif"; font-weight:bold;} p.10, li.10, div.10 {mso-style-name:样式10; mso-style-link:"样式10 Char"; margin-top:12.0pt; margin-right:0cm; margin-bottom:3.0pt; margin-left:0cm; text-align:center; font-size:48.0pt; font-family:"Cambria","serif"; font-weight:bold;} p.11, li.11, div.11 {mso-style-name:样式11; mso-style-link:"样式11 Char"; margin-top:0cm; margin-right:0cm; margin-bottom:0cm; margin-left:19.5pt; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; text-indent:-19.5pt; line-height:30.0pt; page-break-after:avoid; font-size:16.0pt; font-family:"Times New Roman","serif"; font-weight:bold;} span.10Char {mso-style-name:"样式10 Char"; mso-style-link:样式10; font-family:"Cambria","serif"; font-weight:bold;} p.12, li.12, div.12 {mso-style-name:样式12; mso-style-link:"样式12 Char"; margin:0cm; margin-bottom:.0001pt; text-align:center; line-height:28.0pt; font-size:22.0pt; font-family:方正小标宋简体;} span.11Char {mso-style-name:"样式11 Char"; mso-style-link:样式11; font-family:"Times New Roman","serif"; font-weight:bold;} span.12Char {mso-style-name:"样式12 Char"; mso-style-link:样式12; font-family:方正小标宋简体;} .MsoChpDefault {font-size:10.0pt;}  /* Page Definitions */  @page Section1 {size:595.3pt 841.9pt; margin:72.0pt 90.0pt 72.0pt 90.0pt; vsb_temp:15.6pt;} div.Section1 {page:Section1;} @page Section2 {size:595.3pt 841.9pt; margin:42.55pt 89.85pt 1.0cm 89.85pt; vsb_temp:15.6pt;} div.Section2 {page:Section2;}  /* List Definitions */  ol {margin-bottom:0cm;} ul {margin-bottom:0cm;} --></style>
+<div class="Section1" style="vsb_temp: 15.6pt;">
+ <p class="MsoNormal" style="text-align: center; line-height: 30pt; margin-right: 2.25pt;"><strong><span style="font-family: 黑体; font-size: 18pt;"></span></strong></p>
+ <p class="MsoNormal" style="line-height: 30pt; margin-right: 2.25pt;"><span style="font-family: 宋体; font-size: 14pt;">全体研究生：</span></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28pt; margin-right: 2.25pt;"><span style="font-family: 宋体; font-size: 14pt;">为了帮助家庭经济特别困难的研究生减轻生活负担，根据《西安电子科技大学家庭经济困难研究生资助办法（试行）》</span><span lang="EN-US" style="font-size: 14pt;">(</span><span style="font-family: 宋体; font-size: 14pt;">西电研〔</span><span lang="EN-US" style="font-size: 14pt;">2018</span><span style="font-family: 宋体; font-size: 14pt;">〕</span><span lang="EN-US" style="font-size: 14pt;">46</span><span style="font-family: 宋体; font-size: 14pt;">号</span><span lang="EN-US" style="font-size: 14pt;">)</span><span style="font-family: 宋体; font-size: 14pt;">精神，现开展</span><span lang="EN-US" style="font-size: 14pt;">2021</span><span style="font-family: 宋体; font-size: 14pt;">～</span><span lang="EN-US" style="font-size: 14pt;">2022</span><span style="font-family: 宋体; font-size: 14pt;">学年特困研究生专项资助（以下简称</span><span lang="EN-US" style="font-size: 14pt;">“</span><span style="font-family: 宋体; font-size: 14pt;">专项资助</span><span lang="EN-US" style="font-size: 14pt;">”</span><span style="font-family: 宋体; font-size: 14pt;">）申请工作。</span></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28.1pt;"><strong><span style="font-family: 宋体; font-size: 14pt;">一、资助对象</span></strong></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">建档立卡家庭经济困难研究生、农村低保家庭研究生、农村特困救助供养研究生、孤残研究生和烈士子女（申请人须为学制内的<strong>全日制</strong>研究生，包括</span><span lang="EN-US" style="font-size: 14pt;">2021</span><span style="font-family: 宋体; font-size: 14pt;">级新生）。</span></p>
+ <p class="MsoNormal" style="text-align: left; line-height: 28pt; text-indent: 28.1pt;"><strong><span style="font-family: 宋体; font-size: 14pt;">二、资助标准</span></strong></p>
+ <p class="MsoNormal" style="text-align: left; line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">每月</span><span lang="EN-US" style="font-size: 14pt;">200</span><span style="font-family: 宋体; font-size: 14pt;">元就餐补贴，直接打入校园一卡通，每年发放</span><span lang="EN-US" style="font-size: 14pt;">12</span><span style="font-family: 宋体; font-size: 14pt;">个月。</span></p>
+ <p class="MsoNormal" style="text-align: left; line-height: 28pt; text-indent: 28.1pt;"><strong><span style="font-family: 宋体; font-size: 14pt;">三、相关要求</span></strong></p>
+ <p class="MsoNormal" style="text-align: left; line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">获得专项资助的研究生，每年需参加不少于</span><span lang="EN-US" style="font-size: 14pt;">20</span><span style="font-family: 宋体; font-size: 14pt;">小时的志愿服务（身患残疾或严重疾病的研究生可降低或取消志愿服务要求），志愿服务岗位由各学院<a name="_GoBack"></a>安排，受助研究生可根据实际情况自由选择工作时间和工作岗位。</span></p>
+ <p class="MsoNormal" style="text-align: left; line-height: 28pt; text-indent: 28.1pt;"><strong><span style="font-family: 宋体; font-size: 14pt;">四、申报程序</span></strong></p>
+ <p class="MsoNormal" style="text-align: left; line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">申请人利用暑假准备相关证明材料，填写<a name="_Hlk77856849"></a>《西安电子科技大学家庭经济困难研究生认定申请表》（附件</span><span lang="EN-US" style="font-size: 14pt;">1</span><span style="font-family: 宋体; font-size: 14pt;">，学生本人以及家长或监护人签字）、《西安电子科技大学特困研究生专项资助申请表》</span><span style="font-family: 宋体; font-size: 14pt;">（附件</span><span lang="EN-US" style="font-size: 14pt;">2</span><span style="font-family: 宋体; font-size: 14pt;">），并将申请材料提交学院。学院对申请材料进行初审，</span><strong><span lang="EN-US" style="font-size: 14pt;">9</span></strong><strong><span style="font-family: 宋体; font-size: 14pt;">月</span></strong><strong><span lang="EN-US" style="font-size: 14pt;">14</span></strong><strong><span style="font-family: 宋体; font-size: 14pt;">日</span></strong><span style="font-family: 宋体; font-size: 14pt;">前将符合要求的材料连同汇总表（附件</span><span lang="EN-US" style="font-size: 14pt;">3</span><span style="font-family: 宋体; font-size: 14pt;">）交到研工部（南校区行政楼</span><span lang="EN-US" style="font-size: 14pt;">704</span><span style="font-family: 宋体; font-size: 14pt;">室）。</span></p>
+ <p class="MsoNormal" style="text-align: left; line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">研工部将对申请材料进行复审，并确定最终资助名单。</span></p>
+ <p class="MsoNormal" style="text-align: left; line-height: 28pt; text-indent: 28.1pt;"><strong><span style="font-family: 宋体; font-size: 14pt;">五、证明材料</span></strong></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">申请人需提供《西安电子科技大学家庭经济困难研究生认定申请表》、《西安电子科技大学特困研究生专项资助申请表》和以下至少一种材料的<strong>封面及全部内页</strong>复印件（必须包含家庭成员、受资助年限等关键信息）：</span></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">《扶贫手册》（</span><span style="color: black; font-family: 宋体; font-size: 14pt;">建档立卡家庭经济困难研究生</span><span style="font-family: 宋体; font-size: 14pt;">）、《农村最低生活保障金领取证》（农村低保家庭研究生）、《农村特困户救助证》（农村特困救助供养研究生），《孤儿证》或《残疾人证》（孤残研究生）、父亲或母亲的《烈士证明书》（烈士子女）。其中，前三类证件的户主应为申请人的父亲或母亲。</span></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28.1pt;"><strong><span style="font-family: 宋体; font-size: 14pt;">六、其他说明</span></strong></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">特困研究生专项资助的资助期限为一年，</span><span lang="EN-US" style="font-size: 14pt;">2020</span><span style="font-family: 宋体; font-size: 14pt;">～</span><span lang="EN-US" style="font-size: 14pt;">2021</span><span style="font-family: 宋体; font-size: 14pt;">学年获得专项资助的研究生如需继续申请应重新提交申请材料。</span></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28.1pt;"><strong><span style="font-family: 宋体; font-size: 14pt;">七、联系方式</span></strong></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">联系人：王老师</span></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">电话：</span><span lang="EN-US" style="font-size: 14pt;">029-81891316</span></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28pt;"><span style="font-family: 宋体; font-size: 14pt;">邮箱：</span><span lang="EN-US"><a href="mailto:ygb@xidian.edu.cn"><span style="font-size: 14pt;">ygb@xidian.edu.cn</span></a></span></p>
+ <p class="MsoNormal" style="line-height: 28pt; text-indent: 28pt;"><span lang="EN-US" style="font-size: 14pt;">&nbsp;</span></p>
+ <p class="MsoNormal" style="text-align: right; line-height: 28pt; text-indent: 28pt;"><span lang="EN-US" style="font-size: 14pt;">&nbsp;</span></p>
+ <p class="MsoNormal" style="text-align: right; line-height: 28pt; text-indent: 28pt; margin-right: 14pt;"><span style="font-family: 宋体; font-size: 14pt;">党委研究生工作部</span></p>
+ <p class="MsoNormal" style="text-align: right; line-height: 28pt; text-indent: 28pt; margin-right: 14pt;"><span lang="EN-US" style="font-size: 14pt;">2021</span><span style="font-family: 宋体; font-size: 14pt;">年</span><span lang="EN-US" style="font-size: 14pt;">8</span><span style="font-family: 宋体; font-size: 14pt;">月</span><span lang="EN-US" style="font-size: 14pt;">6</span><span style="font-family: 宋体; font-size: 14pt;">日</span></p>
+</div>
+<p><span lang="EN-US" style="font-family: &quot;Times New Roman&quot;,&quot;serif&quot;; font-size: 14pt;"><br clear="all" style="page-break-before: always;"> </span> </p>
+<div class="Section2" style="vsb_temp: 15.6pt;">
+ <p class="MsoNormal" style="text-align: left; line-height: 28pt;"><span lang="EN-US" style="font-family: 黑体; font-size: 14pt;">&nbsp;</span></p>
+</div></div></div></div>
+    <span id="vsb_content_1746_u8" name="vsb_content_1746_u8"></span><br /><br />
+    <span>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1370298689&wbfileid=D34EA2CD9F449C592299AE76E28768B9"><span>附件1：西安电子科技大学家庭经济困难研究生认定申请表.doc</span></a>】</span><br><span>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1370298689&wbfileid=ADC251CFF250E2AB8618CD7D8896C084"><span>附件3：特困研究生专项资助汇总表.xlsx</span></a>】</span><br><span>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1370298689&wbfileid=AEA160CB33B855FE48585B0880B76F61"><span>附件2：西安电子科技大学特困研究生专项资助申请表.docx</span></a>】</span><br>
+
+ 
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV><!--main jieshu--></DIV>
+<DIV class="clear"></DIV><DIV class="clear"></DIV></DIV>
+<DIV class="footer w100"><p>版权所有：西安电子科技大学</p><p>长安校区地址：陕西省西安市西沣路兴隆段266号 邮编710126&nbsp;&nbsp;&nbsp; 技术支持：西安聚力</p></DIV>
+
+</BODY></HTML>

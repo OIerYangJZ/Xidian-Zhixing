@@ -1,0 +1,527 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>完美教案编写指南-西安电子科技大学教师发展中心</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="完美教案编写指南">
+<META Name="keywords" Content="西安电子科技大学教师发展中心,完美,教案,编写,指南" />
+<META Name="description" Content="每一节课堂都有老师精心备课，都离不开教案。教案是教师在授课前准备的教学方案，是教育者引领学生分析、探究、处理、整合知识信息的指导和组织方案，更是学生群体探求知识奥秘追求美好未来的学习策略，其出发点和落脚点均是为了学生。那么，怎样让教案更完美？一起来了解吧~一、教案设计概述一份完美的教案,须做到以下几点：①体现教学思路②凸显教学设计③有选择性地使用多媒体教学④表现教学反思意识二、教案编写七原则1、凸..." />
+
+    <link rel="stylesheet" href="../../css/style.css" />
+    <script type="text/javascript" src="../../js/jquery.js"></script>
+    <script type="text/javascript" src="../../js/superslide.js"></script>
+    <style>
+    
+#vsb_content_2 TABLE{
+    margin:0 auto !important;}
+    </style>
+    
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../nry.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1072,'/nry.jsp',2892,1720849302)</script>
+</head>
+<body>
+   <!--头部开始-->
+  <div class="head">
+    <div class="top">
+      <div class="main">
+        <div class="logo">
+          
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="21教师发展中心"><img src="../../img/logo.png" width="552" height="67" border="0" alt="21教师发展中心" title="21教师发展中心"></a>
+        </div>
+        <div class="fr">
+          
+
+<ul style="float: right;">
+
+            <li><a href="https://www.xidian.edu.cn/">学校首页&emsp;|</a></li>
+            <li><a href="http://mooc1.chaoxing.com/course/221457285.html">云端教育教学节</a></li>
+</ul>
+
+
+
+    <div class="clear"></div>
+          <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+            color: #fff;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        height: 35px;
+    width: 220px;
+    border-radius: 50px;
+    border: 1px solid #fff;
+    background: #004fa8;
+    padding: 0 20px 0;
+    margin-top: 12px;
+    outline: none;}
+    #appu2 .tj{/*
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;*/
+        position: absolute;
+    top: 22px;
+    right: 13px;
+    outline: none;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+            <input class="tj img" name="submit_button" type="image" value="" src="../../img/search.png" v-on:click="onSubmit()"/>
+          
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1720849302";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1720849302";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+          </div>
+        </div>
+        <div class="clear"></div>
+      </div>
+    </div>
+    <!--导航开始-->
+    <div class="nav">
+      <div class="main">
+          <ul id="nav" class="nav clearfix">
+              <li class="nLi  on ">
+                <h3><a href="../../index.htm" title="首页">首页</a></h3>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../zxgk1/bmjj.htm" title="中心概况">中心概况</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../zxgk1/bmjj.htm" title="部门简介">部门简介</a></li>
+                    <li><a href="../../zxgk1/lxwm.htm" title="联系我们">联系我们</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jspx/xrzjspx.htm" title="教师培训">教师培训</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jspx/xrzjspx.htm" title="新入职教师培训">新入职教师培训</a></li>
+                    <li><a href="../../jspx/jxztbg.htm" title="教学专题报告">教学专题报告</a></li>
+                    <li><a href="../../jspx/yxjxsl.htm" title="院系教学沙龙">院系教学沙龙</a></li>
+                    <li><a href="../../jspx/wl_zx_px.htm" title="网络（在线）培训">网络（在线）培训</a></li>
+                    <li><a href="../../jspx/xwyxb_yth.htm" title="校外研修班&amp;研讨会">校外研修班&amp;研讨会</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jxpj.htm" title="教学评价">教学评价</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jxpj/jxcxj.htm" title="教学创新奖">教学创新奖</a></li>
+                    <li><a href="../../jxpj/jxzrz.htm" title="教学准入证">教学准入证</a></li>
+                    <li><a href="../../jxpj/jxjd.htm" title="教学鉴定">教学鉴定</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jxjs.htm" title="教学竞赛">教学竞赛</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jxjs/qnjsjkjs.htm" title="青年教师讲课竞赛">青年教师讲课竞赛</a></li>
+                    <li><a href="../../jxjs/ktjxcxds.htm" title="课堂教学创新大赛">课堂教学创新大赛</a></li>
+                    <li><a href="../../jxjs/kcszbs.htm" title="课程思政比赛">课程思政比赛</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../pxzy.htm" title="培训资源">培训资源</a></h3>
+
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../xzzx.htm" title="下载中心">下载中心</a></h3>
+
+              </li>
+</ul>
+      </div>
+    </div>
+    <!--导航结束-->
+    <script>jQuery("#nav").slide({ type:"menu", titCell:".nLi", targetCell:".sub",effect:"slideDown",delayTime:300,triggerTime:0,returnDefault:true});</script>
+  </div>
+    <!--头部结束-->
+    <!--banner开始-->
+    <div id="slideBox" class="slideBox" style="height:300px;display:none;">
+        <div class="bd">
+              <script language="javascript" src="/system/resource/js/dynclicks.js"></script><ul>
+            <li><a><img src="../../img/banner.jpg" style="height: 300px;width: 1920px;"></a></li>
+</ul>
+        </div>
+      </div>
+    <!--banner结束-->
+
+ 
+
+<!--============================主体 开始=============================-->    
+
+
+<div class="clear"></div>
+ 
+    <section class="main">
+            <div class="right n_neiye">
+
+              <section class="n_title">
+                <div class="position">
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+                &gt;
+                <a href="../../index/jyfx.htm">经验分享</a>
+                &gt;
+                正文
+</div>
+              </section>
+              
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><div class="detail ar_article">
+    <h2 align="center">完美教案编写指南</h2>
+    <div class="tittle"><span>发布时间：2021-05-26</span><span>点击数：<script>_showDynClicks("wbnews", 1720849302, 2892)</script></span> </span></div>
+                
+
+          
+    <div id="vsb_content_2"><div class="v_news_content">
+<div>
+ <p class="vsbcontent_start">每一节课堂都有老师精心备课，都离不开教案。</p>
+ <p>教案是教师在授课前准备的教学方案，是教育者引领学生分析、探究、处理、整合知识信息的指导和组织方案，更是学生群体探求知识奥秘追求美好未来的学习策略，其出发点和落脚点均是为了学生。</p>
+ <p>那么，怎样让教案更完美？一起来了解吧~</p>
+ <p>一、教案设计概述</p>
+ <p>一份完美的教案,须做到以下几点：</p>
+ <p>①体现教学思路</p>
+ <p>②凸显教学设计</p>
+ <p>③有选择性地使用多媒体教学</p>
+ <p>④表现教学反思意识</p>
+ <p>二、教案编写七原则</p>
+ <p><strong>1</strong><strong>、凸显教学原则</strong></p>
+ <p>教师在备课和撰写教案时，必须以新的教学思想为指导，总体宏观地驾驭课堂。或者说，教案中要能体现出教师具有的先进教学理念。教的实质在于帮助学生对知识进行加工改造和创造。</p>
+ <p>(1)以学生为本，注重让学生在课堂上动口、动脑、动手，注重学生潜能的开发、能力的培养、智力的发展及个性的养成。</p>
+ <p>(2)在传授知识的同时，强调让学生形成积极主动的学习态度，并使其获得知识和技能的过程成为学会学习、形成正确价值观的过程。</p>
+ <p>(3)教案中应体现教师、学生、教材、教学环境四因素的不断对话和交流，学生不再是知识的仓库。</p>
+ <p>在课堂上多让他们参与知识发生的过程、思维的过程、创造的过程。</p>
+ <p><strong>2</strong><strong>、科学性原则</strong></p>
+ <p>一个好教案首先要依纲扣本，具有科学性。所谓符合科学性，是指教师要认真贯彻课程标准，按教材的内在规律，结合学生实际来确定教学目标、重点、难点，设计教学过程，避免出现知识性错误。</p>
+ <p><strong>3</strong><strong>、创新性原则</strong></p>
+ <p>教材是固定的，不能随意更改，课怎么上全凭教师的智慧和才干。老师要在钻研教材的基础上，广泛涉猎多种教学参考资料，向有经验的老教师请教，同时不能照搬照抄别人的经验，要在深入思考的基础上消化、吸收他人的经验，结合个人的体会，巧妙构思、精心安排，写出有水平和有个性的教案。</p>
+ <p><strong>4</strong><strong>、差异性原则</strong></p>
+ <p>由于每个人的知识、经验、特长、个性是千差万别的，而教学工作又是一项创造性工作，因此编写教案就不能是千人一面的固定模式，而要有自己独特的个性特点。</p>
+ <p><strong>5</strong><strong>、操作性原则</strong></p>
+ <p>教案是教师上课的一种方案，相当于施工的图纸，所以一定要能使用、便于操作。这就要求考生编写教案时一定要从实际需要出发，该简则简、该繁则繁。</p>
+ <p><strong>6</strong><strong>、变化性原则</strong></p>
+ <p>教学过程中经常出现偏离教案预设的现象，这时教师要根据实际情况改变原先的教学计划和方法，启发学生的思维，针对疑点进行积极引导，切忌死扣教案打击学生思考的积极性。这就要求考生在备课时，应充分考虑到学生在学习时可能提出的问题，并针对这些问题设计出对策。</p>
+ <p><strong>7</strong><strong>、教案留白原则</strong></p>
+ <p>教案留白，就是指教案的开放性和灵活性。具体来说就是教案的书写在内容上不要过于详尽，形式上不要过于琐碎，结构上不要过于封闭和程式化，而要体现出内容上的概要性、形式上的模糊性和结构上的不确定性。</p>
+ <p>这样的教案能在备课和课堂教学中形成一种特殊的张力，有利于教师在教学中保持一种宽阔的思路和开放的观念，更容易纳入新的内容，适应新的情境，随时改变原有的设计，实现课堂教学的生态化。</p>
+ <p><strong>三、教案的基本内容</strong></p>
+ <p><strong>课题：</strong>本课时所讲的题目。</p>
+ <p><strong>课型：</strong>即说明属于新授课、复习课还是实验课、练习课等。</p>
+ <p><strong>课时：</strong>即课时安排，要根据教材的分量和学生的接受能力而定，各课时教学内容的分配要讲究科学性，要注意重点难点的合理分布，要突出重点、分散难点。</p>
+ <p><strong>教学目标：</strong>教学目标也叫教学要求，即说明本课时所要完成的教学任务，是一篇教材教学的行动纲领，要写得具体、明确、恰当、适中。</p>
+ <p><strong>教学重点：</strong>即说明本课所必须解决的关键性问题，是教材中为了达到教学目标而着重指导学生必须熟练掌握的内容。</p>
+ <p><strong>教学难点：</strong>即本课学习时易产生困难和障碍的知识点，即学生对教材中不易理解掌握的地方。</p>
+ <p><strong>教学准备：</strong>即说明辅助教学手段使用的工具。如教学用具、多媒体、课件等。</p>
+ <p><strong>教学过程：</strong>即教学的内容、方法和步骤。教学过程的安排没有固定的格式，但有一定的规律，要求要安排得恰当合理按照学生的认知规律进行教学。</p>
+ <p><strong>板书设计：</strong>即上课时准备写在黑板上的内容。板书要求具有科学性、整体性、条理性。</p>
+ <p><strong>教学反思：</strong>是教师在授课结束后对教学设计执行情况的总结。</p>
+ <p><strong>四、教案设计的类型及编写要点</strong></p>
+ <p>教案设计的类型取决于课的类型和结构。</p>
+ <p>课的类型有两种划分方法：</p>
+ <p>一种是根据教学的任务来分，可分为新授课、巩固课、技能课、检查课。另一种是根据使用的主要教学方法来分，可分为讲授课、演示课、练习课、实验课、复习课。</p>
+ <p>课的结构是由课的类型来决定的，不同类型的课有不同的结构，那么其相应的教案类型也不同。</p>
+ <p>通常，按课的类型可将教案分为：新授课教案、复习课教案、实验课教案、检查课教案。在同一类型的课中.教案常由于其应用功能的不同，又分为：详细教案(简称教案)、表格式教案(简称简案)、课堂实录教案(简称实案)。</p>
+ <p><strong>五、各类型教案的内容及功能</strong></p>
+ <p><strong>按课的类型分类</strong></p>
+ <p><strong>(1)</strong><strong>新授课教案</strong></p>
+ <p>新授课教案的主要内容是提出新课的教学目标，把握传授新知识的深度、广度、重点、难点。其主要任务是完成新知识的传授。</p>
+ <p><strong>(2)</strong><strong>复习课教案</strong></p>
+ <p>复习课教案的主要内容是提出复习的范围和要求。其主要任务是帮助、引导学生巩固掌握已有的知识，并将知识系统化、网络化。</p>
+ <p><strong>(3)</strong><strong>实验课教案</strong></p>
+ <p>实验课教案的主要内容是提出培养技能、技巧的具体内容与要求。其主要任务是教师完成示范性操作、实验原理的讲解，指导学生独立进行实验，培养学生的技能、技巧和严谨的科学态度，掌握基本的学科实验操作方法。</p>
+ <p><strong>(4)</strong><strong>检查课教案</strong></p>
+ <p>检查课教案的主要内容是提出检查(即形成性评价、诊断性评价、终结性评价)的具体目标和要求。其主要任务是检查了解学生学习的实际情况，为下阶段制订针对性强且有效的教学设计方案做铺垫。</p>
+ <p><strong>按应用功能分类</strong></p>
+ <p><strong>(1)</strong><strong>详细教案</strong></p>
+ <p>详细教案的主要内容是课题、课时、教学目标、教学的重点难点、教学方法、教具(包括学具)、教学过程(包括反馈检测题等)、板书内容、补充课外知识、教材前后知识点的衔接等，侧重把握教材的深度和广度。其主要任务是：</p>
+ <p>①教师完成对教材深度和广度的把握;</p>
+ <p>②通过多年的备课，搜集和整理大量的信息，不断地补充同一问题的新知识、新进展，同时完成教师的知识更新。</p>
+ <p><strong>(2)</strong><strong>表格式教案</strong></p>
+ <p>表格式教案多适用于有经验的老教师。其主要内容有课题、课时、教学目标、教学的重点和难点、教具(包括学具)、教学程序(所有教具的操作顺序、教学方法的具体操作过程、学法指导的具体操作过程)、板书设计，侧重教法、学法的具体操作。</p>
+ <p><strong>(3)</strong><strong>课堂实录教案</strong></p>
+ <p>课堂实录教案多用于优质课评选、公开课等。它是教学改革和教学研究的产物，是教师在课堂上具体实施教学过程的安排表或实录。其主要内容有课题、课时、教学目标、教学的重点和难点、教具(包括学具)、教学过程、板书设计等，侧重于教学过程的具体安排。</p>
+ <p>其中导言、知识的过渡、重点的教法、难点的学法指导、教具的选择和使用等将体现教师的教学特色、教学改革意识和教学改革的具体做法。其主要任务是：</p>
+ <p><strong>①</strong>为各级领导、各类教师听课、评课提供参考资料;</p>
+ <p><strong>②</strong>为教师互相学习、交流经验，进行教学改革和研究提供学习的材料。</p>
+ <p><strong>六、常见课型教案编写要点</strong></p>
+ <p>新授课</p>
+ <p><strong>(1)</strong><strong>抓好教学各环节的过渡与衔接</strong></p>
+ <p>①设计好复习引课的内容</p>
+ <p>抓准新旧知识间的联系，或挖掘学生日常生活中与本节课内容有关的常识，以旧知识或生活实际为基础，设计并提出适宜的问题，使学生意识到学习新知识的重要性和必要性，唤起他们学习的兴趣，从而使学生有准备地、自然地过渡到新课的学习。</p>
+ <p>因此，在教案中，引入新课时提出什么样的问题，学生回答时可能出现的各种情况及针对各种不同情况追问什么样的问题，或用什么样的关键语言加以引导，如何顺利巧妙地过渡到新授课的内容等，都应具体明确地反映出来，以利于教学实施。</p>
+ <p>②写明新授内容的逻辑层次</p>
+ <p>新概念的引出，新规律的获得，都应遵从循序渐进的原则，对于引出新概念所必须掌握的已学概念及其引出新概念的思维程序应简明地写在教案上。另外，新概念、新规律的内涵与外延需强调的要点，及其在应用中需注意的问题等，在教案中也要有所反映，为新知识的运用及巩固小结铺路架桥。</p>
+ <p>巩固小结，应设计好适当的方法和问题，便于学生把握知识的来龙去脉，系统地理解知识。小结中设计的问题，应使学生将所学新知识与旧知识挂上钩，或为后续学习设下伏笔。</p>
+ <p><strong>(2)</strong><strong>写明有效措施，便于突破难点</strong></p>
+ <p>在教案中，应明确写出本课的难点是什么及突破难点的措施和方法。如针对概念抽象、学生又缺乏感性认识的知识，需列举哪些实例，何时做什么演示实验.提示学生注意观察什么;针对与学生生活经验相矛盾的教材知识，需要借用哪些问题的具体分析，如何引导学生从不同方面认识知识规律等这些都应有书面提纲。</p>
+ <p>复习课</p>
+ <p><strong>(1)</strong><strong>明确目标，提出问题</strong></p>
+ <p>复习课应使学生在知识上、方法上、能力上形成完整的结构，实现理性的飞跃。因此，教案上除了应写清楚所复习内容的知识层次，还应写明在全面概括教材基础上提出的新问题，写清在这段学习中学生常出现的错误和技能、技巧等方面的不足，以便上课时能准确地针对学生学习中的欠缺进行复习。</p>
+ <p><strong>(2)</strong><strong>对症下药，实施补救</strong></p>
+ <p>在复习课中，教师会针对学生学习中存在的问题，采取相应的补救措施。考生在备考时，对理论性较强，新概念、新名词较多的内容，应写明复习提纲，以帮助学生理顺知识系统;对易混淆的相似概念、规律，应在教案上设计好具体的对照表格，帮助学生对比记忆。</p>
+ <p>实验课</p>
+ <p><strong>(1)</strong><strong>写明要求</strong></p>
+ <p>在教案中必须写明课前准备的问题，如实验目的、原理、方法、步骤及使用仪器的注意事项等，使学生对这些问题有所了解。另外，有些实验还须写清实验数据的处理及实验结果的分析等方面的要求。</p>
+ <p><strong>(2)</strong><strong>写清实验中易出现的问题及处理方法</strong></p>
+ <p class="vsbcontent_end">学生操作仪器时可能出现的问题，各种非系统因素(温度、湿度、电磁干扰等)对实验可能产生的影响等，以及针对上述情况的处理办法，都应在教案中清楚写明，便于及时处理学生做实验时出现的问题，以确保实验成功。</p>
+ <p class="vsbcontent_end" style="text-align: right;">(转载自公众号【高校教师发展工作室】)</p>
+</div>
+</div></div><div id="div_vote_id"></div>
+  
+    <section id="ar_fot">        
+        <h5 class="fl"><span>上一篇：</span><a href="2931.htm">教学方法|“学情分析”你还在用千篇一律的“课前测验”法吗？</a></h5>      
+    <h5 class="fr"><span>下一篇：</span><a href="2744.htm">教学方法丨高校教学改革中有哪些有效的教学策略</a></h5>  
+    <div class="clear"></div>     
+    </section>
+              
+
+
+
+
+
+
+
+</div>
+</form>
+
+        <SECTION class="detail"></SECTION>
+            </div>
+  </section>
+    
+    
+    <!--============================主体 结束=============================-->
+
+
+
+    <!--底部开始-->
+     <div class="foot">
+      <div class="main">
+        <div class="left">
+          <div class="tit">联系我们</div>
+          <script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>电话：029-81891791 &nbsp; &nbsp;029-81891792</p> 
+<p>邮箱：jsfz@xidian.edu.cn</p> 
+<p>邮编：710126</p> 
+<p>地址：西安电子科技大学南校区行政楼118办公室</p>
+        </div>
+        <div class="center">
+          <img src="../../img/foot_logo.png" alt="">
+        </div>
+<img src="../../sj-img/ewm.jpg" style="width:133px;margin: 60px 0px 0px 0px;">
+        <div class="right">
+          <div class="tit">友情链接</div>
+          <select name="qq" onchange="javascript:window.open(this.options[this.selectedIndex].value)" class="lj1">
+              <option value="#">—— 校内链接 ——</option>
+               <script language="javascript" src="/system/resource/js/openlink.js"></script><option value="https://www.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64967)">西安电子科技大学</option>
+<option value="https://news.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64966)">新闻网</option>
+<option value="https://jwc.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64965)">西电教务处</option>
+<option value="https://bksy.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64990)">本科生院</option>
+
+           </select>
+           <select class="lj1" onchange="window.location=this.value;">
+              <option value="#"> —— 常用链接 ——</option>
+               <option value="http://www.moe.gov.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64970)">中华人民共和国教育部</option>
+<option value="http://jyt.shaanxi.gov.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64969)">陕西省教育厅</option>
+<option value="http://www.cfd.tsinghua.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64968)">清华大学教师发展中心</option>
+<option value="http://cetl.pku.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64991)">北京大学教师教学发展中心</option>
+<option value="http://jfzx.xjtu.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64992)">西安交通大学教师教学发展中心</option>
+
+           </select>
+           <select class="lj1" onchange="window.location=this.value;">
+              <option value="#"> —— 其他链接 ——</option>
+               
+           </select>
+        </div>
+      </div>
+      <!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright © 2013-2017 西安电子科技大学 教师教学发展中心 &nbsp;技术支持： <a href="https://xxzx.xidian.edu.cn/" target="_blank">信息网络技术中心</a> &nbsp; &nbsp;西安聚力</p>
+    </div>
+      <!--底部结束-->
+  </body>
+  </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

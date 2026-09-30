@@ -1,0 +1,2429 @@
+{
+  "generatedAt": "2026-09-27",
+  "candidateCounts": {
+    "documents": 1075,
+    "publishedDocuments": 1011,
+    "disabledDocuments": 64,
+    "publishedChunks": 9179,
+    "allChunks": 9243,
+    "publishedByAuthority": {
+      "official": 9134,
+      "community": 45
+    },
+    "defaultAuthorityChunks": 9134
+  },
+  "retrievalMode": "BM25 only; candidate activeIndex is null; no Qdrant vectors or reranker in this diagnostic",
+  "firstStage": "top 60 BM25 rows deduped by exact chunk contentHash to at most 30 before RRF",
+  "recentQueryExpansion": [
+    "network visitor wording adds official network access and receiving-department terms",
+    "dorm electricity wording adds prepaid-meter terms",
+    "unspecified CET date queries prefer current Beijing year and current half-year; explicit year/half-year is preserved; registration queries add 网报时间",
+    "title boost applies only when the same term occurs in the matched chunk",
+    "time cues include 几点/weekend/day-of-week phrasing; 周末 expands to 周六 and 周日; clinic schedule queries expand to 就诊时间, 门诊时间, 工作时间"
+  ],
+  "passageChecks": [
+    {
+      "query": "国家励志奖学金本科生金额",
+      "targetPhrase": "现行的奖励标准为每人每年6000元",
+      "rawMatch": {
+        "rank": 1,
+        "documentId": "doc-ef64128c59312aa497af86f5",
+        "chunkId": "doc-ef64128c59312aa497af86f5:0eb3c5fb5280:1",
+        "title": "西安电子科技大学本科生国家励志奖学金评审办法- 西安电子科技大学-党委学生工作部/学生工作处"
+      },
+      "contentDedupMatch": {
+        "rank": 1,
+        "documentId": "doc-ef64128c59312aa497af86f5",
+        "chunkId": "doc-ef64128c59312aa497af86f5:0eb3c5fb5280:1",
+        "title": "西安电子科技大学本科生国家励志奖学金评审办法- 西安电子科技大学-党委学生工作部/学生工作处"
+      },
+      "afterThreePassagesPerDocumentCap": {
+        "rank": 1,
+        "documentId": "doc-ef64128c59312aa497af86f5",
+        "chunkId": "doc-ef64128c59312aa497af86f5:0eb3c5fb5280:1",
+        "title": "西安电子科技大学本科生国家励志奖学金评审办法- 西安电子科技大学-党委学生工作部/学生工作处"
+      },
+      "within12BM25Candidates": true
+    },
+    {
+      "query": "国家助学金3700是不是所有人固定发放",
+      "targetPhrase": "实际资助标准根据国家当年政策文件适时调整",
+      "rawMatch": {
+        "rank": 1,
+        "documentId": "doc-1e0648294dec24a9149d5e6f",
+        "chunkId": "doc-1e0648294dec24a9149d5e6f:994aaefa1314:2",
+        "title": "西安电子科技大学本科生国家助学金评定实施办法- 西安电子科技大学-党委学生工作部/学生工作处"
+      },
+      "contentDedupMatch": {
+        "rank": 1,
+        "documentId": "doc-1e0648294dec24a9149d5e6f",
+        "chunkId": "doc-1e0648294dec24a9149d5e6f:994aaefa1314:2",
+        "title": "西安电子科技大学本科生国家助学金评定实施办法- 西安电子科技大学-党委学生工作部/学生工作处"
+      },
+      "afterThreePassagesPerDocumentCap": {
+        "rank": 1,
+        "documentId": "doc-1e0648294dec24a9149d5e6f",
+        "chunkId": "doc-1e0648294dec24a9149d5e6f:994aaefa1314:2",
+        "title": "西安电子科技大学本科生国家助学金评定实施办法- 西安电子科技大学-党委学生工作部/学生工作处"
+      },
+      "within12BM25Candidates": true
+    },
+    {
+      "query": "2026年秋季研究生培养计划和选课时间什么时候开始截止",
+      "targetPhrase": "系统开放时间为9月8日9：00至9月",
+      "rawMatch": {
+        "rank": 1,
+        "documentId": "doc-b1df60d47ab6fe60e97e40c5",
+        "chunkId": "doc-b1df60d47ab6fe60e97e40c5:9ece79e234d3:3",
+        "title": "2026年秋季学期培养计划制定及选课指南-研究生院-西安电子科技大学"
+      },
+      "contentDedupMatch": {
+        "rank": 1,
+        "documentId": "doc-b1df60d47ab6fe60e97e40c5",
+        "chunkId": "doc-b1df60d47ab6fe60e97e40c5:9ece79e234d3:3",
+        "title": "2026年秋季学期培养计划制定及选课指南-研究生院-西安电子科技大学"
+      },
+      "afterThreePassagesPerDocumentCap": {
+        "rank": 1,
+        "documentId": "doc-b1df60d47ab6fe60e97e40c5",
+        "chunkId": "doc-b1df60d47ab6fe60e97e40c5:9ece79e234d3:3",
+        "title": "2026年秋季学期培养计划制定及选课指南-研究生院-西安电子科技大学"
+      },
+      "within12BM25Candidates": true
+    },
+    {
+      "query": "校医院医保报销材料和流程",
+      "targetPhrase": "线上报销",
+      "rawMatch": {
+        "rank": 1,
+        "documentId": "doc-af3e7851b646d46562cd96d1",
+        "chunkId": "doc-af3e7851b646d46562cd96d1:2ac40623fcf6:0",
+        "title": "关于开展2026年大学生医保门诊报销工作的通知-西安电子科技大学-校医院"
+      },
+      "contentDedupMatch": {
+        "rank": 1,
+        "documentId": "doc-af3e7851b646d46562cd96d1",
+        "chunkId": "doc-af3e7851b646d46562cd96d1:2ac40623fcf6:0",
+        "title": "关于开展2026年大学生医保门诊报销工作的通知-西安电子科技大学-校医院"
+      },
+      "afterThreePassagesPerDocumentCap": {
+        "rank": 1,
+        "documentId": "doc-af3e7851b646d46562cd96d1",
+        "chunkId": "doc-af3e7851b646d46562cd96d1:2ac40623fcf6:0",
+        "title": "关于开展2026年大学生医保门诊报销工作的通知-西安电子科技大学-校医院"
+      },
+      "within12BM25Candidates": true
+    },
+    {
+      "query": "来访人员申请校园网接入需要哪些步骤和材料",
+      "targetPhrase": "因公网络账号申请",
+      "rawMatch": {
+        "rank": 1,
+        "documentId": "doc-ff5956f4625eed5b7511e0af",
+        "chunkId": "doc-ff5956f4625eed5b7511e0af:3bdc31b23977:1",
+        "title": "有线-无线网接入-信息网络技术中心-西安电子科技大学"
+      },
+      "contentDedupMatch": {
+        "rank": 1,
+        "documentId": "doc-ff5956f4625eed5b7511e0af",
+        "chunkId": "doc-ff5956f4625eed5b7511e0af:3bdc31b23977:1",
+        "title": "有线-无线网接入-信息网络技术中心-西安电子科技大学"
+      },
+      "afterThreePassagesPerDocumentCap": {
+        "rank": 1,
+        "documentId": "doc-ff5956f4625eed5b7511e0af",
+        "chunkId": "doc-ff5956f4625eed5b7511e0af:3bdc31b23977:1",
+        "title": "有线-无线网接入-信息网络技术中心-西安电子科技大学"
+      },
+      "within12BM25Candidates": true
+    },
+    {
+      "query": "校园网访客怎么申请",
+      "targetPhrase": "因公网络账号申请",
+      "rawMatch": {
+        "rank": 1,
+        "documentId": "doc-ff5956f4625eed5b7511e0af",
+        "chunkId": "doc-ff5956f4625eed5b7511e0af:3bdc31b23977:1",
+        "title": "有线-无线网接入-信息网络技术中心-西安电子科技大学"
+      },
+      "contentDedupMatch": {
+        "rank": 1,
+        "documentId": "doc-ff5956f4625eed5b7511e0af",
+        "chunkId": "doc-ff5956f4625eed5b7511e0af:3bdc31b23977:1",
+        "title": "有线-无线网接入-信息网络技术中心-西安电子科技大学"
+      },
+      "afterThreePassagesPerDocumentCap": {
+        "rank": 1,
+        "documentId": "doc-ff5956f4625eed5b7511e0af",
+        "chunkId": "doc-ff5956f4625eed5b7511e0af:3bdc31b23977:1",
+        "title": "有线-无线网接入-信息网络技术中心-西安电子科技大学"
+      },
+      "within12BM25Candidates": true
+    },
+    {
+      "query": "公寓电费怎么充值",
+      "targetPhrase": "预付费电表",
+      "rawMatch": {
+        "rank": 3,
+        "documentId": "doc-8e950d7fd702a4dc1023b90b",
+        "chunkId": "doc-8e950d7fd702a4dc1023b90b:982071d63509:11",
+        "title": "西安电子科技大学学生公寓管理和服务办法-西安电子科技大学 迎新网"
+      },
+      "contentDedupMatch": {
+        "rank": 3,
+        "documentId": "doc-8e950d7fd702a4dc1023b90b",
+        "chunkId": "doc-8e950d7fd702a4dc1023b90b:982071d63509:11",
+        "title": "西安电子科技大学学生公寓管理和服务办法-西安电子科技大学 迎新网"
+      },
+      "afterThreePassagesPerDocumentCap": {
+        "rank": 3,
+        "documentId": "doc-8e950d7fd702a4dc1023b90b",
+        "chunkId": "doc-8e950d7fd702a4dc1023b90b:982071d63509:11",
+        "title": "西安电子科技大学学生公寓管理和服务办法-西安电子科技大学 迎新网"
+      },
+      "within12BM25Candidates": true
+    },
+    {
+      "query": "四六级报名时间",
+      "targetPhrase": "报名时间为9月18日",
+      "rawMatch": {
+        "rank": 5,
+        "documentId": "doc-496b4fba92fcb0a418b8adfb",
+        "chunkId": "doc-496b4fba92fcb0a418b8adfb:b847cc3a3d7a:4",
+        "title": "关于2026年下半年全国大学英语四、六级考试报名的通知-本科生院 西安电子科技大学"
+      },
+      "contentDedupMatch": {
+        "rank": 5,
+        "documentId": "doc-496b4fba92fcb0a418b8adfb",
+        "chunkId": "doc-496b4fba92fcb0a418b8adfb:b847cc3a3d7a:4",
+        "title": "关于2026年下半年全国大学英语四、六级考试报名的通知-本科生院 西安电子科技大学"
+      },
+      "afterThreePassagesPerDocumentCap": {
+        "rank": 5,
+        "documentId": "doc-496b4fba92fcb0a418b8adfb",
+        "chunkId": "doc-496b4fba92fcb0a418b8adfb:b847cc3a3d7a:4",
+        "title": "关于2026年下半年全国大学英语四、六级考试报名的通知-本科生院 西安电子科技大学"
+      },
+      "within12BM25Candidates": true
+    },
+    {
+      "query": "校园卡丢了如何挂失",
+      "targetPhrase": "挂失：本人携带身份证原件",
+      "rawMatch": {
+        "rank": 2,
+        "documentId": "doc-a5c4d2602014f64c565334af",
+        "chunkId": "doc-a5c4d2602014f64c565334af:ba681362cce2:3",
+        "title": "一卡通相关服务指南-信息网络技术中心-西安电子科技大学"
+      },
+      "contentDedupMatch": {
+        "rank": 2,
+        "documentId": "doc-a5c4d2602014f64c565334af",
+        "chunkId": "doc-a5c4d2602014f64c565334af:ba681362cce2:3",
+        "title": "一卡通相关服务指南-信息网络技术中心-西安电子科技大学"
+      },
+      "afterThreePassagesPerDocumentCap": {
+        "rank": 2,
+        "documentId": "doc-a5c4d2602014f64c565334af",
+        "chunkId": "doc-a5c4d2602014f64c565334af:ba681362cce2:3",
+        "title": "一卡通相关服务指南-信息网络技术中心-西安电子科技大学"
+      },
+      "within12BM25Candidates": true
+    },
+    {
+      "query": "校医院周末门诊时间",
+      "targetPhrase": "外科急诊",
+      "rawMatch": {
+        "rank": 1,
+        "documentId": "doc-5166f805ff0858fe6cb02095",
+        "chunkId": "doc-5166f805ff0858fe6cb02095:075ba44c7bbd:0",
+        "title": "关于南北校区医院最新上班时间的通知-西安电子科技大学-校医院"
+      },
+      "contentDedupMatch": {
+        "rank": 1,
+        "documentId": "doc-5166f805ff0858fe6cb02095",
+        "chunkId": "doc-5166f805ff0858fe6cb02095:075ba44c7bbd:0",
+        "title": "关于南北校区医院最新上班时间的通知-西安电子科技大学-校医院"
+      },
+      "afterThreePassagesPerDocumentCap": {
+        "rank": 1,
+        "documentId": "doc-5166f805ff0858fe6cb02095",
+        "chunkId": "doc-5166f805ff0858fe6cb02095:075ba44c7bbd:0",
+        "title": "关于南北校区医院最新上班时间的通知-西安电子科技大学-校医院"
+      },
+      "within12BM25Candidates": true
+    }
+  ],
+  "fusionDeduplication": {
+    "queries": [
+      "研究生培养计划选课时间",
+      "2026年秋季研究生培养计划系统开放时间",
+      "研究生课程选班何时开始"
+    ],
+    "legacyReturnedCount": 60,
+    "legacyDuplicateEntries": 17,
+    "contentAwareReturnedCount": 60,
+    "contentAwareDuplicateEntries": 0
+  },
+  "results": [
+    {
+      "query": "宿舍热水坏了怎么报修",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-639f272943c538b9008c23e3:50fdc09d80ca:0",
+          "documentId": "doc-639f272943c538b9008c23e3",
+          "ordinal": 0,
+          "title": "师生服务热线平台-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://1234.xidian.edu.cn/cf-web/page/index",
+          "score": 38.363,
+          "contentHash": "3fa305f409f0c544d5df2bf9249b8793a500472dd7ec64051810684f7efd5050",
+          "excerpt": "师生服务热线平台\n我有话说\n办理查询\n案例公开\n热线电话：029-81891234\n热线简介：师生服务热线提供电话、微信、智能客服、网站等多渠道诉求受理途径，实行7x24小时服务，为全校师生提供统一的服务入口，热线“一号对外、 集中受理、分类处理、统一协调、各方联动、限时办结”，提供全方位、全天候、高效率的校园师生服务。\n南校区地址：陕西省西安市西沣路兴隆段266号\n邮编：710126\n北校区地址：陕西省西安市太白南路2号\n邮编：710071\n电话：029-81891234"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-1c13d0816231a82b96803001:0211f12c9573:3",
+          "documentId": "doc-1c13d0816231a82b96803001",
+          "ordinal": 3,
+          "title": "网络服务指南-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1275/2358.htm",
+          "score": 12.853,
+          "contentHash": "b1153b7452679de8001ebb39180bf0a2037ac66cb1ab816845d7012469a162cd",
+          "excerpt": "业务咨询电话：88201357、88201252。\n2.线下修改\n用户携带有效证件（身份证或一卡通），前往用户服务中心前台办理。\n（四）网络报修\n1.线上报修\n西安电子科技大学企业微信—移动门户—网络报修；\n网络报修电话：88201252、81891357。\n2.线下报修\n用户携带有效证件（身份证或一卡通），前往用户服务中心前台办理。\n3.网络报修受理流程\n用户报修—信息网络技术中心受理—电话协助用户恢复网络或填写派工单，由运维人员前往用户报修地点协助恢复网络。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-aeafbd0e78f013874273262e:d3a3f879664c:0",
+          "documentId": "doc-aeafbd0e78f013874273262e",
+          "ordinal": 0,
+          "title": "固话业务指南-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1275/2356.htm",
+          "score": 12.1064,
+          "contentHash": "d3a3f879664c1f5726de1d740aef3af727382acaecfe86e6fcc7662e81c4c360",
+          "excerpt": "（一）固话业务申请\n固话业务申请流程：西安电子科技大学主页—一网通办-电信固话业务申请表—信息填写—信息网络技术中心受理-完成。\n（二）固话报修\n西安电子科技大学企业微信—移动门户—网络报修；\n用户拨打业务电话：88201252、81891357。\n流程：用户报修—信息网络技术中心受理—运维人员前往用户报修地点，恢复故障固话。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-639f272943c538b9008c23e3:50fdc09d80ca:1",
+          "documentId": "doc-639f272943c538b9008c23e3",
+          "ordinal": 1,
+          "title": "师生服务热线平台-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://1234.xidian.edu.cn/cf-web/page/index",
+          "score": 11.893,
+          "contentHash": "22eb6c05087435091abb76617e20c6982c78db533c4fe2dbb55ead2cac2a8244",
+          "excerpt": "邮箱：81891234@xidian.edu.cn"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-a7187276f73f040edb1b30e8:6931430094e8:4",
+          "documentId": "doc-a7187276f73f040edb1b30e8",
+          "ordinal": 4,
+          "title": "西安电子科技大学学生公寓空调使用管理细则（试行）-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2026-07-17",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/info/1034/2594.htm",
+          "score": 10.9555,
+          "contentHash": "fd385240f411650bddd1e73e0e598ca5d7723901e1b68a4afc463ea0f4efbc6e",
+          "excerpt": "第十条  严禁在空调电源线上栓接绳索或晾晒物品，严禁在空调内、外机上堆放杂物、挂、搭物品，不得在空调设备上乱写、乱画、乱贴、乱刻。\n第十一条  宿舍中布设的空调专设电源，不得插接其他用电设备或拉接临时电源；空调严禁使用专设电源以外的插座。如因违规操作或违章用电造成的安全事故，由违规人承担所有责任和损失。\n第十二条  任何单位和个人不得擅自拆卸或打开室内机和室外机，如果空调设备出现异常情况应立即停机并及时报修。"
+        }
+      ]
+    },
+    {
+      "query": "寝室水龙头漏水找谁维修",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-639f272943c538b9008c23e3:50fdc09d80ca:0",
+          "documentId": "doc-639f272943c538b9008c23e3",
+          "ordinal": 0,
+          "title": "师生服务热线平台-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://1234.xidian.edu.cn/cf-web/page/index",
+          "score": 38.363,
+          "contentHash": "3fa305f409f0c544d5df2bf9249b8793a500472dd7ec64051810684f7efd5050",
+          "excerpt": "师生服务热线平台\n我有话说\n办理查询\n案例公开\n热线电话：029-81891234\n热线简介：师生服务热线提供电话、微信、智能客服、网站等多渠道诉求受理途径，实行7x24小时服务，为全校师生提供统一的服务入口，热线“一号对外、 集中受理、分类处理、统一协调、各方联动、限时办结”，提供全方位、全天候、高效率的校园师生服务。\n南校区地址：陕西省西安市西沣路兴隆段266号\n邮编：710126\n北校区地址：陕西省西安市太白南路2号\n邮编：710071\n电话：029-81891234"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-863a7effe08cd6e443a65845:afdb3bbac9d9:4",
+          "documentId": "doc-863a7effe08cd6e443a65845",
+          "ordinal": 4,
+          "title": "2026级研究生新生须知-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2026-07-20",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/info/1005/2864.htm",
+          "score": 13.9387,
+          "contentHash": "a3877652a3411e87010db8c00df7418a8b5f3f6634dfacda2936c68c5d82e7d5",
+          "excerpt": "4.具体说明\n（1）符合住宿资格的硕士研究生宿舍由学校统一分配。\n（2）符合住宿资格的博士研究生可于来校报到当天按照\n“先到先选”原则，在后勤保障部接待点线下办理选宿手续。\n（3）硕士年级为2024级或2025级的硕博连读生，暂住原\n硕士研究生宿舍，待同级硕士研究生毕业当年秋季学期前调换至\n博士研究生宿舍。\n（4）定向专业学位博士研究生、非全日制硕博研究生不提\n供住宿。\n（5）在读期间，因宿舍维修改造、校内住宿区域规划调整"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-639f272943c538b9008c23e3:50fdc09d80ca:1",
+          "documentId": "doc-639f272943c538b9008c23e3",
+          "ordinal": 1,
+          "title": "师生服务热线平台-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://1234.xidian.edu.cn/cf-web/page/index",
+          "score": 11.893,
+          "contentHash": "22eb6c05087435091abb76617e20c6982c78db533c4fe2dbb55ead2cac2a8244",
+          "excerpt": "邮箱：81891234@xidian.edu.cn"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-c4507097fc99c1b1691a23e4:7915e4d4b87a:4",
+          "documentId": "doc-c4507097fc99c1b1691a23e4",
+          "ordinal": 4,
+          "title": "【红色西电】西安电子科技大学部署开展树立和践行正确政绩观学习教育-西安电子科技大学本科招生信息网",
+          "authority": "official",
+          "publishedAt": "2026-03-16",
+          "sourceUrl": "https://zsb.xidian.edu.cn/info/1034/6493.htm",
+          "score": 11.6241,
+          "contentHash": "c18e5676c682c6d342886fa45f7a28424b232225d95e6430bc490bff638f7ef9",
+          "excerpt": "工集中学习内容。二是查摆问题要准。对照政绩观偏差主要问题清单等内容深入检视问题，不遮丑、不回避。要把立德树人成效作为检验工作的标准，把推动高质量发展作为长远目标，充分运用“1234”师生服务热线平台等渠道，通过群众提、自己找、上级点、相互帮等多种方式广泛听取意见，确保问题找准找实。三是整改整治要严。坚持与教育部党组巡视整改等工作相结合，对“新官不理旧账”、违背师生意愿决策等问题开展集中整治，对根源在“上”的问题要上下联动开方施策，杜绝“一锅煮”。"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-e6aba089d0b1416c548931c4:ff70682b6372:0",
+          "documentId": "doc-e6aba089d0b1416c548931c4",
+          "ordinal": 0,
+          "title": "通勤-西电后勤党委/后勤保障部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://hqbzb.xidian.edu.cn/fwzn/tq.htm",
+          "score": 11.035,
+          "contentHash": "5ae3db708ce867663aa81b5b840f88135a104608f9f1d2b96790f1e5c6498201",
+          "excerpt": "﻿ 通勤-西电后勤党委/后勤保障部\n学校主页 后勤保障部信箱 hqbzb@xidian.edu.cn\n首页\n组织机构\n部门简介 机构设置\n党建工作\n职责简介 党建动态 专题学习\n通知公告\n规章制度\n学校制度 部门制度\n服务指南\n物业 公寓 饮食 通勤 社区 动力 后勤公共宣传阵地信息发布\n下载中心\n工程维修 宿舍管理 人员管理 其他\n联系我们\n学校主页 后勤保障部信箱\n物业\n公寓\n饮食\n通勤\n社区\n动力\n后勤公共宣传阵地信息发布\n首页 > 服务指南 > 通勤"
+        }
+      ]
+    },
+    {
+      "query": "公寓电费怎么充值",
+      "rawTop60Count": 46,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-0424a1f001faca60336b7052:b52d2e8c3dbd:0",
+          "documentId": "doc-0424a1f001faca60336b7052",
+          "ordinal": 0,
+          "title": "2026级新生公寓床上用品选购说明-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2026-07-16",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/info/1034/2001.htm",
+          "score": 29.5401,
+          "contentHash": "d1e0da208d40237f445224066f03cc600815c31aa5b78d3279efb6032922fe89",
+          "excerpt": "公寓床上用品选购说明\n2026级XDU小萌新们，你的床，已经替你“卷”好了！\n嗨，准XDUer!\n知道大家在炎炎夏日里赶来西安，一路辛苦啦。所以学校偷偷干\n了一件大事一一帮你把睡觉这件“头等大事”安排得明明白白。\n今年这波床品，由官方亲自“把关”。\n学校通过严格招标，请来了经过“陕西省纤维质量监测中心+陕\n官方检验报告，大厂供应链出品，安全感直接拉满，主打一个“闭眼\n入，不踩雷”。\n关键是，团购价真的香！每套床上用品一共10样（13件），价\n格只需578.5元~"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-0424a1f001faca60336b7052:b52d2e8c3dbd:8",
+          "documentId": "doc-0424a1f001faca60336b7052",
+          "ordinal": 8,
+          "title": "2026级新生公寓床上用品选购说明-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2026-07-16",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/info/1034/2001.htm",
+          "score": 29.2256,
+          "contentHash": "3a925f0154bfb0dbbe663d6d6d0c3a67e4b8c154df416fd447222c4ff1581d1e",
+          "excerpt": "温馨提醒\n每年新生报到前后，大量非校方认证的外部商家会\n进入各类新生群中，假借学长学姐、校内工作人员名义推\n销床上用品，校园内也会出现流动摊贩售卖床品。\n这类商家通常套路满满！例如宣称可送货至宿舍床\n位，但校外人员并无宿舍楼通行权限，无法进入楼栋，整\n套厚重被褥全要你自己搬上楼，大包小包爬楼累到虚\n脱，轻松体验感全无！\n而且此类商品可能未经过正规质检，且无正规售后\n渠道，一旦出现质量问题无法退换维权，极易造成财产\n损失。请全体新生们切勿轻信、购买此类公寓生活用品，"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-8e950d7fd702a4dc1023b90b:982071d63509:11",
+          "documentId": "doc-8e950d7fd702a4dc1023b90b",
+          "ordinal": 11,
+          "title": "西安电子科技大学学生公寓管理和服务办法-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2026-07-17",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/info/1034/2584.htm",
+          "score": 29.0344,
+          "contentHash": "7b48dfc04bdae743c89126ae6e0e28fcadc1c351580815f36ef760523d6661b3",
+          "excerpt": "第十五条  住宿学生应及时缴纳住宿费、电费、水费及空调折旧费等。收费标准见相关文件。\n第十六条  本科生、硕士生和博士生校内住宿分别给予相应的免费电额度，超出部分学生自行分担费用。学生公寓为预付费电表，以套为单位，先充值后使用。\n第十七条  住宿学生每月15日之前调宿的，调宿当月住宿费按照新宿舍标准计算，每月15日之后调宿的，调宿当月住宿费按照原宿舍标准计算。\n第十八条  退宿学生应凭学校开具的相关证明至后勤保障部办理退宿手续后，再到计划财务处办理退费手续。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-a5c4d2602014f64c565334af:ba681362cce2:3",
+          "documentId": "doc-a5c4d2602014f64c565334af",
+          "ordinal": 3,
+          "title": "一卡通相关服务指南-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1275/2357.htm",
+          "score": 10.9366,
+          "contentHash": "ec58912c47dd751f22428188bd23ac6978410057d1b5e4e335d560dc1feb3646",
+          "excerpt": "挂失：本人携带身份证原件，在用户服务中心前台办理或在校内圈存机、自助补卡机办理挂失。\n解挂：本人携带身份证原件及一卡通在用户服务中心前台办理解挂。\n（五）一卡通充值\n1.方式一\n支付宝充值：支付宝—支付宝校园卡—信息填写（学生填写学号、职工填写工资号、临时卡填写身份证号）--支付完成—到账。\n2.方式二\n在用户服务中心前台，微信、支付宝扫码充值。\n（六）支付/消费方式\n1.POS机刷卡消费\n可在学校有POS终端的地方，刷一卡通实体卡消费。\n2.校园虚拟卡消费"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-a7187276f73f040edb1b30e8:6931430094e8:5",
+          "documentId": "doc-a7187276f73f040edb1b30e8",
+          "ordinal": 5,
+          "title": "西安电子科技大学学生公寓空调使用管理细则（试行）-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2026-07-17",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/info/1034/2594.htm",
+          "score": 9.5424,
+          "contentHash": "957000b9e39060c2dde4ba74753511d357d93c19ec32c52d52a56c8739d2b96e",
+          "excerpt": "第十三条  学生凡因使用不当或违规操作，造成人身伤害或空调设备损坏的，由违规人承担一切责任和损失。\n第三章  费用管理\n第十四条  我校学生公寓空调的收费包括电费、折旧费。\n第十五条  空调电费采取“先购电、后使用”原则并由本宿舍成员协商、共担。\n第十六条  计划财务处是学生公寓空调折旧费收费管理机构，主要负责空调折旧费的收取与退还、向学生开具折旧费收据等。\n第十七条  收费依据\n根据学校决策，折旧费依据《陕西省公办高等学校学生公寓收费管理办法》的规定收取。"
+        }
+      ]
+    },
+    {
+      "query": "宿舍晚归门禁怎么办",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-8e950d7fd702a4dc1023b90b:982071d63509:13",
+          "documentId": "doc-8e950d7fd702a4dc1023b90b",
+          "ordinal": 13,
+          "title": "西安电子科技大学学生公寓管理和服务办法-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2026-07-17",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/info/1034/2584.htm",
+          "score": 20.3948,
+          "contentHash": "a0a5b7488abe42834b4ab719b6f63a1743f37fe08d5c0967112a41f7f5b4cf75",
+          "excerpt": "第二十条  门禁规范。进出时刷卡或刷脸进行身份识别；不得协助陌生人进入公寓；对尾随跟入的陌生人有义务劝止；不得将宿舍钥匙转借他人；不得私自换锁或者另加门锁，私自更换或加装的，学校有权拆除；晚归学生应向公寓服务台说明原因，主动出示相关身份证明证件并登记后方可进入。\n第二十一条  访客管理。本校学生之间或校外人员进入宿舍探访，须经被访人允许且凭有效证件登记后方可进入公寓。访客应在当日22:00前离开。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-a65fa1bd50a42d9cf32bf566:40f334be8d44:0",
+          "documentId": "doc-a65fa1bd50a42d9cf32bf566",
+          "ordinal": 0,
+          "title": "新生体检系统报名常见问题-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2024-08-19",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1109/2406.htm",
+          "score": 15.8966,
+          "contentHash": "40f334be8d4493e09d1ae0131448188a5cd07d420eb1fd20905a6b132f11e390",
+          "excerpt": "一、报名过程中个人信息填写错误怎么办？\n报名过程中请尽量保证个人信息填写正确，如确实出现错误，可在体检表格打印后，在纸质体检表格上直接修改，并保证字迹情绪可见。\n二、报名时宿舍等信息并未完全获取怎么办？\n可等待宿舍分配后再报名体检系统，也可在纸质版的体检表上直接填写。\n三、报名过程中因网络等各种原因退出后，怎么再次进入？\n报名过程中退后出，再次进入请从“个人中心—体检记录”进入查询报名信息。\n咨询电话“029-88202743”"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-8e950d7fd702a4dc1023b90b:982071d63509:12",
+          "documentId": "doc-8e950d7fd702a4dc1023b90b",
+          "ordinal": 12,
+          "title": "西安电子科技大学学生公寓管理和服务办法-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2026-07-17",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/info/1034/2584.htm",
+          "score": 10.2234,
+          "contentHash": "4154e6a5981f1db8e3df16001bc4b6322eebf5516e9c5b6f6f0eb50c7ed8237a",
+          "excerpt": "第五章  住宿规范\n第十九条  门禁时间。本科生公寓楼每日6:30开门，23:30关门，研究生公寓楼原则上不设置固定门禁时间。门禁时间可按照学校要求做出调整。夜间关门后，住宿学生如有特殊情况需要外出的，须联系学院/新生书院获得批准或签订安全承诺书后方可出门。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-863a7effe08cd6e443a65845:afdb3bbac9d9:2",
+          "documentId": "doc-863a7effe08cd6e443a65845",
+          "ordinal": 2,
+          "title": "2026级研究生新生须知-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2026-07-20",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/info/1005/2864.htm",
+          "score": 9.6219,
+          "contentHash": "76e47d58936b0d32f5f418d069a96a63e572a5ad43416d11061e87e36ce41ed5",
+          "excerpt": "（2）一卡通照片采集\n新生须在迎新系统“信息采集”“照片采集”板块内上传\n制式电子照片，用于办理校园一卡通。校园一卡通可用于身份识\n别、图书借阅、门禁出入、医院诊疗、食堂就餐、班车乘坐等，\n仅限本人使用，不得转借他人。\n电子照片标准：图像：640像素（高）×480像素（宽），\nJPG格式。要求：三个月内正面免冠彩色半身电子照片，照片背\n景为蓝色，其他颜色不予受理。照片要求人像清晰，轮廓分明，\n层次丰富，神态自然；建议可到专业机构拍摄，不得进行任何修\n饰。\n（三）宿舍分配"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-2651109f639d11db484a5cfd:58b0fa36f377:2",
+          "documentId": "doc-2651109f639d11db484a5cfd",
+          "ordinal": 2,
+          "title": "人脸信息采集-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/rlxxcj.htm",
+          "score": 9.0015,
+          "contentHash": "20040fd3e67239bdac3a34a3503a44b834160bb83beb66ef6a14ddfb7786fda9",
+          "excerpt": "3.家属照片采集：家属照片（不含外聘职工）可用于家属区人脸门禁和学校校门人脸门禁识别。点击家属采集即可显示您之前绑定的家属。如未绑定家属信息，请家属携带身份证及相关证明（户口本、结婚证等）前往一卡通中心办理家属卡，办理完成后一个工作日同步到家属信息；若家属信息有误请联系一卡通中心咨询处理；\n4.访客邀约：为配合疫情防控工作，如有来访，可提前一天预约，信息中心将下发相应门禁人脸权限。教职工进入访客邀约，点击立即申请按要求填写相关信息并提交，可在企业号看事项办理进度；"
+        }
+      ]
+    },
+    {
+      "query": "雁塔校区图书馆开放时间",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-f895193b541a0ef673077b01:5cb58ac8ceb7:0",
+          "documentId": "doc-f895193b541a0ef673077b01",
+          "ordinal": 0,
+          "title": "南、北校区夜间场地灯光开闭时间的规定-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": "2018-10-31",
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1080/1889.htm",
+          "score": 28.3534,
+          "contentHash": "df79683163f856db7b9516de7d2e2ea598dfa5f831681a43eae91e14b4287ec3",
+          "excerpt": "西安电子科技大学运动场是学校体育教学、运动训练、课外锻炼的场所，为保证场地有序正常使用，现就夜间场地灯光开闭时间规定如下：\n一、开灯时间\n春夏季：19:00--21:30；\n秋冬季：18:30--21:00。\n二、南校区夜间开灯场地\n1.北操场：羽毛球场、篮球场、乒乓球场、网球场；\n2.南操场：五人制足球场、网球场、羽毛球场、篮球场。\n三、北校区夜间开灯场地\n篮球场、羽毛球场、乒乓球场。\n四、注意事项\n1.寒暑假期间及雨雪等不适宜体育活动的天气不开放灯光。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-fc13a4cd5ea2799066a5a286:d26bc4efa092:1",
+          "documentId": "doc-fc13a4cd5ea2799066a5a286",
+          "ordinal": 1,
+          "title": "北校区室外体育场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1900.htm",
+          "score": 24.4348,
+          "contentHash": "93c21128d99576c8ccc8bcf063afe4f7649b263915828383630e5f4e0d9d82e5",
+          "excerpt": "荣誉殿堂 西电全国荣誉 西电省内荣誉 西电校内荣誉\n规章制度\n人才招聘\n下载专区 下载专区 教学科研用表 人事服务信息 网上课程\n场馆管理 场馆介绍 管理规定 场馆申请\n场馆介绍\n管理规定\n场馆申请\n位置: 首页 > 场馆管理 > 场馆介绍 > 正文\n北校区室外体育场地\n来源： 时间： 2018-05-02 点击数：\n北校区田径场\n北校区乒乓球场地\n北校区田径场地\n北校区塑胶篮球场\n上一条： 十四运与十一届残运会羽毛球竞委会工作掠影\n下一条： 北校区体育运动中心"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-bd2c9cd7705ff6563be8fbb4:8c935730785d:1",
+          "documentId": "doc-bd2c9cd7705ff6563be8fbb4",
+          "ordinal": 1,
+          "title": "北校区体育运动中心-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1899.htm",
+          "score": 24.0522,
+          "contentHash": "dd43636294a9afad5cb4629adfb62ff0e2a119680f3e49c4bc1c480666885fb3",
+          "excerpt": "荣誉殿堂 西电全国荣誉 西电省内荣誉 西电校内荣誉\n规章制度\n人才招聘\n下载专区 下载专区 教学科研用表 人事服务信息 网上课程\n场馆管理 场馆介绍 管理规定 场馆申请\n场馆介绍\n管理规定\n场馆申请\n位置: 首页 > 场馆管理 > 场馆介绍 > 正文\n北校区体育运动中心\n来源： 时间： 2018-05-02 点击数：\n体育运动中心\n上一条： 北校区室外体育场地\n下一条： 南校区室外场地\n北校区地址:西安市太白南路2号 邮编：710071"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-5166f805ff0858fe6cb02095:075ba44c7bbd:0",
+          "documentId": "doc-5166f805ff0858fe6cb02095",
+          "ordinal": 0,
+          "title": "关于南北校区医院最新上班时间的通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2024-09-27",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1036/2486.htm",
+          "score": 23.1682,
+          "contentHash": "4b1663fad136c3feeb0ff6a460aa2efdfb4f5ed24296339dbd2a9f813460c5a0",
+          "excerpt": "各位师生：\n现将南北校区医院各科室最新工作时间予以公布，请大家相互转告，合理安排时间就诊。\n北校区医院\n南校区医院\n南校区医院辅楼——医技楼\n特别说明：\n1.24小时值班科室工作安排为周一至周日，外科急诊为周六、周日，其余为周一至周五；\n2.南校区医院部分科室暂未安装电话，如有问题可拨打急诊科029-81891203咨询；\n3.总机029-88202758现出现故障暂时无法转接，恢复后另行通知，给大家带来了不便非常抱歉。\n校医院\n2024年9月\n图片正文 OCR：\n楼层"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-c7e320996307380f6ee00f72:28c66800ce7c:0",
+          "documentId": "doc-c7e320996307380f6ee00f72",
+          "ordinal": 0,
+          "title": "关于雁塔校区高算中心服务中断的通知-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1245/4573.htm",
+          "score": 21.3827,
+          "contentHash": "28c66800ce7c992373a6511d741e7bd4a0d7ad29488dc663fa2187cf3ee39383",
+          "excerpt": "各位高算中心用户：\n因雁塔校区高算中心配电设备突发故障，导致雁塔校区高算中心业务暂时无法正常使用。\n学校目前正在紧急抢修中，给您带来的不便敬请谅解。\n信息网络技术中心\n2026年7月8日"
+        }
+      ]
+    },
+    {
+      "query": "长安校区图书馆几点关门",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-54ad00cb06728a0d93351aaf:12a632a43001:2",
+          "documentId": "doc-54ad00cb06728a0d93351aaf",
+          "ordinal": 2,
+          "title": "南校区远望谷体育馆场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1902.htm",
+          "score": 19.1486,
+          "contentHash": "2286c2326c477d1f96ccbc94454e27d4bf206227f8eb3c1788f6803cd1d920af",
+          "excerpt": "瑜伽教室\n上一条： 南校区室外场地\n下一条： 西安电子科技大学体育场馆池面积一览表\n北校区地址:西安市太白南路2号 邮编：710071\n南校区地址:西安市西沣路兴隆段266号 邮编：710126\n电话：（029）81891207 办公邮箱：tiyubu1294@126.com\n意见投诉信箱：tyb@xidian.edu.cn\n师德师风监督电话：（029）81891207\n官方微信"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-97e1894b882d069b6cae7911:2c7c36b1a308:2",
+          "documentId": "doc-97e1894b882d069b6cae7911",
+          "ordinal": 2,
+          "title": "南校区室外场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1901.htm",
+          "score": 19.136,
+          "contentHash": "0fd6597bfb6ac14a9f39a420bbd878587d76aaf19e1a31f24823fdfd2926de7f",
+          "excerpt": "下一条： 南校区远望谷体育馆场地\n北校区地址:西安市太白南路2号 邮编：710071\n南校区地址:西安市西沣路兴隆段266号 邮编：710126\n电话：（029）81891207 办公邮箱：tiyubu1294@126.com\n意见投诉信箱：tyb@xidian.edu.cn\n师德师风监督电话：（029）81891207\n官方微信\nCopyright © 2007-2021 西安电子科技大学体育部 版权所有 技术支持： 信息网络技术中心 西安聚力"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-97e1894b882d069b6cae7911:2c7c36b1a308:0",
+          "documentId": "doc-97e1894b882d069b6cae7911",
+          "ordinal": 0,
+          "title": "南校区室外场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1901.htm",
+          "score": 18.6053,
+          "contentHash": "1d69e3b61e3c926c00bbdae55caccdc937bcbbe13ef323c524de0eb54129e65d",
+          "excerpt": "﻿ 南校区室外场地-西安电子科技大学体育部\n学校主页 English\n首页\n部门概况 部门简介 历史沿革 现任领导 机构设置 委员会 宣传视频\n师资队伍 教授 副教授 讲师 助教 专职公体教师\n党建工作 组织机构 工作动态 专题学习 工会工作\n体育俱乐部 俱乐部教学 研究生教学 网上课程 精品课程\n招生培养 硕士招生 硕士培养 运动队招生\n体育科研 课题立项 学术成果 科研获奖\n运动竞赛 高水平运动队 普通生运动队 校内竞赛 首页新闻"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-54ad00cb06728a0d93351aaf:12a632a43001:0",
+          "documentId": "doc-54ad00cb06728a0d93351aaf",
+          "ordinal": 0,
+          "title": "南校区远望谷体育馆场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1902.htm",
+          "score": 18.5236,
+          "contentHash": "209bd7375e21cac95e172cb2a6ca422d826f3d933aba938458fe7cfb53cf5716",
+          "excerpt": "﻿ 南校区远望谷体育馆场地-西安电子科技大学体育部\n学校主页 English\n首页\n部门概况 部门简介 历史沿革 现任领导 机构设置 委员会 宣传视频\n师资队伍 教授 副教授 讲师 助教 专职公体教师\n党建工作 组织机构 工作动态 专题学习 工会工作\n体育俱乐部 俱乐部教学 研究生教学 网上课程 精品课程\n招生培养 硕士招生 硕士培养 运动队招生\n体育科研 课题立项 学术成果 科研获奖\n运动竞赛 高水平运动队 普通生运动队 校内竞赛 首页新闻"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-97e1894b882d069b6cae7911:2c7c36b1a308:1",
+          "documentId": "doc-97e1894b882d069b6cae7911",
+          "ordinal": 1,
+          "title": "南校区室外场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1901.htm",
+          "score": 18.4706,
+          "contentHash": "c30c44e87273b5aaea20d88ad17e3d6d36a102550ebf793ab8fa9cf60e5ebf78",
+          "excerpt": "荣誉殿堂 西电全国荣誉 西电省内荣誉 西电校内荣誉\n规章制度\n人才招聘\n下载专区 下载专区 教学科研用表 人事服务信息 网上课程\n场馆管理 场馆介绍 管理规定 场馆申请\n场馆介绍\n管理规定\n场馆申请\n位置: 首页 > 场馆管理 > 场馆介绍 > 正文\n南校区室外场地\n来源： 时间： 2018-04-20 点击数：\n北操田径场\n北操篮球场\n南操田径场\n南操网球场\n南操五人制足球场地\n南塑胶羽毛球场地\n北塑胶篮球场\n体育馆西侧篮球场和网球场地\n上一条： 北校区体育运动中心"
+        }
+      ]
+    },
+    {
+      "query": "图书馆自习室几点开放",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-799385f9284e238cd81862aa:a06cb27e8202:7",
+          "documentId": "doc-799385f9284e238cd81862aa",
+          "ordinal": 7,
+          "title": "办公指南-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://www.xidian.edu.cn/xyfw/bgzn.htm",
+          "score": 8.6868,
+          "contentHash": "eeb98b1c3beaf60cf8d363326feb8b404c66dd3d4d8a54232eb5c678383e471f",
+          "excerpt": "2805   党委安全保卫部/保卫处　长安校区：综合服务楼二层　雁塔校区：西大楼西公安处楼　029-81891110　029-88201110   图书馆　雁塔校区：逸夫图书馆　长安校区：图书馆　029-88202409　029-81891062   档案馆/校史馆/博物馆　长安校区：办公楼106，102A室　029-81891850　029-81892183   期刊中心　雁塔校区：教辅楼2层　029-88202440　信息网络技术中心 　雁塔校区：逸夫图书馆11层　长安校"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-70e41cad143b6ef6ff45b1ec:3de9b65a4480:53",
+          "documentId": "doc-70e41cad143b6ef6ff45b1ec",
+          "ordinal": 53,
+          "title": "大中小学劳动教育指导纲要（试行）-西安电子科技大学教师发展中心",
+          "authority": "official",
+          "publishedAt": "2022-01-17",
+          "sourceUrl": "https://jsfz.xidian.edu.cn/info/1071/3782.htm",
+          "score": 8.0949,
+          "contentHash": "7301b4e69969d39ec70ded444033d7c683d62441ae7af834b8aadb6f0fd83d41",
+          "excerpt": "地方教育行政部门要统筹规划和配置劳动教育实践资源，满足学校多样化劳动实践需求。充分利用现有综合实践基地、青少年校外活动场所、职业院校和普通高等学校劳动实践场所，建立健全开放共享机制，特别是充分利用职业院校实训实习场所、设施设备，为普通中小学和普通高等学校提供所需要的服务。可安排一批土地、山林、草场等作为学农实践基地，确认一批厂矿企业作为学工实践基地，认定一批城乡社区、福利院、医院、博物馆、科技馆、图书馆等事业单位、社会机构、公共场所作为服务性劳动基地。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-94317cffc0a6737cdca3129c:e439fb4d8f42:9",
+          "documentId": "doc-94317cffc0a6737cdca3129c",
+          "ordinal": 9,
+          "title": "学生会-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2026-07-17",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/zfqc/xshzc.htm",
+          "score": 7.7963,
+          "contentHash": "dd404d391db5034dc96081ed2e8d3fe4bb116ba5d4553c7e934771bcdd17c865",
+          "excerpt": "此外，部门与西电图书馆紧密联系，举办各类图书馆\n文化活动。我们也深人学生食堂，打造《舌尖上的西电》美\n食栏目，给同学们带来校园美食推荐。加人我们，下一位美\n食推荐官，就是你！\n三三"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-eec85aa8fa2836ce40015a7b:e799421dfbcf:64",
+          "documentId": "doc-eec85aa8fa2836ce40015a7b",
+          "ordinal": 64,
+          "title": "西安电子科技大学2021-2022学年本科教学质量报告-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1017/12412.htm",
+          "score": 7.766,
+          "contentHash": "ff6b885a42755f62edeb32798bccaa5087137c04f451f5ddbb3e261e3a57ce04",
+          "excerpt": "能够保障      学生   晚间   运动。\n图书资料      。 建有南北校区两座图书馆，建筑面积（自用）总计                                5.98  万平方米，\n座位   5719  个。目前图书馆馆藏文献约                  1874  万册，其中纸质文献约                324.15  万册，"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-11b68b3f9b978e36ab392fa1:5368fa72bab7:3",
+          "documentId": "doc-11b68b3f9b978e36ab392fa1",
+          "ordinal": 3,
+          "title": "​尚江峰：西电培养了我踏实与坚韧的品性-西安电子科技大学新闻网",
+          "authority": "official",
+          "publishedAt": "2024-11-22",
+          "sourceUrl": "https://news.xidian.edu.cn/info/1027/241276.htm",
+          "score": 7.703,
+          "contentHash": "69b75a913db21af72c752ded018cb47369afe359b14c2d78bc11555b1fce21c6",
+          "excerpt": "学习上，他如饥似渴地汲取新知识，了解计算机行业的研究动态，在实践活动中丰富自己的专业知识。从宿舍到教学楼，从自习室到石凳，校园里一排排高大挺拔的梧桐树，见证了他探索求知、拼搏逐梦的旅程。\n谈职业道路：坚韧意志与逻辑思维受用一生\n自2006年毕业后，职业道路上，尚江峰感受过通讯公司的高速发展，也体验过互联网公司紧凑的工作节奏。2018年，他正式入职深圳市有方科技股份有限公司。\n尚江峰参加紫光展锐2022金融支付生态论坛"
+        }
+      ]
+    },
+    {
+      "query": "图书馆借书期限是多少",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-99e7388c413047104fdd9b4e:a044917ee2be:14",
+          "documentId": "doc-99e7388c413047104fdd9b4e",
+          "ordinal": 14,
+          "title": "陈彦竹：跨界全能，她的青春没有“短板”-西安电子科技大学新闻网",
+          "authority": "official",
+          "publishedAt": "2025-06-24",
+          "sourceUrl": "https://news.xidian.edu.cn/info/1011/264896.htm",
+          "score": 10.9414,
+          "contentHash": "a09344d5e2c27eda39c9b765fab4e89a975527fd69a27562343949b0b7c79dd1",
+          "excerpt": "某个下午，当她收拾放学后一片狼藉的教室时，回想起孩子们一张张清澈的笑脸，她意识到多少次竞赛时自己总在寻找的最优解，而那些笑脸，或许就是人类情感最原始的算法。\n陈彦竹像一棵根系繁茂的树努力向上生长，用专业能力做枝干，用小提琴拉响的乐章做叶片，志愿服务是她深入土壤的根系，而通往图书馆的一年四季共同构成了年轮里交错的生长纹路。她的青春没有唯一的标签，却在每一次跨界探索中绽放出独特的光芒。她的“全面发展”，不过是让每个明天比昨天更丰盈。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-0fbdae35b4e8ae5fdd3cee80:ab2c0c43e17b:11",
+          "documentId": "doc-0fbdae35b4e8ae5fdd3cee80",
+          "ordinal": 11,
+          "title": "中华人民共和国保守国家秘密法-西安电子科技大学教师发展中心",
+          "authority": "official",
+          "publishedAt": "2021-05-27",
+          "sourceUrl": "https://jsfz.xidian.edu.cn/info/1071/2902.htm",
+          "score": 9.9268,
+          "contentHash": "16e514be9c8f24968afd48f23191ee3e150b731ae5a59e3583c57e3aad16c27a",
+          "excerpt": "第十九条 国家秘密的保密期限已满的，自行解密。\n机关、单位应当定期审核所确定的国家秘密。对在保密期限内因保密事项范围调整不再作为国家秘密事项，或者公开后不会损害国家安全和利益，不需要继续保密的，应当及时解密；对需要延长保密期限的，应当在原保密期限届满前重新确定保密期限。提前解密或者延长保密期限的，由原定密机关、单位决定，也可以由其上级机关决定。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-0fbdae35b4e8ae5fdd3cee80:ab2c0c43e17b:8",
+          "documentId": "doc-0fbdae35b4e8ae5fdd3cee80",
+          "ordinal": 8,
+          "title": "中华人民共和国保守国家秘密法-西安电子科技大学教师发展中心",
+          "authority": "official",
+          "publishedAt": "2021-05-27",
+          "sourceUrl": "https://jsfz.xidian.edu.cn/info/1071/2902.htm",
+          "score": 9.3945,
+          "contentHash": "33615c37536b53641346366407155779080fd6fed9edb3ac675c4f12066ddc39",
+          "excerpt": "第十四条 机关、单位对所产生的国家秘密事项，应当按照国家秘密及其密级的具体范围的规定确定密级，同时确定保密期限和知悉范围。\n第十五条 国家秘密的保密期限，应当根据事项的性质和特点，按照维护国家安全和利益的需要，限定在必要的期限内；不能确定期限的，应当确定解密的条件。\n国家秘密的保密期限，除另有规定外，绝密级不超过三十年，机密级不超过二十年，秘密级不超过十年。\n机关、单位应当根据工作需要，确定具体的保密期限、解密时间或者解密条件。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-50cf90904af41534125b04fb:e047cc20fede:7",
+          "documentId": "doc-50cf90904af41534125b04fb",
+          "ordinal": 7,
+          "title": "关于开展2026年单位选派出国留学项目申报的通知-西安电子科技大学  综合信息网",
+          "authority": "official",
+          "publishedAt": "2026-07-01",
+          "sourceUrl": "https://info.xidian.edu.cn/info/1017/106800.htm",
+          "score": 9.3155,
+          "contentHash": "cf9748a7894858963d6b400f3ac08ae4eb4a9aa2826979dbd4f4c78b4cceb233",
+          "excerpt": "（三）对于访学期限在12个月（含）以上的应严格遵守学校相关规定。未经学校批准同意，访学期间不得擅自改变访学身份、访学期限、访学国家和访学院校（研究机构）；\n（四）学校一般不予延长访学期限。确需延长访学期限的，由本人在期满一个月前向所在学院提出书面申请，经所在学院同意后报人力资源部审批。学校原则上最多批准延期一次，期限不超过一年，延期期间不再提供访学资助。\n六、在国外期间管理"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-799385f9284e238cd81862aa:a06cb27e8202:7",
+          "documentId": "doc-799385f9284e238cd81862aa",
+          "ordinal": 7,
+          "title": "办公指南-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://www.xidian.edu.cn/xyfw/bgzn.htm",
+          "score": 8.6868,
+          "contentHash": "eeb98b1c3beaf60cf8d363326feb8b404c66dd3d4d8a54232eb5c678383e471f",
+          "excerpt": "2805   党委安全保卫部/保卫处　长安校区：综合服务楼二层　雁塔校区：西大楼西公安处楼　029-81891110　029-88201110   图书馆　雁塔校区：逸夫图书馆　长安校区：图书馆　029-88202409　029-81891062   档案馆/校史馆/博物馆　长安校区：办公楼106，102A室　029-81891850　029-81892183   期刊中心　雁塔校区：教辅楼2层　029-88202440　信息网络技术中心 　雁塔校区：逸夫图书馆11层　长安校"
+        }
+      ]
+    },
+    {
+      "query": "校园卡丢了怎么挂失补办",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-a5c4d2602014f64c565334af:ba681362cce2:2",
+          "documentId": "doc-a5c4d2602014f64c565334af",
+          "ordinal": 2,
+          "title": "一卡通相关服务指南-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1275/2357.htm",
+          "score": 43.2498,
+          "contentHash": "331b1b783be677b02ec74fc55a84d2f42d9774bd8a49100b403ce5cd42c88d10",
+          "excerpt": "用途：用于会议、活动、校友聚会、培训进修等活动用卡的办理；\n流程：申请人填写—事项负责部门领导审批—保卫处审批（门禁权限）--后勤保障部申请（就餐权限）--用户服务中心办理—申请人领取。\n（二）一卡通密码修改\n用途：线上完成教职工一卡通密码修改；\n流程：申请人填写--用户服务中心工作人员受理并回复用户新密码。\n（三）一卡通补办\n教职工本人携带身份证原件，在用户服务中心前台补办。\n学生本人携带身份证原件，在用户服务中心前台补办或在自助补卡机自助办理。\n（四）一卡通挂失/解挂"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-6a7ed54726fd7c06ebead699:1a002a25233f:0",
+          "documentId": "doc-6a7ed54726fd7c06ebead699",
+          "ordinal": 0,
+          "title": "一卡通使用流程及指南-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2025-07-09",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/szxy/wlsyrzsyzn2.htm",
+          "score": 39.3733,
+          "contentHash": "f26f354eb67306ffdede0827e78bd49626151872d0c8f1f53d3ea9b8c448ccc4",
+          "excerpt": "一卡通的初始密码为：123456\n一卡通内的证件号：学生卡证件号为学号、教工卡证件号为工资号、临时卡证件号为身份证号\n1、挂失方法及步骤\n圈存机挂失步骤：\n携带有效证件（学生证或身份证）在一卡通办公室挂失\n2、银校转账步骤（仅限交通银行卡）\n银行卡与校园卡之间的绑定\n银行卡与校园卡之间的转账\n3、支付宝转账步骤\n4、一卡通虚拟卡"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-a5c4d2602014f64c565334af:ba681362cce2:3",
+          "documentId": "doc-a5c4d2602014f64c565334af",
+          "ordinal": 3,
+          "title": "一卡通相关服务指南-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1275/2357.htm",
+          "score": 36.2762,
+          "contentHash": "ec58912c47dd751f22428188bd23ac6978410057d1b5e4e335d560dc1feb3646",
+          "excerpt": "挂失：本人携带身份证原件，在用户服务中心前台办理或在校内圈存机、自助补卡机办理挂失。\n解挂：本人携带身份证原件及一卡通在用户服务中心前台办理解挂。\n（五）一卡通充值\n1.方式一\n支付宝充值：支付宝—支付宝校园卡—信息填写（学生填写学号、职工填写工资号、临时卡填写身份证号）--支付完成—到账。\n2.方式二\n在用户服务中心前台，微信、支付宝扫码充值。\n（六）支付/消费方式\n1.POS机刷卡消费\n可在学校有POS终端的地方，刷一卡通实体卡消费。\n2.校园虚拟卡消费"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-6a7ed54726fd7c06ebead699:1a002a25233f:2",
+          "documentId": "doc-6a7ed54726fd7c06ebead699",
+          "ordinal": 2,
+          "title": "一卡通使用流程及指南-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2025-07-09",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/szxy/wlsyrzsyzn2.htm",
+          "score": 26.7988,
+          "contentHash": "5e1de73734dbd2389a7c98a765b20f967a795bf42f5bf11ec4a2ff340f551674",
+          "excerpt": "一卡通办公室；图书馆11楼信息网络技术中心办公室。\n南校区一卡通办公地址：南校区一站式服务大厅12号、13号窗口   电话：81891357\n北校区一卡通办公地址：教辅楼一楼东 电话：88204626"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-cf797e1392abb2000f96ef8c:6dbdb644bc6c:1",
+          "documentId": "doc-cf797e1392abb2000f96ef8c",
+          "ordinal": 1,
+          "title": "校园一卡通-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/xyykt.htm",
+          "score": 26.6784,
+          "contentHash": "2d9e94673e2b596422c0b200d223ef5a9dfe80f021d00a69f4fe1c7d71c3c185",
+          "excerpt": "2.家属卡只面向教职工配偶及子女办理。\n3.补卡需携带有效证件在一卡通中心线下办理，学生卡也可在自助圈机上办理补卡。\n4.临时人员一卡通办理及延期在西安电子科技大学主页（https://xidian.edu.cn (https://xidian.edu.cn)）-一网通办申请，本人所在部门领导及后勤保障部业务负责人线上审批，审批通过后，本人携带身份证在一卡通中心前台办理。\n5.聘用人员一卡通延期，携带有效劳动合同在一卡通中心前台办理。"
+        }
+      ]
+    },
+    {
+      "query": "校园卡充值多久到账",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-a5c4d2602014f64c565334af:ba681362cce2:3",
+          "documentId": "doc-a5c4d2602014f64c565334af",
+          "ordinal": 3,
+          "title": "一卡通相关服务指南-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1275/2357.htm",
+          "score": 26.062,
+          "contentHash": "ec58912c47dd751f22428188bd23ac6978410057d1b5e4e335d560dc1feb3646",
+          "excerpt": "挂失：本人携带身份证原件，在用户服务中心前台办理或在校内圈存机、自助补卡机办理挂失。\n解挂：本人携带身份证原件及一卡通在用户服务中心前台办理解挂。\n（五）一卡通充值\n1.方式一\n支付宝充值：支付宝—支付宝校园卡—信息填写（学生填写学号、职工填写工资号、临时卡填写身份证号）--支付完成—到账。\n2.方式二\n在用户服务中心前台，微信、支付宝扫码充值。\n（六）支付/消费方式\n1.POS机刷卡消费\n可在学校有POS终端的地方，刷一卡通实体卡消费。\n2.校园虚拟卡消费"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-0567ce15f6f10489dde5919f:155a9633a889:3",
+          "documentId": "doc-0567ce15f6f10489dde5919f",
+          "ordinal": 3,
+          "title": "校园一卡通-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/xyykt.htm",
+          "score": 17.8758,
+          "contentHash": "b4ed791ff743efa98d56cba5e1cf7156f89653eb5ec475862f119edf0f782fc6",
+          "excerpt": "3.虚拟卡无法正常支付，需关闭手机NFC功能。\n4.虚拟卡领取时密码错误，请拨打88201650重置统一身份认证密码。\n5.支付宝充值完成后，无需领取，约3分钟后直接到账。\n一卡通使用指南：https://mp.weixin.qq.com/s/_H5FzcDRJOxeanLvHkZmyg (https://mp.weixin.qq.com/s/_H5FzcDRJOxeanLvHkZmyg)"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-cf797e1392abb2000f96ef8c:6dbdb644bc6c:2",
+          "documentId": "doc-cf797e1392abb2000f96ef8c",
+          "ordinal": 2,
+          "title": "校园一卡通-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/xyykt.htm",
+          "score": 15.0511,
+          "contentHash": "f3ade6b67437b8af39c1f6f555a39d7ff9d2a9dd44afd383009b10a4b2026eaa",
+          "excerpt": "6.微信、支付宝校园虚拟卡（校内POS机扫码消费）。\n支付宝虚拟卡、 微信虚拟卡\n账号为工资号或学号，密码为统一身份认证（统一身份认证电话：88201650），绑定完成后即可在POS机扫码消费使用。\n常见问题\n1.一卡通初始密码：123456。\n2.消费限额修改：自助圈存机-放卡-自助服务-修改限额。\n3.虚拟卡无法正常支付，需关闭手机NFC功能。\n4.虚拟卡领取时密码错误，请拨打88201650重置统一身份认证密码。\n5.支付宝充值完成后，无需领取，约3分钟后直接到账。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-38c1dd0588f1f6f654482d64:da24f2882638:2",
+          "documentId": "doc-38c1dd0588f1f6f654482d64",
+          "ordinal": 2,
+          "title": "关于为2023级新生进行体检费退费的通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2023-11-24",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1109/2205.htm",
+          "score": 10.2868,
+          "contentHash": "f536dc9df17c56bb0548f2d4614392dce28ea9b160ee72221fc05b9aaae385d3",
+          "excerpt": "（4）本次退费仅针对23级新生，且为唯一一次统一退费，未在退费登记时间内提交相关信息的，以后不再进行退费。\n（5）退费到账具体时间目前不能确定，请耐心等待。\n（6）咨询电话：029-88202743（体检办公室  正常工作日）\n西安电子科技大学医院\n2023年11月24日"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-6a7ed54726fd7c06ebead699:1a002a25233f:0",
+          "documentId": "doc-6a7ed54726fd7c06ebead699",
+          "ordinal": 0,
+          "title": "一卡通使用流程及指南-西安电子科技大学 迎新网",
+          "authority": "official",
+          "publishedAt": "2025-07-09",
+          "sourceUrl": "https://xdyx.xidian.edu.cn/szxy/wlsyrzsyzn2.htm",
+          "score": 10.1462,
+          "contentHash": "f26f354eb67306ffdede0827e78bd49626151872d0c8f1f53d3ea9b8c448ccc4",
+          "excerpt": "一卡通的初始密码为：123456\n一卡通内的证件号：学生卡证件号为学号、教工卡证件号为工资号、临时卡证件号为身份证号\n1、挂失方法及步骤\n圈存机挂失步骤：\n携带有效证件（学生证或身份证）在一卡通办公室挂失\n2、银校转账步骤（仅限交通银行卡）\n银行卡与校园卡之间的绑定\n银行卡与校园卡之间的转账\n3、支付宝转账步骤\n4、一卡通虚拟卡"
+        }
+      ]
+    },
+    {
+      "query": "校医院医保报销材料和流程",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-af3e7851b646d46562cd96d1:2ac40623fcf6:0",
+          "documentId": "doc-af3e7851b646d46562cd96d1",
+          "ordinal": 0,
+          "title": "关于开展2026年大学生医保门诊报销工作的通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2026-01-20",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1069/3956.htm",
+          "score": 91.2947,
+          "contentHash": "448af391225f2fe84cffce2a0ad0db47546b981e1173fbdd89bde4ca712d0a97",
+          "excerpt": "各位参保同学：\n即日起，校医院正式启动 2026 年大学生医保门诊费用报销工作。为确保报销工作规范高效推进，现将具体事项通知如下：\n一、报销范围\n2025级新生参保期（2025年9月1日至2025年12月31日），外转门诊、异地门诊及医保系统故障等原因导致的未报销费用。\n二、报销方式\n线上报销"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-90fe8763b6f30f2951cf92d7:0040f8d9d542:2",
+          "documentId": "doc-90fe8763b6f30f2951cf92d7",
+          "ordinal": 2,
+          "title": "2025年大学生医保门诊报销的通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2025-02-20",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1069/3136.htm",
+          "score": 85.4734,
+          "contentHash": "3fa3f7e63840043245d34f0a5e53fddf79eec9f7c0aeef5f8d7fb69d023e870d",
+          "excerpt": "2. 网上申请报销时具体操作流程可参考申请页面右上角”操作手册”，多次就诊可合并一次申请，投递资料时报销申请单上务必填写“医保电子凭证密码”，如遇系统问题，请进问题处理QQ群：231623124。(自助投递机地点：北校区医院一楼大厅;南校区医院南门一楼大厅)\n3. 新生及上一年度未参保的老生：在医保办理期间，住院自费结算的学生，将资料交到医保办。报销资料请参照校医院网站-医保专栏-大学生医保-住院部分-零星报销所需资料。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-af3e7851b646d46562cd96d1:2ac40623fcf6:1",
+          "documentId": "doc-af3e7851b646d46562cd96d1",
+          "ordinal": 1,
+          "title": "关于开展2026年大学生医保门诊报销工作的通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2026-01-20",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1069/3956.htm",
+          "score": 85.3082,
+          "contentHash": "68c75b39691a4af5da824fe79cea7b58069b8518ff74eb98b4eb6eae995e65e6",
+          "excerpt": "登录网址：浏览器访问 https://ybtjxt.xidian.edu.cn (https://ybtjxt.xidian.edu.cn)  使用统一身份认证登录。或登录医院官网（ https://xyy.xidian.edu.cn (https://xyy.xidian.edu.cn)  ）点击首页“医保及体检管理系统”。\n线下报销\n注：线下受理时间为正常工作日；寒、暑假期间按照医院值班通知为准\n三、报销所需材料\n1.转诊单（校医院门诊或异地门诊不需要）；"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-90fe8763b6f30f2951cf92d7:0040f8d9d542:0",
+          "documentId": "doc-90fe8763b6f30f2951cf92d7",
+          "ordinal": 0,
+          "title": "2025年大学生医保门诊报销的通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2025-02-20",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1069/3136.htm",
+          "score": 84.8568,
+          "contentHash": "7672de54748c1487e5d86b776a143905985777bc1ab78d8a9e5dc4d220e3885b",
+          "excerpt": "为确保大学生医保报销工作的顺利进行，现将有关事项通知如下：\n一、网上申请报销\n登录网址：浏览器访问https://ybtjxt.xidian.edu.cn使用统一身份认证登录。或登录医院官网（https://xyy.xidian.edu.cn）点击首页“医保及体检管理系统”。\n二、线下申请报销\n报销所需材料\n1.转诊单（校医院门诊或异地门诊不需要）；\n2.门诊发票（收据联或报销联或打印电子发票）；\n3.门诊病历、检查报告单或门诊处方（校医院门诊不需要）；\n4.费用明细清单;"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-1f4e1c141a78b0e41494b53f:c2b1afbdbbe7:0",
+          "documentId": "doc-1f4e1c141a78b0e41494b53f",
+          "ordinal": 0,
+          "title": "关于校医院大学生医保线上报销系统暂停服务的通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2026-05-28",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1069/4356.htm",
+          "score": 84.0087,
+          "contentHash": "c2b1afbdbbe74917de0af42d79c48218f155c00c51e0ed86bf4208ac7b59db20",
+          "excerpt": "关于校医院大学生医保线上报销系统暂停服务的通知\n各位参保同学：\n近日，校医院大学生医保报销系统进行维护，即日起暂停线上报销业务，雁塔及长安校区医院线下大学生医保报销正常受理，线上报销恢复时间另行通知。由此给您带来的不便深表歉意，如有疑问，请拨打校医院医保办电话咨询：雁塔校区：029-88201871 （工作日8:00-11:30 14:00-17:30）长安校区：029-81892663 （工作日8:30-12:00 14:00-17:30）\n西安电子科技大学医院"
+        }
+      ]
+    },
+    {
+      "query": "校医院周末门诊时间",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-5166f805ff0858fe6cb02095:075ba44c7bbd:0",
+          "documentId": "doc-5166f805ff0858fe6cb02095",
+          "ordinal": 0,
+          "title": "关于南北校区医院最新上班时间的通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2024-09-27",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1036/2486.htm",
+          "score": 41.4841,
+          "contentHash": "4b1663fad136c3feeb0ff6a460aa2efdfb4f5ed24296339dbd2a9f813460c5a0",
+          "excerpt": "各位师生：\n现将南北校区医院各科室最新工作时间予以公布，请大家相互转告，合理安排时间就诊。\n北校区医院\n南校区医院\n南校区医院辅楼——医技楼\n特别说明：\n1.24小时值班科室工作安排为周一至周日，外科急诊为周六、周日，其余为周一至周五；\n2.南校区医院部分科室暂未安装电话，如有问题可拨打急诊科029-81891203咨询；\n3.总机029-88202758现出现故障暂时无法转接，恢复后另行通知，给大家带来了不便非常抱歉。\n校医院\n2024年9月\n图片正文 OCR：\n楼层"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-37afb8b11eb9414a4d7db023:f915b0df9c63:1",
+          "documentId": "doc-37afb8b11eb9414a4d7db023",
+          "ordinal": 1,
+          "title": "服务指南-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xyy.xidian.edu.cn/fwzn.htm",
+          "score": 36.1506,
+          "contentHash": "fb4bd124646cf9f3c40bfe9ff3833111a85710e6472253d5bb39e82904d00a2d",
+          "excerpt": "投诉建议\n首页\n>\n服务指南\n服务指南\n科室电话\n就诊流程\n就诊时间\n文件下载\n24\n2025.03\n校医院微信公众号挂号流程\n[详细]\n27\n2024.09\n关于南北校区医院最新上班时间的通知\n各位师生：现将南北校区医院各科室最新工作时间予以公布，请大家相互转告，合理安排时间就诊。北校区医院南校区医院南校区医院辅楼——医技楼特别说明：1.24小时值班科...[详细]\n18\n2025.02\n专家门诊时间（2025.2.18更新）"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-8a91ba21008b4f66ae18b4bb:5729cac28a9c:4",
+          "documentId": "doc-8a91ba21008b4f66ae18b4bb",
+          "ordinal": 4,
+          "title": "校医院减重营首期减脂招募通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2026-04-08",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1010/4176.htm",
+          "score": 29.7301,
+          "contentHash": "5d4b9417d2366e8496f43abab310a5bb5dc148edaf670cc170f63522632e339d",
+          "excerpt": "步骤4：随访管理。分别在入组后第1、2、3个月末复诊，调整方案并评估效果。\n五、联系方式\n1.门诊时间：每周三9:30-11:30，12:30-17:30（工作日）；\n2.地址：长安校区医院门诊二楼体重管理门诊（215室）\n3.咨询电话：029-81892535（周三）\n029-88202758转8201（周一、二、四、五）\n我们将以专业团队与技术支撑，助力师生养成健康生活方式，欢迎符合需求的师生积极报名！\n校医院\n2026年4月8日"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-b4d7e75bce4b6a74f77732de:ad9f0680d6f4:2",
+          "documentId": "doc-b4d7e75bce4b6a74f77732de",
+          "ordinal": 2,
+          "title": "2023年度大学生医保报销通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2023-02-10",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1099/1521.htm",
+          "score": 28.8918,
+          "contentHash": "00014fff21770621d8778e5d1c7ab6c8559d100b98b4a8da69634addc313bc45",
+          "excerpt": "西安市内大学生外转门诊、校医院门诊（由于系统故障或其他原因未报销）、异地住院（寒暑假、节假日、休学期间）。\n三、所需资料\n1.转诊单（校医院门诊不需要）；\n2.门诊发票（黄色收据联）；\n3.门诊病历、检查报告单或门诊处方；\n4.门诊明细清单;\n四、其他说明\n1.问题处理QQ群：231623124\n电话咨询：029-88201871（正常工作时间）"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-5166f805ff0858fe6cb02095:075ba44c7bbd:4",
+          "documentId": "doc-5166f805ff0858fe6cb02095",
+          "ordinal": 4,
+          "title": "关于南北校区医院最新上班时间的通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2024-09-27",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1036/2486.htm",
+          "score": 27.1727,
+          "contentHash": "d15ccb3418c6f0506b76f79b1915f93aaf09118d56ae5b06620ecead148d72a3",
+          "excerpt": "信息资料室\n029-88201541\n08:00-11:30;14:00-17:30\n传染病防治室\n029-88204033\n（周一至周五）\n妇科门诊\n029-88202781\n11:30-14:00；17:30-22:00\n四楼\n（周一至周五）\n029-88202758转8403\n外科急诊\n08:00-22:00\n029-88202776\n（周六、周日）\n楼层\n科室名称\n工作时间\n联系电话\n挂号收费室\n西药房\n24小时\n急诊内科\n029-81891203\n（周一至周日）"
+        }
+      ]
+    },
+    {
+      "query": "校车长安校区到雁塔校区时刻表",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-e6aba089d0b1416c548931c4:ff70682b6372:3",
+          "documentId": "doc-e6aba089d0b1416c548931c4",
+          "ordinal": 3,
+          "title": "通勤-西电后勤党委/后勤保障部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://hqbzb.xidian.edu.cn/fwzn/tq.htm",
+          "score": 31.0996,
+          "contentHash": "7f6fbc606481d37c3e8b69795001d4f42b340d653fd2e0059ee068827b6d9f77",
+          "excerpt": "3.时刻表中发车数量为每班次发车的最高限量，发车原则为坐满发车或到点发车。\n双休日、节假日、寒暑假\n北校区⇌南校区（对开）\n7:30\n13:00\n18:00\n1.北校区→南校区运行路线：北校社区乘车点—南校区栋D栋—南校社区大门外；\n2.南校区→北校区运行路线：南校区D栋—北校社区乘车点—北校车队；其中7:30班次从南社区大门外出发，运行路线：南社区大门外--D栋--北校区；\n二、通勤校车常见问题\n（一）C岗教工乘坐校班车方式"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-5166f805ff0858fe6cb02095:075ba44c7bbd:0",
+          "documentId": "doc-5166f805ff0858fe6cb02095",
+          "ordinal": 0,
+          "title": "关于南北校区医院最新上班时间的通知-西安电子科技大学-校医院",
+          "authority": "official",
+          "publishedAt": "2024-09-27",
+          "sourceUrl": "https://xyy.xidian.edu.cn/info/1036/2486.htm",
+          "score": 25.7669,
+          "contentHash": "4b1663fad136c3feeb0ff6a460aa2efdfb4f5ed24296339dbd2a9f813460c5a0",
+          "excerpt": "各位师生：\n现将南北校区医院各科室最新工作时间予以公布，请大家相互转告，合理安排时间就诊。\n北校区医院\n南校区医院\n南校区医院辅楼——医技楼\n特别说明：\n1.24小时值班科室工作安排为周一至周日，外科急诊为周六、周日，其余为周一至周五；\n2.南校区医院部分科室暂未安装电话，如有问题可拨打急诊科029-81891203咨询；\n3.总机029-88202758现出现故障暂时无法转接，恢复后另行通知，给大家带来了不便非常抱歉。\n校医院\n2024年9月\n图片正文 OCR：\n楼层"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-bd2c9cd7705ff6563be8fbb4:8c935730785d:1",
+          "documentId": "doc-bd2c9cd7705ff6563be8fbb4",
+          "ordinal": 1,
+          "title": "北校区体育运动中心-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1899.htm",
+          "score": 24.7808,
+          "contentHash": "dd43636294a9afad5cb4629adfb62ff0e2a119680f3e49c4bc1c480666885fb3",
+          "excerpt": "荣誉殿堂 西电全国荣誉 西电省内荣誉 西电校内荣誉\n规章制度\n人才招聘\n下载专区 下载专区 教学科研用表 人事服务信息 网上课程\n场馆管理 场馆介绍 管理规定 场馆申请\n场馆介绍\n管理规定\n场馆申请\n位置: 首页 > 场馆管理 > 场馆介绍 > 正文\n北校区体育运动中心\n来源： 时间： 2018-05-02 点击数：\n体育运动中心\n上一条： 北校区室外体育场地\n下一条： 南校区室外场地\n北校区地址:西安市太白南路2号 邮编：710071"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-fc13a4cd5ea2799066a5a286:d26bc4efa092:2",
+          "documentId": "doc-fc13a4cd5ea2799066a5a286",
+          "ordinal": 2,
+          "title": "北校区室外体育场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1900.htm",
+          "score": 24.7288,
+          "contentHash": "ba815af4a264a16c961beed2ef2fd556c0b71eaf683515ff5178206498eaf92d",
+          "excerpt": "北校区地址:西安市太白南路2号 邮编：710071\n南校区地址:西安市西沣路兴隆段266号 邮编：710126\n电话：（029）81891207 办公邮箱：tiyubu1294@126.com\n意见投诉信箱：tyb@xidian.edu.cn\n师德师风监督电话：（029）81891207\n官方微信\nCopyright © 2007-2021 西安电子科技大学体育部 版权所有 技术支持： 信息网络技术中心 西安聚力"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-e6aba089d0b1416c548931c4:ff70682b6372:1",
+          "documentId": "doc-e6aba089d0b1416c548931c4",
+          "ordinal": 1,
+          "title": "通勤-西电后勤党委/后勤保障部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://hqbzb.xidian.edu.cn/fwzn/tq.htm",
+          "score": 24.367,
+          "contentHash": "117ecfbe5ea57f8026238587f9d55f64fec523b63e26c6ba77ef50aa22c6c164",
+          "excerpt": "一、教工通勤班车运行时刻\n校车运行时刻可在校园网环境下进入 西安电子科技大学小程序 ，登录后点击服务→校园生活→通勤班车进行查询。\n联系电话:029-88202789 88204980\n西安电子科技大学教职工通勤班车运行时刻表\n工作日\n北校区→南校区\n南校区→北校区\n发车时间\n发车数量\n7:00～7:40\n6辆\n7:00～7:10\n2辆\n8:30\n1辆\n9:30\n10:30\n12:15\n12:15～12:25\n3辆\n13:10\n14:30\n15:00\n16:00～16:20"
+        }
+      ]
+    },
+    {
+      "query": "校园网访客怎么申请",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-ff5956f4625eed5b7511e0af:3bdc31b23977:1",
+          "documentId": "doc-ff5956f4625eed5b7511e0af",
+          "ordinal": 1,
+          "title": "有线-无线网接入-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/yx_wxwjr.htm",
+          "score": 78.4952,
+          "contentHash": "ee5f5a68a3e244c649b4bac03c634c387cf4450730625cf4c65957b6e77eff39",
+          "excerpt": "2.eduroam漫游用户使用个人账号密码portal页面认证。\n3.来校访客等用户网络接入认证服务由受访单位通过一网通办提交“因公网络账号申请”。\n申请须知\n1.因公网络账号申请需包含使用人，使用时间及使用原由支撑材料信息。\n2.“因公网络账号申请”发起者部门审核，信息中心审核，审批通过后发送回执至申请人。\n常见问题\n1.portal页面认证设备首次登录需使用账号密码认证。\n2.来校访客等网络接入认证服务由受访单位通过一网通办提交“因公网络账号申请”。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-ff5956f4625eed5b7511e0af:3bdc31b23977:0",
+          "documentId": "doc-ff5956f4625eed5b7511e0af",
+          "ordinal": 0,
+          "title": "有线-无线网接入-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/yx_wxwjr.htm",
+          "score": 48.7778,
+          "contentHash": "ebf6691bf875b7d338d1a7ec89db71c68700807381e3d38553b44db70fd5120b",
+          "excerpt": "服务名称：有线/无线接入服务\n服务对象：全校师生、eduroam漫游用户\n办理方式：线上\n受理时限：即时办理\n负责人员：网络与教育技术部 尹虹\n服务介绍\n为教职工、学生及校友、离退休人员，各类聘用人员及eduroam漫游、来校访客等用户提供有线/无线网络接入认证服务。\n联系电话：029-88201252\n办理流程\n1.教职工、学生及校友、离退休人员，各类聘用人员可使用账号密码进行pppoe有线认证，无线portal认证和无线无感知认证。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-638ecb3e5432d378a856ecd1:2664c7de48f6:0",
+          "documentId": "doc-638ecb3e5432d378a856ecd1",
+          "ordinal": 0,
+          "title": "上网申请-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/swsq.htm",
+          "score": 43.1508,
+          "contentHash": "2d458e15b4328ee547c53997194ed71a9180b085f98e2a07953d9db83f432f45",
+          "excerpt": "服务名称：上网申请\n服务对象：全校师生\n办理方式：线上\n受理时限：即时办理\n负责人员：网络与教育技术部 尹虹\n服务介绍\n为教职工，离退休人员，各类聘用人员及游客等因办公需要使用校园网络提供的接入认证申请渠道。\n联系电话：029-88201252\n办理流程\n1.教职工、学生网络账户自动开通，账号为工号/学号，初始密码为身份证后六位。\n2.临时来访人员及游客因公需要使用校园网络，由受访单位通过一网通办提交“用户网络接入申请”/“因公网络账号申请”。\n申请须知"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-54843009498179af4913f716:fd195daecd2e:0",
+          "documentId": "doc-54843009498179af4913f716",
+          "ordinal": 0,
+          "title": "关于办理毕业生离校一卡通余额清退及校园网账号注销的通知-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1245/4563.htm",
+          "score": 36.485,
+          "contentHash": "c0ac68f53f0e68c31531b592884445e8dce9a51f53c9585b128af69f27b24c53",
+          "excerpt": "全体2026届毕业生：\n根据学校毕业生离校工作总体安排，为简化离校手续办理，现将毕业年级（本科毕业生、硕博毕业生）一卡通余额清退及校园网账号注销事宜安排如下：\n一.方式与时间安排\n毕业生一卡通和校园网账号会在毕业生离校后统一注销，一卡通内余额全数退还至毕业生在校财务系统中的银行卡账户。\n1.账户注销时间：6月30日统一注销一卡通、校园网账号，一卡通原有消费功能将关闭使用，其他校内认证权限不受影响。"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-32cf02cd0ccc6b7190a6d14c:a0b0ce938acc:0",
+          "documentId": "doc-32cf02cd0ccc6b7190a6d14c",
+          "ordinal": 0,
+          "title": "统一身份认证对接-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/tysfrzdj.htm",
+          "score": 33.89,
+          "contentHash": "88ccbe19a8996061bcfe879b6b6c58cb9fd6023a28008e6b083d7c1f99260de5",
+          "excerpt": "服务名称：统一身份认证对接服务\n服务对象：学校各部门、教职工\n办理方式：线上\n受理时限：即时办理\n负责人员：数据与信息系统部 李颖新\n服务介绍\n为满足全校信息化系统实现单点登录和账号统一的管理需求。\n信息网络中心为系统提供接入学校统一身份认证的服务，认证一个号，方便师生同一账号、统一密码便捷登录所有系统，学校各部门新建业务系统需要申请统一身份认证对接。\n联系电话：029-88201650\n办理流程\n1.用户通过一网通办提交“统一身份认证接入申请” 。"
+        }
+      ]
+    },
+    {
+      "query": "统一身份认证密码忘了怎么办",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-60c55f7de5de932632b8f5f7:b366c6e372d5:1",
+          "documentId": "doc-60c55f7de5de932632b8f5f7",
+          "ordinal": 1,
+          "title": "统一身份认证-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/tysfrz.htm",
+          "score": 75.068,
+          "contentHash": "060a51038b3d851d357cc9c3e91e88f561dbd07c9dcc24b91f1e8a39eef22613",
+          "excerpt": "（1）教职工办理入职手续后，收到分配工号的短信通知的一个工作日内，系统将自动开通统一身份认证，账号为工号，首次登录需要激活，统一身份认证页面点击“账号激活”操作。\n（2）新生统一身份认证账号是自己的学号，首次登录需要激活，统一身份认证页面点击“账号激活”操作。\n2.统一身份认证如何修改密码？\n登录校内任意系统跳转统一认证登录页面，点击忘记密码操作。或者进入下方网址，点击忘记密码进行修改。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-32cf02cd0ccc6b7190a6d14c:a0b0ce938acc:0",
+          "documentId": "doc-32cf02cd0ccc6b7190a6d14c",
+          "ordinal": 0,
+          "title": "统一身份认证对接-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/tysfrzdj.htm",
+          "score": 71.9681,
+          "contentHash": "88ccbe19a8996061bcfe879b6b6c58cb9fd6023a28008e6b083d7c1f99260de5",
+          "excerpt": "服务名称：统一身份认证对接服务\n服务对象：学校各部门、教职工\n办理方式：线上\n受理时限：即时办理\n负责人员：数据与信息系统部 李颖新\n服务介绍\n为满足全校信息化系统实现单点登录和账号统一的管理需求。\n信息网络中心为系统提供接入学校统一身份认证的服务，认证一个号，方便师生同一账号、统一密码便捷登录所有系统，学校各部门新建业务系统需要申请统一身份认证对接。\n联系电话：029-88201650\n办理流程\n1.用户通过一网通办提交“统一身份认证接入申请” 。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-60c55f7de5de932632b8f5f7:b366c6e372d5:0",
+          "documentId": "doc-60c55f7de5de932632b8f5f7",
+          "ordinal": 0,
+          "title": "统一身份认证-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/tysfrz.htm",
+          "score": 71.8526,
+          "contentHash": "9d07f577434fd2f36516c9b9c21d7e82b2fdc2fdf771bb5cc1f0a81a6c660636",
+          "excerpt": "服务名称：统一身份认证服务\n服务对象：全体师生\n办理方式：线上\n受理时限：1-3个工作日\n负责人员：数据与信息系统部 李颖星\n服务介绍\n统一身份认证用于全校师生用户登录学校各类服务门户与系统，每个人只需要“一个账号+一个密码”，就可以便捷登录所有系统，查询自己所需信息。\n联系方式：029-88201650\n办理流程\n申请须知\n常见问题\n1.如何申请统一身份认证账号？"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-60c55f7de5de932632b8f5f7:b366c6e372d5:3",
+          "documentId": "doc-60c55f7de5de932632b8f5f7",
+          "ordinal": 3,
+          "title": "统一身份认证-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/tysfrz.htm",
+          "score": 66.3666,
+          "contentHash": "b658c203e5359a96df841a60f3fd5649ead29b5e4fd52f86670c15a63546a966",
+          "excerpt": "3.统一身份认证如何绑定或修改手机号码、邮箱？\n新用户首次登录需要激活，点击网址http://ids.xidian.edu.cn/retrieve-password/accountActivation/index.html#/ (http://ids.xidian.edu.cn/retrieve-password/accountActivation/index.html#/)\n跳转登录页面点击账号激活，绑定手机号码、邮箱后登录。\n已绑定手机号码、邮箱需要修改时点击"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-96b60c0e825407bf05007b43:1d1ebb55c407:0",
+          "documentId": "doc-96b60c0e825407bf05007b43",
+          "ordinal": 0,
+          "title": "常见认证问题解答",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://ids.xidian.edu.cn/html/helpDocMob.html",
+          "score": 43.6142,
+          "contentHash": "6ce9531b83f6e5611c186aef4985972976fc6ce83e78e4e5f8c108282ebd2db0",
+          "excerpt": "一、如何申请统一身份认证账号？\n* 教职工办理入职手续后，自收到分配工号的短信通知的一个工作日内，系统将自动开通统一身份认证，账号为工号，首次登录需要激活，统一身份认证页面点击“账号激活”操作。\n* 新生统一身份认证账号是自己的学号，首次登录需要激活，统一身份认证页面点击“账号激活”操作。\n账号激活如下图所示：\n密码设置成功后即可登录。\n二、统一身份认证如何修改密码？\n1、登陆校内任意系统跳转统一认证登陆页面，点击忘记密码操作。或者点击下方网址，点击找回密码进行修改。"
+        }
+      ]
+    },
+    {
+      "query": "无线网连不上怎么处理",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-ff5956f4625eed5b7511e0af:3bdc31b23977:0",
+          "documentId": "doc-ff5956f4625eed5b7511e0af",
+          "ordinal": 0,
+          "title": "有线-无线网接入-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/yx_wxwjr.htm",
+          "score": 31.5646,
+          "contentHash": "ebf6691bf875b7d338d1a7ec89db71c68700807381e3d38553b44db70fd5120b",
+          "excerpt": "服务名称：有线/无线接入服务\n服务对象：全校师生、eduroam漫游用户\n办理方式：线上\n受理时限：即时办理\n负责人员：网络与教育技术部 尹虹\n服务介绍\n为教职工、学生及校友、离退休人员，各类聘用人员及eduroam漫游、来校访客等用户提供有线/无线网络接入认证服务。\n联系电话：029-88201252\n办理流程\n1.教职工、学生及校友、离退休人员，各类聘用人员可使用账号密码进行pppoe有线认证，无线portal认证和无线无感知认证。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-6056a2bb4043b94cb197c44d:beff406e0b2d:0",
+          "documentId": "doc-6056a2bb4043b94cb197c44d",
+          "ordinal": 0,
+          "title": "违约处理办法及流程",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://job.xidian.edu.cn/news/view/aid/337368/tag/bslc",
+          "score": 19.4797,
+          "contentHash": "d90aa51f6d0efc0608d31edd353f95efedad720787cb7c1d67d7b84cca995499",
+          "excerpt": "违约处理办法及流程 西安电子科技大学就业信息网\n首页\n就业网首页\n学生服务\n就业信息\n生源核对\n办事大厅\n单位服务\n招聘指南\n生源信息\n院系联系\n信息发布\n参会须知\n关于我们\n中心介绍\n组织机构\n联系方式\n登录\n学生登录\n单位登录\n教师登录\n办事流程\n文章\n违约处理办法及流程\n收藏\n浏览：72750次 分享至：\n发布时间： 2021年09月01日14:47\n上一篇： 毕业生网上签约流程及注意事项\n下一篇： 毕业生就业推荐表办理流程及注意事项\n学生服务："
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-d8a2c1628dfa9848a6252bcd:affc38d7ec01:1",
+          "documentId": "doc-d8a2c1628dfa9848a6252bcd",
+          "ordinal": 1,
+          "title": "西电通院图像传输与处理研究所荣获中航工业集团一飞院人工智能“揭榜挂帅”大赛冠军-西安电子科技大学学术网",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xsw.xidian.edu.cn/info/1004/40741.htm",
+          "score": 19.1176,
+          "contentHash": "bb3f1d57b1c341585d2105856817ae2997a8bf7d6e107c767898c5cf24040af5",
+          "excerpt": "检验，西安电子科技大学图像传输与处理研究所（以下简称“图像所”）团队凭借扎实的技术实力脱颖而出。其中，宋锐教授与郝丰达老师带领的团队荣获赛事最高荣誉“擂主”，李娇娇教授指导的团队荣获大赛一等奖，充分展现了团队在航空视觉与智能定位领域的工程实践能力。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-d8a2c1628dfa9848a6252bcd:affc38d7ec01:0",
+          "documentId": "doc-d8a2c1628dfa9848a6252bcd",
+          "ordinal": 0,
+          "title": "西电通院图像传输与处理研究所荣获中航工业集团一飞院人工智能“揭榜挂帅”大赛冠军-西安电子科技大学学术网",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xsw.xidian.edu.cn/info/1004/40741.htm",
+          "score": 18.782,
+          "contentHash": "2ba0fb1ab5c07f2764e5853c07c56a2c3099da502362d0bad2437b756d9f2d1a",
+          "excerpt": "（通讯员 郝丰达）2026年4月10日，中国航空工业集团第一飞机设计研究院（简称“一飞院”）人工智能“揭榜挂帅”大赛决赛及颁奖仪式在西安举行。本次挑战赛共吸引了来自西安交通大学、北京航空航天大学、西北工业大学、电子科技大学等8所国内优势高校的27支青年团队同台竞技。经过初赛、复赛的选拔以及决赛现场实测与答辩的全面检验，西安电子科技大学图像传输与处理研究所（以下简称“图像所”）团队凭借扎实的技术实力脱颖而出。"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-d8a2c1628dfa9848a6252bcd:affc38d7ec01:3",
+          "documentId": "doc-d8a2c1628dfa9848a6252bcd",
+          "ordinal": 3,
+          "title": "西电通院图像传输与处理研究所荣获中航工业集团一飞院人工智能“揭榜挂帅”大赛冠军-西安电子科技大学学术网",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xsw.xidian.edu.cn/info/1004/40741.htm",
+          "score": 18.7105,
+          "contentHash": "9b01227c7f58940880c87cf0bac6768f60badb9474f23f994aae5e8fc7b8646c",
+          "excerpt": "制了振动导致的目标特征丢失与图像模糊，确保了在动态震动环境下的位姿数据输出精度与系统整体稳定性。此外，团队成员通过改进动态轨迹预测模型并优化计算资源分配，显著降低了系统处理时延，实现了对目标的实时精准预测，满足了典型航空应用场景对算法实时性的严格要求。\n图像所宋锐教授（中）、郝丰达老师（右）和研究生王梓桐（左）勇夺大赛擂主\n图像所所李娇娇教授指导的队伍（右三）荣获大赛一等奖"
+        }
+      ]
+    },
+    {
+      "query": "本科生转专业申请条件",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-0ba417bf233c48a2d521061d:8dd8e738a7b0:1",
+          "documentId": "doc-0ba417bf233c48a2d521061d",
+          "ordinal": 1,
+          "title": "关于开展2024级本科生转专业工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1012/22883.htm",
+          "score": 50.6052,
+          "contentHash": "fd26404ed7d0f2d34f55e5d078371aaa26f59f9baf6016a788cf86f67bfe9604",
+          "excerpt": "2.获准转专业学生原则上不得放弃转专业资格，已办理转专业者，不允许再次申请转专业。\n3.转专业学生应在规定的时间内向所在学院提交转专业申请，经学生所在学院资格审核，转入专业所在学院考核同意，报本科生院审核，经学校主管校领导批准，方可办理转专业手续。\n4.接收名额未满的专业可在报名本学院且具有转专业资格的学生中内部调剂。\n二、申请条件"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-0ba417bf233c48a2d521061d:8dd8e738a7b0:4",
+          "documentId": "doc-0ba417bf233c48a2d521061d",
+          "ordinal": 4,
+          "title": "关于开展2024级本科生转专业工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1012/22883.htm",
+          "score": 47.4401,
+          "contentHash": "b437e0fa71b421f96745509c5d47669214fd9b1a9740087e2e0340439571b7f7",
+          "excerpt": "1.上报计划。2026年6月18日前，各学院根据本学院本科人才培养要求及教学资源条件，上报接收转专业学生计划数至学校审定。各学院成立转专业考核小组，制定本学院转专业工作实施细则（包括接收学生转专业的条件、要求、具体考核内容、办法等）。\n2.发布通知。2026年6月30日前，本科生院向学生公布转专业通知、各学院转专业考核规则及经过学校核准的各专业接收转专业学生计划数。同时各学院安排专人负责转专业咨询解答工作。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-0ba417bf233c48a2d521061d:8dd8e738a7b0:0",
+          "documentId": "doc-0ba417bf233c48a2d521061d",
+          "ordinal": 0,
+          "title": "关于开展2024级本科生转专业工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1012/22883.htm",
+          "score": 47.0691,
+          "contentHash": "b829822deadc79982e8ff24887779104a6f3531ae26bd6b6227290f45b358ebe",
+          "excerpt": "关于开展2024级本科生转专业工作的通知\n各教学单位及2024级学生：\n根据《西安电子科技大学大类招生学生分流转专业实施办法（试行）》（西电教〔2021〕20号）文件精神及有关安排，现将2024级本科生转专业工作安排通知如下。\n一、基本原则\n1. 为保证学校的正常教学秩序，学校对转专业的条件和名额实行宏观调控，集中办理。其中，专业接收名额和转入学生的资格条件由学院自行决定,学校将根据学院专业生师比，毕业生就业质量以及本科教育教学业绩为主要依据进行审定。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-0ba417bf233c48a2d521061d:8dd8e738a7b0:11",
+          "documentId": "doc-0ba417bf233c48a2d521061d",
+          "ordinal": 11,
+          "title": "关于开展2024级本科生转专业工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1012/22883.htm",
+          "score": 43.1792,
+          "contentHash": "0e32184d5caea5cce799abce62178ed0099eedb0a3518c3b11fcf07fe200d8dc",
+          "excerpt": "附件：1.2024级本科生转专业各专业接收转入学生计划表\n2.转专业系统操作指南-学生版\n本科生院\n2026年6月30日"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-0ba417bf233c48a2d521061d:8dd8e738a7b0:8",
+          "documentId": "doc-0ba417bf233c48a2d521061d",
+          "ordinal": 8,
+          "title": "关于开展2024级本科生转专业工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1012/22883.htm",
+          "score": 42.7635,
+          "contentHash": "1abde2df7e2944a177ad60ae108dcc9eca2f1f5ae17874e98e5a527232acf76b",
+          "excerpt": "1. 转专业学生的学费按转入专业、年级学费标准收取。\n2.转专业工作本着公开、公平、公正的原则进行，任何人不得徇私舞弊。\n3. 对在转专业过程中有违规行为的个人，由学校纪检监察部门按照国家和学校的相关规定处理，触犯刑律的移交司法机关处理。对有违纪行为的学生，取消其转专业资格，并给予相应的纪律处分。\n4. 转专业相关事宜最终由本科生院解释。\n六、各学院及书院转专业咨询人\n序号 | 学院名称 | 咨询人 | 咨询电话\n1 | 通信工程学院 | 顾老师 | 81891677"
+        }
+      ]
+    },
+    {
+      "query": "研究生培养计划选课时间",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-4509b448dd536c76c5769195:e98a3c5e314e:0",
+          "documentId": "doc-4509b448dd536c76c5769195",
+          "ordinal": 0,
+          "title": "【培养服务】研究生培养计划制定、选课流程-研究生院-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2024-06-21",
+          "sourceUrl": "https://gr.xidian.edu.cn/info/1034/13456.htm",
+          "score": 62.345,
+          "contentHash": "e98a3c5e314e99ecc4786a95ea1d7914e3055c82b77fefb04e22f7b60d5a21a5",
+          "excerpt": "研究生培养计划制定、选课流程\n修改完毕\n收回自行修改\n学院退回再修改\n修改培养计划\n登录研究生系统“我的培养计\n提交培养\n按照要求制定培养计划\n导师审核\n划.app\n计划\n登录“我的选课.app”\n选课（选班操作）\n按照课表正常上课\n注：\n1.务必先制定培养计划，再选课。仅制定培养计划≠选课，选课后才能登记成绩。\n2.咨询电话：81891044-1，张老师。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-b1df60d47ab6fe60e97e40c5:9ece79e234d3:6",
+          "documentId": "doc-b1df60d47ab6fe60e97e40c5",
+          "ordinal": 6,
+          "title": "2026年秋季学期培养计划制定及选课指南-研究生院-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-04",
+          "sourceUrl": "https://gr.xidian.edu.cn/info/1037/20494.htm",
+          "score": 60.2541,
+          "contentHash": "d6c96acb802747b57c9b3db6a91bd8edca6bfc17367713f5139a179c5e2a468b",
+          "excerpt": "大纲，为制定培养计划及选课做好准备。\n（三）选课\n在系统开放时间，学生登录研究生选课系统，（通过研究生院官\n方网站主页登录研究生选课系统，或直接访问：\nhttps://yjsxk. xidian.edu. cn/yjsxkapp/sys/xsxkapp/index.htm\n1），账号密码登录后，对列入培养计划中的课程进行对应学期的选\n课选班。制定培养计划和选课的具体操作流程请参见附件《研究生培\n养计划、选课操作手册》）。\n※注意：培养计划中的课程，请各位同学务必在所选学期选课"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-5cb8406955d5483cde429c13:903b62ba61f3:4",
+          "documentId": "doc-5cb8406955d5483cde429c13",
+          "ordinal": 4,
+          "title": "2026年春季学期培养计划制定及选课指南-研究生院-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-02-27",
+          "sourceUrl": "https://gr.xidian.edu.cn/info/1037/18334.htm",
+          "score": 59.9373,
+          "contentHash": "2ec560db0daa77c1da3cc96d1e797d6487f5b47f7e908a8e749bd76b7f7f5f03",
+          "excerpt": "新生（春季博士和“3+X”学生）根据提示激活账号后登陆（若账号\n激活有问题，请联系信息中心：88201650）。（建议使用谷歌浏览\n器)\n全体研究生应在系统开放时间内登录研究生选课系统，先进入\n“我的计划”完成培养计划制定，再进入“我的选课”完成选班（具\n体操作流程请参见附件二《研究生系统学生培养计划、选课操作手\n册》）。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-b1df60d47ab6fe60e97e40c5:9ece79e234d3:3",
+          "documentId": "doc-b1df60d47ab6fe60e97e40c5",
+          "ordinal": 3,
+          "title": "2026年秋季学期培养计划制定及选课指南-研究生院-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-04",
+          "sourceUrl": "https://gr.xidian.edu.cn/info/1037/20494.htm",
+          "score": 58.7669,
+          "contentHash": "7bce43ab4c81e1e474cad288dd65068264703a7dc74ce02e656b9e36bea420bb",
+          "excerpt": "广州研究院\n刘老师\n020-32030126\n杭州研究院\n林老师\n0571-2828365\n研究生院培养办联系方式：81891044\n一、制定培养计划及选课：\n2026年秋季学期培养计划系统开放时间为9月8日9：00至9月\n18日17:00；选课系统开放时间为9月8日14:00至9月18日17:00。\n注意：先制定培养计划，才能根据培养计划中列入的课程进行选\n课，培养计划制定≠选课。\n（一）激活登录账号：登录账号为学号，如未激活账号需提前登"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-b1df60d47ab6fe60e97e40c5:9ece79e234d3:4",
+          "documentId": "doc-b1df60d47ab6fe60e97e40c5",
+          "ordinal": 4,
+          "title": "2026年秋季学期培养计划制定及选课指南-研究生院-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-04",
+          "sourceUrl": "https://gr.xidian.edu.cn/info/1037/20494.htm",
+          "score": 57.9679,
+          "contentHash": "c44a4b6f737db41098edbd5205e2c4723e34d490ec066b98af5febe825736372",
+          "excerpt": "录研究生管理系统（通过学校主页或研究生院官方主页进入）激活账\n户。在登录界面点击“账号激活”绑定手机号，自行设置密码（若账\n号激活有问题，请联系信息中心：88201650）。\n（建议使用谷歌浏览器，也可用360安全浏览器极速模式和360\n极速浏览器极速模式，登录后请尽快修改个人密码）\n（二）制定培养计划\n在系统开放时间，学生登录研究生选课系统（通过研究生院官方\n网站主页登录研究生选课系统，或直接访问："
+        }
+      ]
+    },
+    {
+      "query": "期末考试成绩什么时候能查",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-79771e7bfbe0bd51d4edbd75:52b39cb7b52b:0",
+          "documentId": "doc-79771e7bfbe0bd51d4edbd75",
+          "ordinal": 0,
+          "title": "关于做好2024～2025学年第二学期期末考试工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1013/18823.htm",
+          "score": 27.5144,
+          "contentHash": "1affa6c5f83c381f970faec199ec5db2e3abf77f3b579d47d631bd8654c8b606",
+          "excerpt": "各单位：\n本学期期末考试将于2025年6月9日开始，每门课程的考试成绩，应于考试结束后五天内由各任课教师在网上录入相应班级的成绩；2023、2024级课程成绩单及试卷按教学班进行存档（试卷排序顺序与成绩单名册排序一致），期末考试成绩录入将于6月25日截止。现就本学期期末考试工作的安排及要求通知如下，望各单位遵照执行。\n一、本次2023、2024级期末考试由开课学院总体负责组织，各单位应积极配合。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-bcefc6a3b6171482f78b63cf:cff8f11ab229:0",
+          "documentId": "doc-bcefc6a3b6171482f78b63cf",
+          "ordinal": 0,
+          "title": "关于做好2024～2025学年第一学期期末考试工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1013/16503.htm",
+          "score": 27.4908,
+          "contentHash": "614fcdfa44ba8f7933d5e7c8c81a0e3273e126ec0572e8960a36e85467600858",
+          "excerpt": "各单位：\n本学期期末考试将于2024年12月30日开始，每门课程的考试成绩，应于考试结束后五天内由各任课教师在网上录入相应班级的成绩；2023、2024级课程成绩单及试卷按教学班进行存档（试卷排序顺序与成绩单名册排序一致），期末考试成绩录入将于1月14日截止。现就本学期期末考试工作的安排及要求通知如下，望各单位遵照执行。\n一、本次2023、2024级期末考试由开课学院（部）总体负责组织，各单位应积极配合。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-79771e7bfbe0bd51d4edbd75:52b39cb7b52b:1",
+          "documentId": "doc-79771e7bfbe0bd51d4edbd75",
+          "ordinal": 1,
+          "title": "关于做好2024～2025学年第二学期期末考试工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1013/18823.htm",
+          "score": 26.1351,
+          "contentHash": "8e4cd05327e99ca8bd1002ebf7dcdd7b95e346a2c65aa531cfc0559ea980a26b",
+          "excerpt": "二、在期末考试开始前一周，各单位须组织任课教师、教学管理人员、辅导员及学生认真学习《西安电子科技大学学生成绩考核与管理规定（修订）》(西电教〔2023〕89号)《西安电子科技大学本科生考试纪律与学术规范条例》(西电学〔2018〕33号)。请各单位严格执行各项规定，坚决杜绝考试作弊现象，对违规者将严肃处理，并通报全校。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-bcefc6a3b6171482f78b63cf:cff8f11ab229:1",
+          "documentId": "doc-bcefc6a3b6171482f78b63cf",
+          "ordinal": 1,
+          "title": "关于做好2024～2025学年第一学期期末考试工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1013/16503.htm",
+          "score": 26.1351,
+          "contentHash": "5ac002a297da9965fdd209e8ca9af02f5d8809e7b8e55a38a11fe101a96517a3",
+          "excerpt": "二、在期末考试开始前一周，各单位须组织任课教师、教学管理人员、辅导员及学生认真学习《西安电子科技大学学生成绩考核与管理规定（修订）》（西电教〔2023〕89号）、《西安电子科技大学本科生考试纪律与学术规范条例》（西电学〔2018〕33号）。请各单位严格执行各项规定，坚决杜绝考试作弊现象，对违规者将严肃处理，并通报全校。"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-1218aeabf92edc580f3738e0:68a40bb5edf2:1",
+          "documentId": "doc-1218aeabf92edc580f3738e0",
+          "ordinal": 1,
+          "title": "关于做好2025~2026学年第二学期期末考试工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1012/22313.htm",
+          "score": 25.7631,
+          "contentHash": "745e42f734d8049c7f381014c82f3bf039da09bcd105300c3ee539aec8d964da",
+          "excerpt": "二、期末考试开始前一周，各学院、新生书院须组织任课教师、教学管理人员、辅导员及学生认真学习《西安电子科技大学本科生考试管理办法》（西电教〔2026〕2号）、《西安电子科技大学学生成绩考核与管理规定（修订）》（西电教〔2023〕89号）、《西安电子科技大学本科生考试纪律与学术规范条例》（西电学〔2018〕33号）。请各单位严格执行各项规定，坚决杜绝考试作弊现象，对违规者将严肃处理，并通报全校。"
+        }
+      ]
+    },
+    {
+      "query": "本科生国家励志奖学金申请条件",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-ef64128c59312aa497af86f5:0eb3c5fb5280:6",
+          "documentId": "doc-ef64128c59312aa497af86f5",
+          "ordinal": 6,
+          "title": "西安电子科技大学本科生国家励志奖学金评审办法- 西安电子科技大学-党委学生工作部/学生工作处",
+          "authority": "official",
+          "publishedAt": "2025-10-30",
+          "sourceUrl": "https://xgc.xidian.edu.cn/info/1049/10740.htm",
+          "score": 49.6848,
+          "contentHash": "e5763e992ce8b28135a775b655754807bb55d312d1dfb0bbda5ed6635e640f87",
+          "excerpt": "第十一条  学校接到教育部的批复名单后，计划财务处将国家励志奖学金一次性拨付至学生本人银行卡，本科生院将获奖记录记入学生档案。\n第十二条  同一学年内，获国家励志奖学金的学生，不再发放学校奖学金，只授予学校评定的相应级别的荣誉称号。\n第十三条  同一学年内，获得国家励志奖学金的家庭经济困难学生可以同时申请并获得国家助学金，但不能同时获得国家奖学金。\n第十四条  同一学年内，获得国家励志奖学金的学生可以同时申请并获得本科生校长奖。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-fb326e7fda15ff3d2e614c46:3b4dff596224:3",
+          "documentId": "doc-fb326e7fda15ff3d2e614c46",
+          "ordinal": 3,
+          "title": "关于开展2026年国家奖学金、国家励志奖学金评选工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35642.htm",
+          "score": 48.3164,
+          "contentHash": "0a67f8fab235fa51c90c61e5f1295092e2d31ce34b61081807d17020bc7f2123",
+          "excerpt": "电子版材料命名规则：姓名+身份证+材料名称，例如：张三 141034200718756954 申请审批表。\n2.国家励志奖学金申请审批表电子版，纸质版1份；\n电子版材料命名规则：学院+姓名+学号+材料名称，例如：通信工程学院 张三23009100001申请审批表。\n因学生在申请表上信息填写错误或弄虚作假而在审核时没有通过的，责任由学生本人承担。\n联 系 人：杨 帆  王  鑫\n联系电话：81891099\n联系邮箱：xgczzk@xidian.edu.cn\n本科生院"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-fb326e7fda15ff3d2e614c46:3b4dff596224:1",
+          "documentId": "doc-fb326e7fda15ff3d2e614c46",
+          "ordinal": 1,
+          "title": "关于开展2026年国家奖学金、国家励志奖学金评选工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35642.htm",
+          "score": 47.8763,
+          "contentHash": "e78afd27a543230515d699d1b93d7a84ec01c5d247118542f592eaaf44e5856b",
+          "excerpt": "各学院/学生社区依据《西安电子科技大学本科生国家奖学金评审办法》（西电学〔2025〕11号）《西安电子科技大学本科生国家励志奖学金评审办法》（西电学〔2025〕12号）相关要求执行，坚持公开、公平、公正的原则，认真组织评审。\n国家奖学金候选人和国家励志奖学金候选人申请表可从学工处官网“下载专区”下载，请严格按照相关要求填写，并将以下材料连同总评结果一并报送本科生院资助科（长安校区办公楼212室）：\n1.国家奖学金申请审批表电子版，纸质版1份；"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-ef64128c59312aa497af86f5:0eb3c5fb5280:5",
+          "documentId": "doc-ef64128c59312aa497af86f5",
+          "ordinal": 5,
+          "title": "西安电子科技大学本科生国家励志奖学金评审办法- 西安电子科技大学-党委学生工作部/学生工作处",
+          "authority": "official",
+          "publishedAt": "2025-10-30",
+          "sourceUrl": "https://xgc.xidian.edu.cn/info/1049/10740.htm",
+          "score": 46.2153,
+          "contentHash": "3118480ac270739f0a415840516136324a1541e2158422ccf50f8354e29fb5a8",
+          "excerpt": "3.学校学生资助管理中心审核各单位将国家励志奖学金评选结果报送学校学生资助管理中心，学生资助管理中心复核后提出学校当年国家励志奖学金获奖学生建议名单，报学校本科生资助工作领导小组。\n4.学校审定推选学校本科生资助工作领导小组对国家励志奖学金获奖学生建议名单进行研究审定，由学生资助管理中心组织在全校公示5个工作日，无异议后报送全国学生资助管理中心。\n第五章  国家励志奖学金的发放"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-ef64128c59312aa497af86f5:0eb3c5fb5280:1",
+          "documentId": "doc-ef64128c59312aa497af86f5",
+          "ordinal": 1,
+          "title": "西安电子科技大学本科生国家励志奖学金评审办法- 西安电子科技大学-党委学生工作部/学生工作处",
+          "authority": "official",
+          "publishedAt": "2025-10-30",
+          "sourceUrl": "https://xgc.xidian.edu.cn/info/1049/10740.htm",
+          "score": 45.3013,
+          "contentHash": "bd4f9e4c65c35bcac612c732c94c98a860fd1c6520d4eea0fa2bcd2f4b9822dd",
+          "excerpt": "第二条  国家励志奖学金由中央政府出资设立，用于奖励资助我校全日制本科（含第二学士学位）学生中品学兼优的家庭经济困难学生。\n第二章  奖励标准和申请条件\n第三条  国家励志奖学金现行的奖励标准为每人每年6000元，一次性发放，如遇国家政策调整，以当年最新政策规定为准。\n第四条  国家励志奖学金的基本申请条件：\n1.全日制计划内本科二年级以上（包括二年级）学生；\n2.具有中华人民共和国国籍；\n3.热爱祖国，拥护中国共产党的领导；\n4.遵守宪法和法律，遵守学校规章制度；"
+        }
+      ]
+    },
+    {
+      "query": "国家助学金金额标准",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-1e0648294dec24a9149d5e6f:994aaefa1314:2",
+          "documentId": "doc-1e0648294dec24a9149d5e6f",
+          "ordinal": 2,
+          "title": "西安电子科技大学本科生国家助学金评定实施办法- 西安电子科技大学-党委学生工作部/学生工作处",
+          "authority": "official",
+          "publishedAt": "2025-10-30",
+          "sourceUrl": "https://xgc.xidian.edu.cn/info/1049/10741.htm",
+          "score": 46.7914,
+          "contentHash": "c6291f9136df2d90c779b0392d847a2aeddc2a98b3a4bfbb0704bc137b1a0c70",
+          "excerpt": "9.综合测评考核成绩良好。\n第三章  资助标准\n第四条  国家助学金以资助家庭经济困难学生生活费用为目的，我校国家助学金分为两档，资助标准根据教育部当年文件确定，生均资助标准应不低于教育部规定生均资助标准，实际资助标准根据国家当年政策文件适时调整。全日制在校退役士兵学生全部享受本专科生国家助学金，现行的资助标准为每生每年3700元，如遇国家政策调整，以当年最新政策规定为准。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-1e0648294dec24a9149d5e6f:994aaefa1314:4",
+          "documentId": "doc-1e0648294dec24a9149d5e6f",
+          "ordinal": 4,
+          "title": "西安电子科技大学本科生国家助学金评定实施办法- 西安电子科技大学-党委学生工作部/学生工作处",
+          "authority": "official",
+          "publishedAt": "2025-10-30",
+          "sourceUrl": "https://xgc.xidian.edu.cn/info/1049/10741.htm",
+          "score": 36.2201,
+          "contentHash": "8ac4335d69f1541f434a60aea2f32daef1e8f2559262b393de2e79f4545f0f6d",
+          "excerpt": "第五章  评定程序\n第七条  国家助学金每学年评定一次，一般在当年家庭经济困难认定工作结束后开展。\n第八条  国家助学金评审应坚持公开、公平、公正的原则。评定程序如下：\n1.学生本人提出申请\n学生（不含退役士兵学生）根据国家助学金申请条件向所在学院/学生社区提出申请，并提交《国家助学金申请表》（见附件），可连年申请。\n2.班级评议"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-1e0648294dec24a9149d5e6f:994aaefa1314:7",
+          "documentId": "doc-1e0648294dec24a9149d5e6f",
+          "ordinal": 7,
+          "title": "西安电子科技大学本科生国家助学金评定实施办法- 西安电子科技大学-党委学生工作部/学生工作处",
+          "authority": "official",
+          "publishedAt": "2025-10-30",
+          "sourceUrl": "https://xgc.xidian.edu.cn/info/1049/10741.htm",
+          "score": 35.7891,
+          "contentHash": "f5fcd83f856967ec9264e240cf3f09fcff955fe96ec49754bf25fac8b2ccffb3",
+          "excerpt": "第十一条  在助学金评选、公示及发放后，如发现学生存在弄虚作假、超前消费和过度消费等不符合评定要求情况，一经查实，取消该生受助资格，追回已发助学金，并按相关校纪校规处理。\n第十二条  各单位应深入开展诚信、感恩、励志教育，切实加强管理，认真做好国家助学金评审工作，确保国家助学金用于资助家庭经济困难学生。对获得国家助学金的家庭经济困难学生建立困难学生档案，加强动态跟踪管理，积极引导受助学生合理使用助学金，确保国家助学金切实用于家庭经济困难学生生活费用开支。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-1e0648294dec24a9149d5e6f:994aaefa1314:8",
+          "documentId": "doc-1e0648294dec24a9149d5e6f",
+          "ordinal": 8,
+          "title": "西安电子科技大学本科生国家助学金评定实施办法- 西安电子科技大学-党委学生工作部/学生工作处",
+          "authority": "official",
+          "publishedAt": "2025-10-30",
+          "sourceUrl": "https://xgc.xidian.edu.cn/info/1049/10741.htm",
+          "score": 35.7777,
+          "contentHash": "3e0dae573316ba8fce992534600130bc2c32b5590434169ca5a6bdb8e75ac9f1",
+          "excerpt": "第十三条  学生在学制期限内，由于出国、疾病等原因办理保留学籍或休学等手续的，暂停对其发放国家助学金，待其恢复学籍后再行发放。超过基本修业年限的在校生不再享受国家助学金。\n第七章  附  则\n第十四条  本办法自发布之日起施行。原《关于印发<西安电子科技大学本科生国家助学金评定实施办法>的通知》（西电学〔2022〕8号）同时废止。\n第十五条  本办法由本科生院负责解释。"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-1e0648294dec24a9149d5e6f:994aaefa1314:6",
+          "documentId": "doc-1e0648294dec24a9149d5e6f",
+          "ordinal": 6,
+          "title": "西安电子科技大学本科生国家助学金评定实施办法- 西安电子科技大学-党委学生工作部/学生工作处",
+          "authority": "official",
+          "publishedAt": "2025-10-30",
+          "sourceUrl": "https://xgc.xidian.edu.cn/info/1049/10741.htm",
+          "score": 35.7586,
+          "contentHash": "61571fb173bb67ecd0ad7a87d3e2bc5df5fbd76bb0b79866ba9bffbf5d1bf952",
+          "excerpt": "各单位将国家助学金评定结果报送学校学生资助管理中心，学校对报送结果进行复核，并在全校范围内公示3天，无异议后将评定结果报学校本科生资助工作领导小组，通过后报送教育部。\n第六章  发放及管理\n第九条  学校按10个月将国家助学金发放至受助学生本人银行卡。\n第十条  在同一学年内，申请并获得国家助学金的学生，可同时申请并获得国家奖学金或国家励志奖学金。"
+        }
+      ]
+    },
+    {
+      "query": "学生证补办在哪里办",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-380f3e61e8d36188f14d0e08:3f0088be3570:2",
+          "documentId": "doc-380f3e61e8d36188f14d0e08",
+          "ordinal": 2,
+          "title": "关于认真做好2025～2026学年第二学期期中考试工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1013/21883.htm",
+          "score": 16.3298,
+          "contentHash": "f6db22542173840c74155e57e0b33e9a575cbb9608b0167e38eab2d3fbcbab99",
+          "excerpt": "四、参加考试的各年级学生，均须携带本人的身份证或一卡通（学生证），并自觉摆放在座位左上角。一卡通丢失者，持学生证或身份证到学校一站式服务中心补办。无身份证或一卡通（学生证）者不允许参加考试。部分期中考试科目试行电子阅卷，请学生提前准备2B铅笔与橡皮等文具。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-79771e7bfbe0bd51d4edbd75:52b39cb7b52b:2",
+          "documentId": "doc-79771e7bfbe0bd51d4edbd75",
+          "ordinal": 2,
+          "title": "关于做好2024～2025学年第二学期期末考试工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1013/18823.htm",
+          "score": 12.7581,
+          "contentHash": "d58a781124ec072ad9ed729ecce12759e4750c9a259313fb091da798eef4e8fd",
+          "excerpt": "三、期末考试各考试科目及考试时间见考试日程表，所有课程考试必须使用教务系统进行排考，考场名单由系统打印。未选课学生不允许参加期末考核，学生在一学期内无故缺课累计超过某门课程教学时数的25%，取消考试资格。\n四、参加考试的各年级学生，须携带本人的身份证或一卡通（学生证），并自觉摆放在座位左上角。一卡通丢失者须及时补办，无身份证或一卡通（学生证）者，考试过程中无法确认为本人参加的，考试成绩无效。部分考试科目试行电子阅卷，请学生提前准备2B铅笔与橡皮等文具。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-bcefc6a3b6171482f78b63cf:cff8f11ab229:2",
+          "documentId": "doc-bcefc6a3b6171482f78b63cf",
+          "ordinal": 2,
+          "title": "关于做好2024～2025学年第一学期期末考试工作的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1013/16503.htm",
+          "score": 11.3599,
+          "contentHash": "31dca2d1226b9c8d4ae8c8ff591a640fc6171739a7aea90e4643d40b13db6c78",
+          "excerpt": "三、期末考试各考试科目及考试时间见考试日程表（附件1），所有课程考试必须使用教务系统进行排考，考场名单由系统打印。未选课学生不允许参加期末考核，学生在一学期内无故缺课累计超过某门课程教学时数的25%，取消考试资格。\n四、参加考试的各年级学生，须携带本人的身份证或一卡通（学生证），并自觉摆放在座位左上角。一卡通丢失者须及时补办，无任何身份证件者不允许参加考试。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-1bf796db2aa3b05e46715d88:b64655614660:3",
+          "documentId": "doc-1bf796db2aa3b05e46715d88",
+          "ordinal": 3,
+          "title": "关于2022年春季计算机应用“实验实践能力达标测试（C1-1）”的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1025/11353.htm",
+          "score": 11.3081,
+          "contentHash": "7e991bd019e74550f1030876781ae16820b43eac755d706ec4fc64a0bf0a047e",
+          "excerpt": "2.参加测试的同学须携带本人身份证、一卡通，并自觉摆放在座位左上角。一卡通丢失者，持学生证或身份证到学校卡务中心补办，无身份证、一卡通者不允许参加测试。\n3.测试时请勿携带手机、U盘等电子产品。\n4.测试成绩请在教务管理系统查询。\n如有疑问，请联系计算机基础教学实验中心郭老师，联系电话：81891271。\n计算机基础教学实验中心\n2022年3月25日"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-edad98d28ac175be53dfbc00:2b45fdac8e6e:1",
+          "documentId": "doc-edad98d28ac175be53dfbc00",
+          "ordinal": 1,
+          "title": "毕业证明书/学位证明书补办要求-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1022/22083.htm",
+          "score": 11.2557,
+          "contentHash": "8ecb306bab89aacaa1cf3b20445992f8c582cefb1a775574fdc3f70096dfd286",
+          "excerpt": "毕业证明书/学位证明书补办要求\n2026-04-23 审核人： (已浏览 )\n附件【 毕业证明书补办要求（最新）.doc 】已下载 次\n附件【 学士学位证明书补办要求（最新）.doc 】已下载 次\n附件【 毕业证明书、学位证明书补办申请模板.docx 】已下载 次\n内容详见附件\n【 关闭 】\n教务通知\n关于2025~2026学年国际创新实践周本科生选课的通知 2026/06/18\n关于开展2026年国际创新实践周“实验实践能力达标测试”补测... 2026/06/16"
+        }
+      ]
+    },
+    {
+      "query": "在读证明自助打印在哪里",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-6980c0b4f2425da59f9a908c:785c8ad77b6b:0",
+          "documentId": "doc-6980c0b4f2425da59f9a908c",
+          "ordinal": 0,
+          "title": "自助打印-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/zzdy.htm",
+          "score": 62.7702,
+          "contentHash": "543ca5d5658c9ba16d0848411f458ba49cee0e4aca131a5c662f46d1bc01aa72",
+          "excerpt": "服务名称：自助打印平台表单上线服务\n服务对象：学校各部门、教职工\n办理方式：线上\n受理时限：1-3个工作日\n负责人员：开发业务部 张宁\n服务介绍\n自助打印平台通过整合核心数据，优化审批流程，在自主打印设备快速自助生成证明材料，解决了在学校出国、就业、升学、聘岗等高峰业务期的高频打印诉求。为推进校园便捷办事，促进多端服务融合，信息网络技术中心为各部门提供平台新增表单服务，满足即时打印需求。\n联系电话：029-88203011\n办理流程\n自助打印接入申请："
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-6980c0b4f2425da59f9a908c:785c8ad77b6b:1",
+          "documentId": "doc-6980c0b4f2425da59f9a908c",
+          "ordinal": 1,
+          "title": "自助打印-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/zzdy.htm",
+          "score": 57.8952,
+          "contentHash": "6a85abd76ef6f8fcf949a665e63f4b7b08f2550b548cb79f0f1815e91937e3db",
+          "excerpt": "业务需求部门通过一网通办提交“自助打印接入申请表”上传表样并选择数据来源。由信息网络技术中心评估数据情况，进行开发部署，部署完成后业务部门及信息网络技术中心进行测试，测试没问题业务上线。\n申请须知\n常见问题"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-1a855a94ea450d787c1ba559:1de90c243e47:0",
+          "documentId": "doc-1a855a94ea450d787c1ba559",
+          "ordinal": 0,
+          "title": "自助打印服务指南-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1275/2351.htm",
+          "score": 39.2369,
+          "contentHash": "6cf640301f63e2e25652d9a6e5c550bf2a11c340693760c975431a0dcbb9b26e",
+          "excerpt": "1.接入申请\n业务需求部门通过一网通办提交“自助打印接入申请表”上传表样并选择数据来源。由信息网络技术中心评估数据情况，进行开发部署，部署完成后业务部门及信息网络技术中心进行测试，测试通过后，业务上线。\n2.操作指南\n打印：携带一卡通、身份证、或通过统一身份认证、人脸识别在终端登录后，选择需要打印的表单，预览并点击打印即可。\n下载：登录一网通办或移动门户，搜索自助打印，选择需要下载的表单，下载至邮箱或下载至本地。\n3.自助打印机分布点位"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-4bd9ef09a4e09ee2047bed37:91930cbb97f5:1",
+          "documentId": "doc-4bd9ef09a4e09ee2047bed37",
+          "ordinal": 1,
+          "title": "CET成绩证明补办通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1024/2667.htm",
+          "score": 23.8845,
+          "contentHash": "e37daf72d7029fd11f4e08c9654a63e63f6a0bd2ddd4d6ee495927139d4258ff",
+          "excerpt": "二、 申请补办 CET（网考）成绩证明的方法\n补办 CET（网考）成绩证明的申请仍由全国大学英语四、六级考试委员会办公室受理。办理方式如下：\n1.申请材料： 提供 1）学籍所在院校教务处出具的证明（需加盖公章），证明需含：参加考试时间、考试级别、准考证号等内容；2）身份证复印件。\n2.受理时间：每年3月1日至7月1日；9月1日至12月31日。其他时间不予办理。\n3.申请方式：将学籍所在院校教务处出具的证明及身份证复印件以挂号信方式邮寄至全国大学英语四、六级考试委员会办公室。"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-4bd9ef09a4e09ee2047bed37:91930cbb97f5:0",
+          "documentId": "doc-4bd9ef09a4e09ee2047bed37",
+          "ordinal": 0,
+          "title": "CET成绩证明补办通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1024/2667.htm",
+          "score": 23.6448,
+          "contentHash": "a1f4c8c85fad4d81ec6376ad1ffec8af3a5a546231b94cf4aff83a9fe766569e",
+          "excerpt": "关于补办CET成绩证明的重要通知\n一、 申请补办 CET（纸笔考试）成绩证明的方法\n自2014年起，全国大学英语四、六级考试委员会办公室不再受理申请补办 CET（纸笔考试）成绩证明，办理方式调整如下：\n1. 请考生登录教育部考试中心综合查询网(http://chaxun.neea.edu.cn (http://chaxun.neea.edu.cn/))进行网上办理，该网站将于3月17日开通此项服务。\n2. 该申请仅限于2005年（含2005年）以后的考试。"
+        }
+      ]
+    },
+    {
+      "query": "快递柜在哪里取件",
+      "rawTop60Count": 15,
+      "distinctChunksAfterContentHashDedup": 14,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-61e3c2fe96f45e71502f57a9:19fb9a93b2c1:3",
+          "documentId": "doc-61e3c2fe96f45e71502f57a9",
+          "ordinal": 3,
+          "title": "【幸福西电】“小蛮驴”来了 正式开启校园快递配送新模式-西安电子科技大学新闻网",
+          "authority": "official",
+          "publishedAt": "2023-10-14",
+          "sourceUrl": "https://news.xidian.edu.cn/info/2106/226129.htm",
+          "score": 48.6284,
+          "contentHash": "3f96e6dc1cbcae17565e71def326818f87a83016c4f1653fdb3c8d9148077809",
+          "excerpt": "驿站太远、快递太多、取件人数太多、天气不好、没有时间等等，“小蛮驴”能轻松解决以上各种取件难题，师生们可以根据自己的时间和地点通过手机下单预约送货，不用亲自到快递站，在公寓楼下、办公楼下就能拿到自己的快递，省时、省心、省力，极大程度便利师生们的日常生活。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-61e3c2fe96f45e71502f57a9:19fb9a93b2c1:4",
+          "documentId": "doc-61e3c2fe96f45e71502f57a9",
+          "ordinal": 4,
+          "title": "【幸福西电】“小蛮驴”来了 正式开启校园快递配送新模式-西安电子科技大学新闻网",
+          "authority": "official",
+          "publishedAt": "2023-10-14",
+          "sourceUrl": "https://news.xidian.edu.cn/info/2106/226129.htm",
+          "score": 48.1393,
+          "contentHash": "5b90097e3fbe778cd62020e86a950b576ba5687f56247ad0cfc5eedc93abf6d2",
+          "excerpt": "通过菜鸟APP下单预约送货后，“小蛮驴”会将预计到达时间、取件码、停靠位置以短信形式发送给收货人，到达目的地时会电话提醒取件，到达停靠点后会在原地等待3-5分钟，遇到无人取件的情况会将货物送回菜鸟驿站。按小包裹2元，大包裹4元的标准收取费用，并不定期向师生发放优惠券。车厢内是共享格口，四周摄像头开启录像功能，快递被错拿可以到快递中心查询。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-61e3c2fe96f45e71502f57a9:19fb9a93b2c1:0",
+          "documentId": "doc-61e3c2fe96f45e71502f57a9",
+          "ordinal": 0,
+          "title": "【幸福西电】“小蛮驴”来了 正式开启校园快递配送新模式-西安电子科技大学新闻网",
+          "authority": "official",
+          "publishedAt": "2023-10-14",
+          "sourceUrl": "https://news.xidian.edu.cn/info/2106/226129.htm",
+          "score": 38.4583,
+          "contentHash": "2416639ca6359f2a1e4c74b63981e84e94d504e0a6a7a7f9086a89fe462d4bdb",
+          "excerpt": "西电新闻网讯（通讯员 王晓丽 吴撼 韩睿）“我是小蛮驴无人车，包裹配送件件行。”为进一步提升校园快递服务智能化水平，近日，后勤保障部协调菜鸟驿站商家将无人快递车“小蛮驴”部署在西安电子科技大学南校区，开始为广大师生送快递啦！"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-61e3c2fe96f45e71502f57a9:19fb9a93b2c1:5",
+          "documentId": "doc-61e3c2fe96f45e71502f57a9",
+          "ordinal": 5,
+          "title": "【幸福西电】“小蛮驴”来了 正式开启校园快递配送新模式-西安电子科技大学新闻网",
+          "authority": "official",
+          "publishedAt": "2023-10-14",
+          "sourceUrl": "https://news.xidian.edu.cn/info/2106/226129.htm",
+          "score": 37.8989,
+          "contentHash": "579e160dd540da2b4fb2be20335787e0fe2931d4d7784382d85b252ea2a8f053",
+          "excerpt": "“我出发啦”“麻烦借过一下，谢啦”“叮，我停好啦”“同学，我正在工作，请让一让”“请核实信息，不要取错快递哦”“你好，可以帮我关一下柜门吗”不仅外形呆萌可爱，轻快俏皮的语音播报声也为校园风景增加了一抹亮色。\n风里雨里，最后一里。据悉，“小蛮驴”是后勤充分考虑学校师生对校园快递的多元服务需求，落实“我为师生办实事”的具体行动，为师生取快递服务提供新的选择。后勤将持续关注师生的使用建议，为广大师生提供更加安全、便捷、优质的校园快递配送服务，助力智慧校园建设。\n“小蛮驴”使用手册"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-61e3c2fe96f45e71502f57a9:19fb9a93b2c1:1",
+          "documentId": "doc-61e3c2fe96f45e71502f57a9",
+          "ordinal": 1,
+          "title": "【幸福西电】“小蛮驴”来了 正式开启校园快递配送新模式-西安电子科技大学新闻网",
+          "authority": "official",
+          "publishedAt": "2023-10-14",
+          "sourceUrl": "https://news.xidian.edu.cn/info/2106/226129.htm",
+          "score": 36.6527,
+          "contentHash": "d5a844bc3a25a8388118f370fedb69130b2f1666754c2084350b1dab2c636b5c",
+          "excerpt": "据了解，“小蛮驴”是阿里巴巴达摩院研发的物流机器人，集成了目前最前沿的人工智能和自动驾驶技术。后台搭载学校地图，根据快递订单和路况自动规划最优送货路径。能够充分考虑校园的安全需要，在上下课高峰时段、路况复杂的情况下做到精准识别、自如行驶，路遇行人、车辆等障碍物时会主动避让，还能顺滑处理转弯、急停、会车、倒车等情况。"
+        }
+      ]
+    },
+    {
+      "query": "体育馆预约场地流程",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-54ad00cb06728a0d93351aaf:12a632a43001:1",
+          "documentId": "doc-54ad00cb06728a0d93351aaf",
+          "ordinal": 1,
+          "title": "南校区远望谷体育馆场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1902.htm",
+          "score": 61.4846,
+          "contentHash": "0f692aaf8ab37419068830f8e86614582eca17697bf30bbed4c4853ec64ad782",
+          "excerpt": "荣誉殿堂 西电全国荣誉 西电省内荣誉 西电校内荣誉\n规章制度\n人才招聘\n下载专区 下载专区 教学科研用表 人事服务信息 网上课程\n场馆管理 场馆介绍 管理规定 场馆申请\n场馆介绍\n管理规定\n场馆申请\n位置: 首页 > 场馆管理 > 场馆介绍 > 正文\n南校区远望谷体育馆场地\n来源： 时间： 2018-04-20 点击数：\n远望谷体育馆\n主馆(羽毛球场地)\n副馆(篮球场地)\n健身健美教室\n乒乓球教室\n跆拳道教室\n体育舞蹈教室\n竞技健美操训练场地\n网球场地\n啦啦操训练场地"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-54ad00cb06728a0d93351aaf:12a632a43001:0",
+          "documentId": "doc-54ad00cb06728a0d93351aaf",
+          "ordinal": 0,
+          "title": "南校区远望谷体育馆场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1902.htm",
+          "score": 61.16,
+          "contentHash": "209bd7375e21cac95e172cb2a6ca422d826f3d933aba938458fe7cfb53cf5716",
+          "excerpt": "﻿ 南校区远望谷体育馆场地-西安电子科技大学体育部\n学校主页 English\n首页\n部门概况 部门简介 历史沿革 现任领导 机构设置 委员会 宣传视频\n师资队伍 教授 副教授 讲师 助教 专职公体教师\n党建工作 组织机构 工作动态 专题学习 工会工作\n体育俱乐部 俱乐部教学 研究生教学 网上课程 精品课程\n招生培养 硕士招生 硕士培养 运动队招生\n体育科研 课题立项 学术成果 科研获奖\n运动竞赛 高水平运动队 普通生运动队 校内竞赛 首页新闻"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-54ad00cb06728a0d93351aaf:12a632a43001:2",
+          "documentId": "doc-54ad00cb06728a0d93351aaf",
+          "ordinal": 2,
+          "title": "南校区远望谷体育馆场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1902.htm",
+          "score": 38.3739,
+          "contentHash": "2286c2326c477d1f96ccbc94454e27d4bf206227f8eb3c1788f6803cd1d920af",
+          "excerpt": "瑜伽教室\n上一条： 南校区室外场地\n下一条： 西安电子科技大学体育场馆池面积一览表\n北校区地址:西安市太白南路2号 邮编：710071\n南校区地址:西安市西沣路兴隆段266号 邮编：710126\n电话：（029）81891207 办公邮箱：tiyubu1294@126.com\n意见投诉信箱：tyb@xidian.edu.cn\n师德师风监督电话：（029）81891207\n官方微信"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-97e1894b882d069b6cae7911:2c7c36b1a308:2",
+          "documentId": "doc-97e1894b882d069b6cae7911",
+          "ordinal": 2,
+          "title": "南校区室外场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1901.htm",
+          "score": 36.2389,
+          "contentHash": "0fd6597bfb6ac14a9f39a420bbd878587d76aaf19e1a31f24823fdfd2926de7f",
+          "excerpt": "下一条： 南校区远望谷体育馆场地\n北校区地址:西安市太白南路2号 邮编：710071\n南校区地址:西安市西沣路兴隆段266号 邮编：710126\n电话：（029）81891207 办公邮箱：tiyubu1294@126.com\n意见投诉信箱：tyb@xidian.edu.cn\n师德师风监督电话：（029）81891207\n官方微信\nCopyright © 2007-2021 西安电子科技大学体育部 版权所有 技术支持： 信息网络技术中心 西安聚力"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-97e1894b882d069b6cae7911:2c7c36b1a308:1",
+          "documentId": "doc-97e1894b882d069b6cae7911",
+          "ordinal": 1,
+          "title": "南校区室外场地-西安电子科技大学体育部",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://tyb.xidian.edu.cn/info/1079/1901.htm",
+          "score": 35.1578,
+          "contentHash": "c30c44e87273b5aaea20d88ad17e3d6d36a102550ebf793ab8fa9cf60e5ebf78",
+          "excerpt": "荣誉殿堂 西电全国荣誉 西电省内荣誉 西电校内荣誉\n规章制度\n人才招聘\n下载专区 下载专区 教学科研用表 人事服务信息 网上课程\n场馆管理 场馆介绍 管理规定 场馆申请\n场馆介绍\n管理规定\n场馆申请\n位置: 首页 > 场馆管理 > 场馆介绍 > 正文\n南校区室外场地\n来源： 时间： 2018-04-20 点击数：\n北操田径场\n北操篮球场\n南操田径场\n南操网球场\n南操五人制足球场地\n南塑胶羽毛球场地\n北塑胶篮球场\n体育馆西侧篮球场和网球场地\n上一条： 北校区体育运动中心"
+        }
+      ]
+    },
+    {
+      "query": "实验室安全考试怎么参加",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-b5582d49d9232297dec8a981:2507ef9a5f40:1",
+          "documentId": "doc-b5582d49d9232297dec8a981",
+          "ordinal": 1,
+          "title": "【创新西电】西电获批3个陕西省高等学校重点实验室-西安电子科技大学新闻网",
+          "authority": "official",
+          "publishedAt": "2024-01-19",
+          "sourceUrl": "https://news.xidian.edu.cn/info/2106/227551.htm",
+          "score": 24.9735,
+          "contentHash": "ee0728bfc6fdba4ad4f5fd3627f46708e5e8855ef35cc8b8e6b23201a32363d8",
+          "excerpt": "人工嗅觉陕西省高等学校重点实验室主要面向人工嗅觉的气体组学、敏感材料、敏感器件、敏感系统和类嗅觉智能算法开展全链条研究，聚焦医疗诊断、核工业安全监测、食品检测、环境监控等领域，致力于建设人工嗅觉的基础研究、人才培养和成果转化的“产-学-研”协同创新平台。"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-920e5028e9bf52d5df5bf296:3876482b09e1:0",
+          "documentId": "doc-920e5028e9bf52d5df5bf296",
+          "ordinal": 0,
+          "title": "2024年12月14日全国大学英语四六级考试考生须知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1013/16553.htm",
+          "score": 22.7075,
+          "contentHash": "6e5945c227880997e02a17927cc53fc1cc79048b29d4873f22decf93d0630f4c",
+          "excerpt": "各位考生：\n2024年下半年全国大学英语四六级考试将于12月14日举行。为保障考试安全平稳实施，现提醒考前须知如下：\n一、考试时间\n英语四级考试：9：00～11：20\n英语六级考试：15：00～17：25\n二、及时打印准考证\n12月6日起考生可登录全国大学英语四、六级考试报名网站（cet-bm.neea.edu.cn）自行下载打印准考证。\n三、准备好相关证件及考试物品"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-153aa56b99d4cd19a8e7e306:6cce962315bc:0",
+          "documentId": "doc-153aa56b99d4cd19a8e7e306",
+          "ordinal": 0,
+          "title": "【培养服务】研究生考试、成绩查询工作流程-研究生院-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2024-06-21",
+          "sourceUrl": "https://gr.xidian.edu.cn/info/1034/13458.htm",
+          "score": 22.664,
+          "contentHash": "8800285043fc2fa089ce4084aa3a10aed13238890073ad27cd6cf85eea5fc246",
+          "excerpt": "研究生考试、成绩查询工作流程\n对成绩\nN\n完成培养计划\n正常参加\n通过\n参加课程考试\n获得成绩\n是否有\n获得学分\n考试\n中所有环节\n生病等\n疑义\n自愿申请\n未通过\n重修\n申请缓考\n提交成绩复查申请\n下个开课学\n初步通过毕结\n期重新选课\n任何教师核查考卷\n业资格审查\n成绩无误\n成绩有误\n任课教师提交成绩\n变更申请\n符合条件、申请英语免修\n学院审核\n硕博连读、3+X、弹性博士\n申请成绩认定\n注：\n完成必修环节\n1.\n相关工作请留意并查阅究生院网站主页通知。\n2."
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-b5582d49d9232297dec8a981:2507ef9a5f40:0",
+          "documentId": "doc-b5582d49d9232297dec8a981",
+          "ordinal": 0,
+          "title": "【创新西电】西电获批3个陕西省高等学校重点实验室-西安电子科技大学新闻网",
+          "authority": "official",
+          "publishedAt": "2024-01-19",
+          "sourceUrl": "https://news.xidian.edu.cn/info/2106/227551.htm",
+          "score": 22.5332,
+          "contentHash": "363197d207b5cc9f5349ad7e4a66c72176148f2ac4dad2bc650a81c767f95699",
+          "excerpt": "西电新闻网讯（通讯员 苏萌 段育松）近日，陕西省教育厅公布了2023年度陕西省高等学校重点实验室认定名单。学校组织申报的人工嗅觉陕西省高等学校重点实验室、先进诊疗技术与装备陕西省高等学校重点实验室和车联网与智慧交通陕西省高等学校重点实验室获批认定。"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-212dae308f742e4f297d3d2b:05f60a4bbd18:0",
+          "documentId": "doc-212dae308f742e4f297d3d2b",
+          "ordinal": 0,
+          "title": "2026年6月13日全国大学英语四六级考试考生须知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1012/22373.htm",
+          "score": 22.3976,
+          "contentHash": "269039b134304ecea8bcb7c49babcfc56913bc9fd607beba418a148673afd37c",
+          "excerpt": "2026年6月13日全国大学英语\n四六级考试考生须知\n各位考生：\n2026年上半年全国大学英语四六级考试将于6月13日举行。为保障考试安全平稳实施，现提醒考前须知如下：\n一、考试时间\n英语四级考试：9:00～11:20\n日语、德语、俄语、法语四级：9:00～11:10\n英语六级考试：15:00～17:25\n二、及时打印准考证\n6月5日起考生可登录全国大学英语四、六级考试报名网站（cet-bm.neea.edu.cn）自行下载打印准考证。\n三、准备好相关证件及考试物品"
+        }
+      ]
+    },
+    {
+      "query": "毕业离校校园卡余额怎么退",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-54843009498179af4913f716:fd195daecd2e:1",
+          "documentId": "doc-54843009498179af4913f716",
+          "ordinal": 1,
+          "title": "关于办理毕业生离校一卡通余额清退及校园网账号注销的通知-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1245/4563.htm",
+          "score": 79.7157,
+          "contentHash": "ebb1f411d4bd7db79b8e6a3e8e5466d2592bd8cc3422401ca0f6a048ce1011bf",
+          "excerpt": "2.余额退款时间：学校于7月1日陆续开启一卡通余额清退工作，请毕业生确保本人在校财务系统中的银行卡账户正常使用，学校将按照此银行账户信息予以退款，请大家留意银行短信通知，注意查收。\n二.相关说明\n1.一卡通卡面印有学生照片及原班级信息，注销后不作统一收回，由毕业生留存，作为永久纪念。\n2.建议毕业学生合理安排充值，尽量在离校前将一卡通余额消费完毕。\n3.延期毕业的学生暂不办理离校、一卡通退费手续及校园网注销工作。\n联系方式"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-54843009498179af4913f716:fd195daecd2e:0",
+          "documentId": "doc-54843009498179af4913f716",
+          "ordinal": 0,
+          "title": "关于办理毕业生离校一卡通余额清退及校园网账号注销的通知-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/info/1245/4563.htm",
+          "score": 78.6071,
+          "contentHash": "c0ac68f53f0e68c31531b592884445e8dce9a51f53c9585b128af69f27b24c53",
+          "excerpt": "全体2026届毕业生：\n根据学校毕业生离校工作总体安排，为简化离校手续办理，现将毕业年级（本科毕业生、硕博毕业生）一卡通余额清退及校园网账号注销事宜安排如下：\n一.方式与时间安排\n毕业生一卡通和校园网账号会在毕业生离校后统一注销，一卡通内余额全数退还至毕业生在校财务系统中的银行卡账户。\n1.账户注销时间：6月30日统一注销一卡通、校园网账号，一卡通原有消费功能将关闭使用，其他校内认证权限不受影响。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-11ffb3f4d791f38ea1761e91:40e7ba9954e7:0",
+          "documentId": "doc-11ffb3f4d791f38ea1761e91",
+          "ordinal": 0,
+          "title": "迎新-离校服务-信息网络技术中心-西安电子科技大学",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/yx_lxfw.htm",
+          "score": 35.0377,
+          "contentHash": "40e7ba9954e73aff340a009470cb533f67e39d61537c33a618dbe0c71cbe75fe",
+          "excerpt": "服务名称：迎新/离校信息化服务\n服务对象：学校各部门\n办理方式：线上\n受理时限：视具体情况而定\n负责人员：开发业务部 李建涛\n服务介绍\n每个学期，为保障学校迎新、离校工作顺利进行，减少师生工作量，信息网络技术中心整合资源，结合学工、研工、招生办、后勤等学校多个部门需求，为师生提供迎新、返校信息化保障工作，包含线上流程规划、系统支持、数据对接等多项服务。\n联系电话：029-88201250\n办理流程\n迎新流程：\n离校流程：\n申请须知\n常见问题"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-609530739659e7617143a281:d40d94cf9087:0",
+          "documentId": "doc-609530739659e7617143a281",
+          "ordinal": 0,
+          "title": "诚信月 | 学校召开2025届毕业生诚信教育暨校园地国家助学贷款毕业手续办理宣讲会- 西安电子科技大学-党委学生工作部/学生工作处",
+          "authority": "official",
+          "publishedAt": "2025-05-28",
+          "sourceUrl": "https://xgc.xidian.edu.cn/info/1013/12624.htm",
+          "score": 25.9904,
+          "contentHash": "5d5dc25c8dbbe7982f77e55bee97286bec3a79afa850eee1d8f4d9af652ca3c8",
+          "excerpt": "（通讯员 彭茹）5月21日下午，学校学生资助管理中心联合中国银行召开2025届毕业生诚信教育暨校园地国家助学贷款毕业手续办理宣讲会。作为学校“诚信宣传教育月”重要活动之一，宣讲会旨在通过“办一场会、育一群人、树一面旗”的多重效益，强化学生感恩教育和诚信意识，服务毕业生贷款手续办理，确保毕业生顺利离校。"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-edad98d28ac175be53dfbc00:2b45fdac8e6e:1",
+          "documentId": "doc-edad98d28ac175be53dfbc00",
+          "ordinal": 1,
+          "title": "毕业证明书/学位证明书补办要求-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1022/22083.htm",
+          "score": 21.7292,
+          "contentHash": "8ecb306bab89aacaa1cf3b20445992f8c582cefb1a775574fdc3f70096dfd286",
+          "excerpt": "毕业证明书/学位证明书补办要求\n2026-04-23 审核人： (已浏览 )\n附件【 毕业证明书补办要求（最新）.doc 】已下载 次\n附件【 学士学位证明书补办要求（最新）.doc 】已下载 次\n附件【 毕业证明书、学位证明书补办申请模板.docx 】已下载 次\n内容详见附件\n【 关闭 】\n教务通知\n关于2025~2026学年国际创新实践周本科生选课的通知 2026/06/18\n关于开展2026年国际创新实践周“实验实践能力达标测试”补测... 2026/06/16"
+        }
+      ]
+    },
+    {
+      "query": "四六级报名时间",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-496b4fba92fcb0a418b8adfb:b847cc3a3d7a:0",
+          "documentId": "doc-496b4fba92fcb0a418b8adfb",
+          "ordinal": 0,
+          "title": "关于2026年下半年全国大学英语四、六级考试报名的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35632.htm",
+          "score": 64.8761,
+          "contentHash": "4bf1c616ca304ca820cfeddfdbd84b0693eff2153a8f143bb9e6b682fc64a704",
+          "excerpt": "各有关单位：\n根据陕西省教育考试院《关于2026年下半年全国大学英语四、六级考试报名工作的通知》（陕试社考〔2026〕7号）安排，为保证2026年下半年全国大学英语四、六级考试笔试（以下简称CET）和口试（以下简称CET-SET）平稳顺利实施，现将考试报名等有关工作安排通知如下：\n一、考试科目及时间\n1．笔试考试时间\n日期 （12 月 12 日） | 考试种类 | 考试代码 | 考试时间\n上午 | 英语四级考试（CET4） | 1 | 9∶00—11∶20"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-9aad8e0bfdbaf198a1bb647b:e273253c2914:0",
+          "documentId": "doc-9aad8e0bfdbaf198a1bb647b",
+          "ordinal": 0,
+          "title": "关于2025年下半年全国大学英语四、六级考试报名的通知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1013/20133.htm",
+          "score": 56.5833,
+          "contentHash": "84eedd251c8d6f962cd7b6a74cafbb8aa0351451d4f0557295a5eb55a2e3af52",
+          "excerpt": "各有关单位：\n根据教育部考试院《关于2025年下半年全国大学英语四、六级考试时间及报名工作有关事宜的通知》（教考院函〔2025〕5号）安排，为保证2025年下半年全国大学英语四、六级考试笔试（以下简称CET）和口试（以下简称CET-SET）平稳顺利实施，现将考试报名等有关工作安排通知如下：\n一、考试科目及时间\n1．笔试考试时间\n日期 （12 月 13 日） | 考试种类 | 考试代码 | 考试时间\n上午 | 英语四级考试（CET4） | 1 | 9∶00—11∶20"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-212dae308f742e4f297d3d2b:05f60a4bbd18:0",
+          "documentId": "doc-212dae308f742e4f297d3d2b",
+          "ordinal": 0,
+          "title": "2026年6月13日全国大学英语四六级考试考生须知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1012/22373.htm",
+          "score": 45.0186,
+          "contentHash": "269039b134304ecea8bcb7c49babcfc56913bc9fd607beba418a148673afd37c",
+          "excerpt": "2026年6月13日全国大学英语\n四六级考试考生须知\n各位考生：\n2026年上半年全国大学英语四六级考试将于6月13日举行。为保障考试安全平稳实施，现提醒考前须知如下：\n一、考试时间\n英语四级考试：9:00～11:20\n日语、德语、俄语、法语四级：9:00～11:10\n英语六级考试：15:00～17:25\n二、及时打印准考证\n6月5日起考生可登录全国大学英语四、六级考试报名网站（cet-bm.neea.edu.cn）自行下载打印准考证。\n三、准备好相关证件及考试物品"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-920e5028e9bf52d5df5bf296:3876482b09e1:0",
+          "documentId": "doc-920e5028e9bf52d5df5bf296",
+          "ordinal": 0,
+          "title": "2024年12月14日全国大学英语四六级考试考生须知-西安电子科技大学 教务处",
+          "authority": "official",
+          "publishedAt": null,
+          "sourceUrl": "https://jwc.xidian.edu.cn/info/1013/16553.htm",
+          "score": 42.2239,
+          "contentHash": "6e5945c227880997e02a17927cc53fc1cc79048b29d4873f22decf93d0630f4c",
+          "excerpt": "各位考生：\n2024年下半年全国大学英语四六级考试将于12月14日举行。为保障考试安全平稳实施，现提醒考前须知如下：\n一、考试时间\n英语四级考试：9：00～11：20\n英语六级考试：15：00～17：25\n二、及时打印准考证\n12月6日起考生可登录全国大学英语四、六级考试报名网站（cet-bm.neea.edu.cn）自行下载打印准考证。\n三、准备好相关证件及考试物品"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-496b4fba92fcb0a418b8adfb:b847cc3a3d7a:4",
+          "documentId": "doc-496b4fba92fcb0a418b8adfb",
+          "ordinal": 4,
+          "title": "关于2026年下半年全国大学英语四、六级考试报名的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35632.htm",
+          "score": 40.359,
+          "contentHash": "3a9d3eba448fb5fa11a781624e14c3ea827dc69f1fdeb8f472a643fae8deccea",
+          "excerpt": "（二）CET—SET（口语）报考资格为完成对应级别笔试科目报考的考生，即完成本次CET4笔试报名后可报考CET—SET4，完成本次CET6笔试报名后可报考CET—SET6，口语考生不得跨校报考。\n三、报名时间和方式\n（一）网报时间。报名时间为9月18日14∶00至9月28日17∶00，相关科目报名安排如下："
+        }
+      ]
+    },
+    {
+      "query": "学费缓缴申请条件",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-2ef9c379beeb264054d0e7a9:bc235865c762:1",
+          "documentId": "doc-2ef9c379beeb264054d0e7a9",
+          "ordinal": 1,
+          "title": "关于做好2026～2027学年家庭经济困难本科生学费缓缴工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35582.htm",
+          "score": 74.0369,
+          "contentHash": "08858056fdd956eeb17b4364e3ca8869d61cb6c53e1a3edf891440e25ba8664f",
+          "excerpt": "1.本学年已办理生源地信用助学贷款且通过“助学贷款”（新生为“绿色通道”）模块完成回执录入；\n2.本学年已完成校园地国家助学贷款续贷及入学确认。\n二、申请时间\n学费缓缴每学年办理一次，本学年学费缓缴手续应于9月30日之前完成办理。\n未办理学费缓缴或学费缓缴未获批准的欠费学生，将根据学校《本科生学籍注册管理办法》限制或控制相关资源使用。\n三、申请条件"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-2ef9c379beeb264054d0e7a9:bc235865c762:2",
+          "documentId": "doc-2ef9c379beeb264054d0e7a9",
+          "ordinal": 2,
+          "title": "关于做好2026～2027学年家庭经济困难本科生学费缓缴工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35582.htm",
+          "score": 71.5219,
+          "contentHash": "1dedbf4d4d1f286b2b6e70e36c65f4ffe479354ce2e28dc0d8c1357eb8763f28",
+          "excerpt": "学生申请学费缓缴前需申请并通过本学年家庭经济困难学生认定。未申请家庭经济困难认定或未被认定为家庭经济困难的学生，原则上不予办理学费缓缴。\n四、申请流程\n1.2026级新生\n通过“绿色通道”模块申请办理学费缓缴，程序如下：\n（1）学生登录“一网通办”搜索“绿色通道”模块提交申请（https://ywtb.xidian.edu.cn/）；\n（2）新生社区审核；\n（3）学生资助管理中心审核。"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-2ef9c379beeb264054d0e7a9:bc235865c762:3",
+          "documentId": "doc-2ef9c379beeb264054d0e7a9",
+          "ordinal": 3,
+          "title": "关于做好2026～2027学年家庭经济困难本科生学费缓缴工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35582.htm",
+          "score": 69.9283,
+          "contentHash": "17d12ccc68a51944c6ed27e00944f655b0e000886c29ea1bfec38696be0a714a",
+          "excerpt": "注：所有暂缓缴纳学费和住宿费的学生（含已办理生源地信用助学贷款、准备到校办理校园地国家助学贷款、亲友筹措等）均需通过绿色通道提交申请，审核通过后作为学校家庭经济困难学生认定、后续资助重点关注对象的依据。\n2.2025、2024、2023级学生\n通过“学费缓缴”模块申请办理学费缓缴，程序如下："
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-2ef9c379beeb264054d0e7a9:bc235865c762:4",
+          "documentId": "doc-2ef9c379beeb264054d0e7a9",
+          "ordinal": 4,
+          "title": "关于做好2026～2027学年家庭经济困难本科生学费缓缴工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35582.htm",
+          "score": 69.6011,
+          "contentHash": "6d14a221b24cb80cc1a353afca2792ba89a3a20edfe094e130a90e647a1a64ed",
+          "excerpt": "（1）学生登录西安电子科技大学“一网通办服务平台”（https://service.xidian.edu.cn/），搜索“学生学费缓缴申请表”，填写申请信息（具体操作流程详见学工处官网“下载专区”《学费缓缴系统操作手册》）；\n（2）辅导员核实情况后审核；\n（3）学院主管学生工作领导审核；\n（4）学生资助管理中心审核。\n五、工作要求\n1.各单位应积极督促、帮助学生在申请学费缓缴同时主动通过办理国家助学贷款等方式解决欠款。本年度校园地国家助学贷款工作预计9月下旬启动。"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-2ef9c379beeb264054d0e7a9:bc235865c762:0",
+          "documentId": "doc-2ef9c379beeb264054d0e7a9",
+          "ordinal": 0,
+          "title": "关于做好2026～2027学年家庭经济困难本科生学费缓缴工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35582.htm",
+          "score": 68.9903,
+          "contentHash": "275e9c8a1aba096bc3e072e126e9b03af7dd6b00c707b5239fadb1665cb9f504",
+          "excerpt": "各学院、新生社区：\n为保证家庭经济困难本科生顺利完成学业，规范学费缓缴办理流程，保障学校秩序正常运转，根据《西安电子科技大学家庭经济困难本科生学费缓缴办法（试行）》（本字〔2021〕153号）要求，结合学校实际，启动2026～2027学年家庭经济困难本科生学费缓缴工作，现将有关事宜通知如下：\n一、申请对象\n学校本科学生（含预科、第二学士学位，下同）中因家庭经济困难、无法按期如数缴纳学费的学生。\n以下两类同学无需重复提交："
+        }
+      ]
+    },
+    {
+      "query": "困难学生认定需要什么材料",
+      "rawTop60Count": 60,
+      "distinctChunksAfterContentHashDedup": 30,
+      "top": [
+        {
+          "rank": 1,
+          "chunkId": "doc-fb13226bef80765d4afdc67a:2e845d462798:13",
+          "documentId": "doc-fb13226bef80765d4afdc67a",
+          "ordinal": 13,
+          "title": "关于启动2026～2027学年家庭经济困难学生认定工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35562.htm",
+          "score": 58.5879,
+          "contentHash": "ebf71eac836883c011936ac0223e8ca598e197db18b6be62dbe9437320ea16d3",
+          "excerpt": "系统导出材料请认真核查无误后打印，材料纸质版均需主管学生工作领导签字并加盖单位公章。报送材料应装订成册，汇总名单与认定申请表排序要对应一致。报送学生材料审核通过后不予退回，各单位根据需要自行备档留存。\n联 系 人：杨 帆  王 鑫\n联系电话：81891099\n联系邮箱：xgczzk@xidian.edu.cn\n附件：1.西安电子科技大学家庭经济困难学生认定申请表\n2.家庭经济困难学生汇总名单\n3.家庭经济困难学生调整出库情况核查统计表"
+        },
+        {
+          "rank": 2,
+          "chunkId": "doc-fb13226bef80765d4afdc67a:2e845d462798:5",
+          "documentId": "doc-fb13226bef80765d4afdc67a",
+          "ordinal": 5,
+          "title": "关于启动2026～2027学年家庭经济困难学生认定工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35562.htm",
+          "score": 58.4902,
+          "contentHash": "a1c317db8fcdfac2db99f353335e8e121699fee4003197e87a004a7d54706f3e",
+          "excerpt": "学生通过“一网通办——家庭经济困难认定”系统（https://xgxt.xidian.edu.cn/）在线提出申请，同时通过附件上传提交《家庭经济困难学生认定申请表》（附件1）及其他相关证明材料（若有），系统在线生成《西安电子科技大学家庭经济困难学生认定申请表》（操作流程详见学工处官网下载专区《家庭经济困难认定学生使用手册》）。\n2.班级评议（9月22日前）"
+        },
+        {
+          "rank": 3,
+          "chunkId": "doc-fb13226bef80765d4afdc67a:2e845d462798:3",
+          "documentId": "doc-fb13226bef80765d4afdc67a",
+          "ordinal": 3,
+          "title": "关于启动2026～2027学年家庭经济困难学生认定工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35562.htm",
+          "score": 57.5528,
+          "contentHash": "4db04242f65eefc87131ac9c9410a4f4116434ea22ec87dffbca7021375adb54",
+          "excerpt": "2.若申请学生为地方政府认定的特殊类型群体，经核实后应优先认定为家庭经济特别困难学生。工作中可参考全国资助管理中心数据库下发名单（名单可在困难认定系统“中央下发特殊困难学生”查看）或依据学生提供的相关材料进行核实确定。\n注：特殊群体类型学生含脱贫家庭学生、防止返贫致贫对象家庭学生、城乡低保学生、低保边缘家庭学生、特困救助供养学生、孤儿、残疾学生、残疾人子女、事实无人抚养儿童、刚性支出困难家庭学生和其他低收入学生等。"
+        },
+        {
+          "rank": 4,
+          "chunkId": "doc-fb13226bef80765d4afdc67a:2e845d462798:11",
+          "documentId": "doc-fb13226bef80765d4afdc67a",
+          "ordinal": 11,
+          "title": "关于启动2026～2027学年家庭经济困难学生认定工作的通知-本科生院 西安电子科技大学",
+          "authority": "official",
+          "publishedAt": "2026-09-14",
+          "sourceUrl": "https://bksy.xidian.edu.cn/info/1003/35562.htm",
+          "score": 57.0459,
+          "contentHash": "a2af664ec729a02821102d101f83ec478796e48947e42752f30ca4987bb186c2",
+          "excerpt": "2.全面摸排脱贫家庭等特殊类型、受重大自然灾害或重大突发意外事件等致困学生，经核查属实，均应纳入学校家庭经济困难学生库。认定工作完成后，须全面核查本单位特殊困难类型学生认定入库情况，并填报《特殊类型学生认定情况核查统计表》（附件4），明确说明原因。\n3.请各单位于9月29日完成认定工作，并将以下材料报送至本科生院资助科（长安校区办公楼212室）：\n（1）家庭经济困难学生汇总名单（附件2，纸质、电子版，系统导出）"
+        },
+        {
+          "rank": 5,
+          "chunkId": "doc-e3da608d4c444e142ed9243f:d008e8d67ba6:7",
+          "documentId": "doc-e3da608d4c444e142ed9243f",
+          "ordinal": 7,
+          "title": "西安电子科技大学家庭经济困难学生认定工作办法- 西安电子科技大学-党委学生工作部/学生工作处",
+          "authority": "official",
+          "publishedAt": "2019-12-25",
+          "sourceUrl": "https://xgc.xidian.edu.cn/info/1049/6994.htm",
+          "score": 56.397,
+          "contentHash": "3c7fe7636a3684ff6ecc231ecbf87640da7fef82eba61128b4e964dd08d4cc45",
+          "excerpt": "（2）家庭经济困难。学生及其家庭只能勉强支付个人学习费用，但无力支付全部生活费用的家庭经济困难学生，可认定为家庭经济困难。\n第十一条  学生是地方政府认定的“建档立卡贫困家庭”子女的，学校直接认定为家庭经济特别困难学生。建档立卡信息以学生承诺为主，参考全国资助管理中心数据库“建档立卡”数据。\n第十二条  对于以下情况的学生可直接认定为家庭经济困难学生，是否为家庭经济特别困难学生，根据实际情况具体认定。\n（1）最低生活保障家庭学生；\n（2）特困供养学生；"
+        }
+      ]
+    }
+  ]
+}

@@ -75,7 +75,7 @@ export function MenuBarItem({
   return (
     <Link
       href={route}
-      prefetch={false}
+      prefetch={mobileTab}
       aria-label={children as string}
       aria-current={isActive ? 'page' : undefined}
       className={cn(

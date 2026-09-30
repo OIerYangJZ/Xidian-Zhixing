@@ -1,0 +1,138 @@
+.map-page {
+  min-height: 100vh;
+  padding: 32rpx 0 80rpx;
+  background: var(--app-background);
+}
+
+.map-head {
+  padding: 0 32rpx 24rpx;
+}
+
+.map-kicker {
+  color: var(--app-primary);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.map-title {
+  margin-top: 8rpx;
+  color: var(--app-text-primary);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.map-subtitle {
+  margin-top: 10rpx;
+  color: var(--app-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.map-button {
+  height: 88rpx;
+  margin-top: 26rpx;
+  border-radius: 18rpx;
+  background: var(--app-primary);
+  color: var(--app-on-primary);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 88rpx;
+}
+
+.map-group {
+  margin-top: 24rpx;
+}
+
+.group-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 0 32rpx 12rpx;
+}
+
+.group-title {
+  color: var(--app-text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.group-subtitle {
+  margin-top: 4rpx;
+  color: var(--app-text-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.group-status {
+  flex: 0 0 auto;
+  color: var(--app-primary);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.place-list {
+  overflow: hidden;
+  background: var(--app-surface);
+  border-top: 1rpx solid var(--app-divider);
+  border-bottom: 1rpx solid var(--app-divider);
+}
+
+.place-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  min-height: 96rpx;
+  padding: 18rpx 32rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+}
+
+.place-row:last-child {
+  border-bottom: none;
+}
+
+.place-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.place-name {
+  color: var(--app-text-primary);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.place-location {
+  margin-top: 6rpx;
+  color: var(--app-text-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.place-category {
+  flex: 0 0 auto;
+  min-width: 64rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: var(--app-primary-soft);
+  color: var(--app-text-secondary);
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+}
+
+/* Approved reference layout. */
+.map-head { padding:32rpx 36rpx; background:var(--app-background); border-bottom:1px solid var(--app-divider); }
+.map-group { margin:0; padding:28rpx 36rpx; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; }
+.map-title { font-size:18px; }
+.map-subtitle { font-size:15px; line-height:1.6; }
+.place-row { padding:24rpx 0; min-height:112rpx; }
+.place-name { font-size:16px; }
+.map-button { border-radius:26px; min-height:44px; }
+.map-button { display:flex; align-items:center; justify-content:center; width:100% !important; margin:16px 0 0 !important; padding:10px 16px; height:auto; line-height:1.4; }
+.group-head > view:first-child { flex:1; min-width:0; }
+.group-title, .group-subtitle, .place-name, .place-location { overflow-wrap:anywhere; }

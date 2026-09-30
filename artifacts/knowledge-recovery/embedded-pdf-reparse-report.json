@@ -1,0 +1,43 @@
+{
+  "published": [
+    {
+      "id": "doc-8d75ec78da999e7cbb51bfe6",
+      "title": "西安电子科技大学2023年国际双创实践周本科生学分课程聘请海外专家及企业专家授课项目申报工作的通知-西安电子科技大学 教务处",
+      "chunks": 30,
+      "date": null
+    },
+    {
+      "id": "doc-5089ae15410831799e384169",
+      "title": "西安电子科技大学2023年国际双创实践周本科生学分课程聘请海外专家及企业专家授课项目申报工作的通知-本科生院 西安电子科技大学",
+      "chunks": 30,
+      "date": "2023-03-24"
+    }
+  ],
+  "failed": [
+    {
+      "id": "doc-0c436b6438a3d7857c83f877",
+      "url": "https://jwc.xidian.edu.cn/info/1017/13053.htm",
+      "error": "DLL load failed while importing onnxruntime_pybind11_state: 动态链接库(DLL)初始化例程失败。"
+    },
+    {
+      "id": "doc-6a0412a74ad1a83a23c64b0e",
+      "url": "https://jwc.xidian.edu.cn/info/1017/12951.htm",
+      "error": "DLL load failed while importing onnxruntime_pybind11_state: 动态链接库(DLL)初始化例程失败。"
+    },
+    {
+      "id": "doc-eec85aa8fa2836ce40015a7b",
+      "url": "https://jwc.xidian.edu.cn/info/1017/12412.htm",
+      "error": "DLL load failed while importing onnxruntime_pybind11_state: 动态链接库(DLL)初始化例程失败。"
+    },
+    {
+      "id": "doc-9806340ef32e3311f8162bd0",
+      "url": "https://bksy.xidian.edu.cn/info/1071/9386.htm",
+      "error": "DLL load failed while importing onnxruntime_pybind11_state: 动态链接库(DLL)初始化例程失败。"
+    },
+    {
+      "id": "doc-2bf68df50334008642329324",
+      "url": "https://bksy.xidian.edu.cn/info/1071/9507.htm",
+      "error": "DLL load failed while importing onnxruntime_pybind11_state: 动态链接库(DLL)初始化例程失败。"
+    }
+  ]
+}

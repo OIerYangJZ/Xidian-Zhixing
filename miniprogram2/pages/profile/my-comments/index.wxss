@@ -1,0 +1,38 @@
+.comment-card {
+  padding: 28rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+  background: var(--app-surface);
+}
+
+.comment-post {
+  color: var(--app-primary);
+  font-size: 13.5px;
+  font-weight: 650;
+}
+
+.comment-content {
+  margin-top: 12rpx;
+  color: var(--app-text-primary);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.comment-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18rpx;
+  color: var(--app-text-secondary);
+  font-size: 12.5px;
+}
+
+.danger {
+  color: var(--app-error);
+}
+
+/* Approved reference layout. */
+.page { padding:0 36rpx calc(32rpx + env(safe-area-inset-bottom)); }
+.comment-card, .report-card, .history-card { margin:0; padding:28rpx 0; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; background:var(--app-background); }
+.comment-content, .report-desc, .answer { font-size:16px; line-height:1.6; }
+.comment-post, .report-target, .question { font-size:17px; font-weight:700; }
+.head { min-height:60px; padding:12rpx 0; border-bottom:1px solid var(--app-divider); }
+.clear, .danger { min-height:44px; display:flex; align-items:center; }

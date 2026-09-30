@@ -1,0 +1,504 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>教学方法|“学情分析”你还在用千篇一律的“课前测验”法吗？-西安电子科技大学教师发展中心</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="教学方法|“学情分析”你还在用千篇一律的“课前测验”法吗？">
+<META Name="keywords" Content="西安电子科技大学教师发展中心,教学方法,教学,方法,情分,分析,还在,在用,千篇一律,一律,课前,测验" />
+<META Name="description" Content="教师在决定教什么与如何教时，应当全面考虑学生的学习的需求、认知规律与学习兴趣，着眼于辅助、激发、促进学生的学习。也就是说，教师要进行学情分析。在教学能力比赛中，学情分析也是必不可少需要展示的环节。学情分析，是本堂课的教学设计的逻辑基础，除了做课堂的引入，也是在答辩环节评委会问到的问题。然而，大部分的参赛团队的学情分析，都是“课前测验”，这种分析方法比较稳妥，但是也难以出彩。今天就为大家详细讲解..." />
+
+    <link rel="stylesheet" href="../../css/style.css" />
+    <script type="text/javascript" src="../../js/jquery.js"></script>
+    <script type="text/javascript" src="../../js/superslide.js"></script>
+    <style>
+    
+#vsb_content_2 TABLE{
+    margin:0 auto !important;}
+    </style>
+    
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../nry.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1072,'/nry.jsp',2931,1720849302)</script>
+</head>
+<body>
+   <!--头部开始-->
+  <div class="head">
+    <div class="top">
+      <div class="main">
+        <div class="logo">
+          
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="21教师发展中心"><img src="../../img/logo.png" width="552" height="67" border="0" alt="21教师发展中心" title="21教师发展中心"></a>
+        </div>
+        <div class="fr">
+          
+
+<ul style="float: right;">
+
+            <li><a href="https://www.xidian.edu.cn/">学校首页&emsp;|</a></li>
+            <li><a href="http://mooc1.chaoxing.com/course/221457285.html">云端教育教学节</a></li>
+</ul>
+
+
+
+    <div class="clear"></div>
+          <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+            color: #fff;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        height: 35px;
+    width: 220px;
+    border-radius: 50px;
+    border: 1px solid #fff;
+    background: #004fa8;
+    padding: 0 20px 0;
+    margin-top: 12px;
+    outline: none;}
+    #appu2 .tj{/*
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;*/
+        position: absolute;
+    top: 22px;
+    right: 13px;
+    outline: none;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+            <input class="tj img" name="submit_button" type="image" value="" src="../../img/search.png" v-on:click="onSubmit()"/>
+          
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1720849302";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1720849302";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+          </div>
+        </div>
+        <div class="clear"></div>
+      </div>
+    </div>
+    <!--导航开始-->
+    <div class="nav">
+      <div class="main">
+          <ul id="nav" class="nav clearfix">
+              <li class="nLi  on ">
+                <h3><a href="../../index.htm" title="首页">首页</a></h3>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../zxgk1/bmjj.htm" title="中心概况">中心概况</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../zxgk1/bmjj.htm" title="部门简介">部门简介</a></li>
+                    <li><a href="../../zxgk1/lxwm.htm" title="联系我们">联系我们</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jspx/xrzjspx.htm" title="教师培训">教师培训</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jspx/xrzjspx.htm" title="新入职教师培训">新入职教师培训</a></li>
+                    <li><a href="../../jspx/jxztbg.htm" title="教学专题报告">教学专题报告</a></li>
+                    <li><a href="../../jspx/yxjxsl.htm" title="院系教学沙龙">院系教学沙龙</a></li>
+                    <li><a href="../../jspx/wl_zx_px.htm" title="网络（在线）培训">网络（在线）培训</a></li>
+                    <li><a href="../../jspx/xwyxb_yth.htm" title="校外研修班&amp;研讨会">校外研修班&amp;研讨会</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jxpj.htm" title="教学评价">教学评价</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jxpj/jxcxj.htm" title="教学创新奖">教学创新奖</a></li>
+                    <li><a href="../../jxpj/jxzrz.htm" title="教学准入证">教学准入证</a></li>
+                    <li><a href="../../jxpj/jxjd.htm" title="教学鉴定">教学鉴定</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jxjs.htm" title="教学竞赛">教学竞赛</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jxjs/qnjsjkjs.htm" title="青年教师讲课竞赛">青年教师讲课竞赛</a></li>
+                    <li><a href="../../jxjs/ktjxcxds.htm" title="课堂教学创新大赛">课堂教学创新大赛</a></li>
+                    <li><a href="../../jxjs/kcszbs.htm" title="课程思政比赛">课程思政比赛</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../pxzy.htm" title="培训资源">培训资源</a></h3>
+
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../xzzx.htm" title="下载中心">下载中心</a></h3>
+
+              </li>
+</ul>
+      </div>
+    </div>
+    <!--导航结束-->
+    <script>jQuery("#nav").slide({ type:"menu", titCell:".nLi", targetCell:".sub",effect:"slideDown",delayTime:300,triggerTime:0,returnDefault:true});</script>
+  </div>
+    <!--头部结束-->
+    <!--banner开始-->
+    <div id="slideBox" class="slideBox" style="height:300px;display:none;">
+        <div class="bd">
+              <script language="javascript" src="/system/resource/js/dynclicks.js"></script><ul>
+            <li><a><img src="../../img/banner.jpg" style="height: 300px;width: 1920px;"></a></li>
+</ul>
+        </div>
+      </div>
+    <!--banner结束-->
+
+ 
+
+<!--============================主体 开始=============================-->    
+
+
+<div class="clear"></div>
+ 
+    <section class="main">
+            <div class="right n_neiye">
+
+              <section class="n_title">
+                <div class="position">
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+                &gt;
+                <a href="../../index/jyfx.htm">经验分享</a>
+                &gt;
+                正文
+</div>
+              </section>
+              
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format4.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><div class="detail ar_article">
+    <h2 align="center">教学方法|“学情分析”你还在用千篇一律的“课前测验”法吗？</h2>
+    <div class="tittle"><span>发布时间：2021-06-03</span><span>点击数：<script>_showDynClicks("wbnews", 1720849302, 2931)</script></span> </span></div>
+                
+
+          
+    <div id="vsb_content_4"><div class="v_news_content">
+<div>
+ <p class="vsbcontent_start">教师在决定教什么与如何教时，应当全面考虑学生的学习的需求、认知规律与学习兴趣，着眼于辅助、激发、促进学生的学习。也就是说，教师要进行学情分析。在教学能力比赛中，学情分析也是必不可少需要展示的环节。</p>
+ <p>学情分析，是本堂课的教学设计的逻辑基础，除了做课堂的引入，也是在答辩环节评委会问到的问题。然而，大部分的参赛团队的学情分析，都是“课前测验”，这种分析方法比较稳妥，但是也难以出彩。今天就为大家详细讲解什么是“学情分析”，并为大家提供一些学情分析的参考思路与切入点，希望对大家的省赛备赛与作品打磨有所帮助。</p>
+ <p style="text-align: center;">一．什么是学情分析？</p>
+ <p>● 学情分析是伴随现代教学设计理论产生的，是教学设计系统中“影响学习系统最终设计”的重要因素之一。</p>
+ <p>● 学情分析通常称之为“教学对象分析”或“学生分析”。是为研究学生的实际需要、能力水平和认知倾向，为学习者设计教学，优化教学过程，更有效地达成教学目标，提高教学效率。</p>
+ <p style="text-align: center;">二．为什么分析?</p>
+ <p>● 学情分析是教与学目标设定的基础。</p>
+ <p>● 没有学情分析的教学目标，往往是空中楼阁，因为只有真正了解学生的现有知识经验和心理认知特点，才能确定学生在不同领域、不同学科和不同学习活动中的最近发展区（已经达到的发展水平与可能达到的发展水平之间的区域），而从知识、技能、能力等方面来阐述最近发展区就是教与学的目标。</p>
+ <p>● 学情分析是教与学内容分析（包括教材分析）的依据。</p>
+ <p>● 没有学情分析的教学内容往往是一盘散沙或无的放矢；因为只有针对具体学生才能界定内容的重点、难点和关键点。</p>
+ <p>● 学情分析是教学策略选择和教学活动设计的落脚点。</p>
+ <p>● 没有学情分析的教学策略，往往是教师一厢情愿的自我表演；因为没有学生的知识经验基础，任何讲解、操作、练习、合作都很可能难以落实。</p>
+ <p>总之，学情分析是对“以学生为中心”、“以学定教”的教学理念的具体落实。</p>
+ <p style="text-align: center;">三．分析什么?</p>
+ <p>● 学情涉及的内容非常宽广，学生各方面情况都有可能影响学生的学习。</p>
+ <p>● 学生现有的知识结构、学生的兴趣点、学生的思维情况、学生的认知状态和发展规律，学生生理心理状况、学生个性及其发展状态和发展前景，学生的学习动机、学习兴趣、学习内容、学习方式、学习时间、学习效果，学生的生活环境，学生的最近发展区、学生感受、学生成功感等都是进行学情分析的切入点。</p>
+ <p style="text-align: center;"><strong>1.</strong><strong>学生的生理、心理特点分析</strong></p>
+ <p>学生在身心发展、成长过程中，其情绪、情感、思维、意志、能力及性格还极不稳定和成熟，具有很大的可塑性和易变性。</p>
+ <p>通过分析了解他们当时的生理心理与学习该内容是否相匹配及可能产生的知识误区，充分预见可能存在的问题，对课堂上有针对地加以分析，使教学工作具有较强的预见性、针对性和功效性。</p>
+ <p>具体地说，对所在年龄阶段的学生，看他们长于形象思维还是抽象思维；乐于发言还是羞涩保守；喜欢跟老师合作还是抵触老师；对不同年龄学生注意的深度、广度和持久性也不同。</p>
+ <p>这些特点可以通过学习一些发展心理学的简单知识来分析，也可以凭借经验和观察来灵活把握。</p>
+ <p>还有不同年龄学生的感兴趣的话题也不同，教师一方面要尽量结合学生兴趣开展教学，又要适当引导不能一味屈尊或者迁就学生的不良兴趣。</p>
+ <p style="text-align: center;"><strong>2.</strong><strong>对学生已有的认知基础和经验分析</strong></p>
+ <p>即学生学习该内容时所具备的与该内容相联系的知识、技能、方法、能力等，以确定新课的起点，做好承上启下、新旧知识有机衔接工作。</p>
+ <p>针对本节课或本单元或本课程的教学内容，确定学生需要掌握哪些知识、具备哪些生活经验，然后分析学生是否具备这些知识经验。</p>
+ <p>可以通过单元测验、摸底考察、问卷等较为正式的方式，也可以采取抽查或提问等非正式的方式。</p>
+ <p>如果发现学生知识经验不足，一方面可以采取必要的补救措施，另一方面可以适当调整教学难度和教学方法。</p>
+ <p style="text-align: center;"><strong>3.</strong><strong>分析学生的个体差异</strong></p>
+ <p>分析学生的个体差异，即对学生的学习能力和学习风格分析。分析不同班级和不同学生理解掌握新知识的能力如何、学习新的操作技能的能力如何。据此设计教学任务的深度、难度和广度。</p>
+ <p>现代学生个体存在着较大的差异，如处于城乡结合部学校，学生来源较广，一部分来自城区、一部分来自农村、一部分来自外来务工人员等，学生的个体差异较大。</p>
+ <p>还由于学习习惯、学习兴趣、知识基础、学习能力、智力因素和非智力因素等形成较大的个体差异。</p>
+ <p>对经验丰富、能力较强的老师还可以进一步分析本班学生中学习能力突出的尖子生和学习能力较弱的学习困难学生，并因材施教、采取变通灵活的教学策略。</p>
+ <p>我们还要对班级学习风格进行分析。一个班级的学生在一起时间长了会形成“班级性格”，有些班级思维活跃、反应迅速，但往往思维深度不够、准确性稍微欠缺；有些班级则较为沉闷，但可能具有一定的思维深度。</p>
+ <p>不同的学生个体也是如此，教师应该结合教学经验和课堂观察，敏锐捕捉相关信息，通过提出挑战性的问题、合作等方式尽量“取学生之长、补其之短。”</p>
+ <p style="text-align: center;"><strong>4.</strong><strong>分析学生对本学科学习的方法掌握情况</strong></p>
+ <p>教学过程不仅需要教师的活动，而且更需要学生的活动，只有教师教得最优化和学生学得最优化融合在一起，才能保证教学效果的最优化。</p>
+ <p>陶行知说过，好的的先生不是教书，不是教学生，乃是教学生学。</p>
+ <p>第斯多惠也说过，不好的教师是转述真理，好的教师是叫学生去发现真理。</p>
+ <p>由此可见，在课堂教学中对学生进行学法指导是非常必要的，它是提高课堂有效教学的必要条件。</p>
+ <p>不同年级段的学生都有自己的一套学习方法，不同的教学内容需要不同的学习方法，教师只有事先了解学生对本学科学习的方法掌握情况，才能根据不同的教学内容进行相应的学法指导，才能创造出教学效果的最优化。</p>
+ <p style="text-align: center;"><strong>5.</strong><strong>分析学习知识时可能要遇到的困难</strong></p>
+ <p>学生在学习中可能遇到的问题和阻力往往会成为他们进一步学习的困难与发展的障碍，教师如果能及时发现这些困难与障碍，并且能够及时地帮助学生克服这些困难和障碍，学生就能获得真实的发展。</p>
+ <p>因此，在备课中要努力去关注和发现学生在学习中可能存在的困难和障碍，具体分析这些困难和障碍产生的原因，思考相应的具体针对性的教学策略。</p>
+ <p style="text-align: center;">四．怎样分析?</p>
+ <p>教师要想使自己的教学效果达到最佳状态，必须要分析好学生的实际情况。学情分析既要分析学生的整体具有的特点，同时更要分析学生间的个体差异，采用不同的分析学情的方法。</p>
+ <p>要具体分析，切忌空泛化。不同特点的学生，对教材的兴趣点、关注点不同，这种现象普遍存在于我们的学生身上，我们做教师的要加以理解，要多角度、多层次、多方位地实施教学。</p>
+ <p style="text-align: center;"><strong>1.</strong><strong>自然观察法</strong></p>
+ <p>研究者在自然条件下对个体的言谈、举止行动和表情等进行有目的、有计划的观察，以了解其心理活动的方法。</p>
+ <p>它的种类很多：从观察形式来分，可分直接观察和间接观察；从观察时间来分，可分长期观察和定期观察；从观察内容来分，可分全面观察和重点观察。观察法较方便易行，所得结果较真实。</p>
+ <p style="text-align: center;"><strong>2.</strong><strong>书面材料法</strong></p>
+ <p>书面材料主要有两类。一类是现有资料，一类是诊断性资料。现有资料包括：学生填写的各种档案资料，如学生的学习成果、作品等，能客观反映学生个体和集体的资料，如成绩单、操行评语等。</p>
+ <p>诊断性资料指教育者根据某一教育目的，适时地提出某些专题性作业，如命题作文、读书笔记等。通过书面材料间接了解学生，要特别注意材料的真实性与可信度。</p>
+ <p style="text-align: center;"><strong>3.</strong><strong>谈话法</strong></p>
+ <p>谈话法是通过教师和学生相互交谈的活动来进行了解学生情况的方法。这种方法具有直接交流的特点，方便掌握第一手资料，在操作时应注意拓展范围以便能够全面和客观。</p>
+ <p style="text-align: center;"><strong>4.</strong><strong>调查研究法</strong></p>
+ <p>调查法是深入了解学生的重要方法。</p>
+ <p>调查前要根据调查的内容和问题列出调查提纲，考虑好调查的具体步骤和方法，确定调查的重点对象。</p>
+ <p>调查时要热情、周到，边听边记下某些重要的内容，调查后要对了解到的内容做适当地整理，这可以为学生做比较分析提供宝贵材料。</p>
+ <p style="text-align: center;"><strong>5.</strong><strong>测验法</strong></p>
+ <p>测验法适合于收集学生的知识水平、能力情况等学习信息。根据教学需要，设计相应的练习题或试卷，规定在特定的时间内作答，教师根据学生的答题情况，收集相关信息，为评价学生的学习水平提供依据。</p>
+ <p>学情分析，可繁可简，成熟教师，之所以能简中见繁，皆因曾于繁中历练，正如无数次山重水复后的柳暗花明；</p>
+ <p>年轻教师，必思于繁、行于简，才能逐步在繁杂纷乱中循出属于自己的规律，逐步螺旋上升、积淀经验。教学经验的累积上没有捷径可循——开始时粗枝大叶，越老越粗枝大叶。</p>
+ <p>在上课的时候，多注意观察学生的活动，与学生进行交互，找学生谈心及其它等渠道获取信息，对学生的情况，主要是基本情况和学习态度等方面有一定了解。</p>
+ <p>当然，在针对具体教学内容时，进行一定的针对性调查和了解，是比较可行的。</p>
+ <p>其实，主要是教师要做到有心，在日常掌握学生基本情况的基础上，每节课备课时前进行具体的学情分析，对我们上好课还是益处多多。</p>
+ <p>走近学生、留心我们的学生，思于繁、行于简，才能逐步在繁杂纷乱中寻出属于自己的规律，逐步螺旋上升、积淀经验。</p>
+ <p class="vsbcontent_end" style="text-align: right;">转自公众号《高校教师专业发展联盟》</p>
+</div>
+</div></div><div id="div_vote_id"></div>
+  
+    <section id="ar_fot">        
+        <h5 class="fl"><span>上一篇：</span><a href="3783.htm">浙江大学积极探索构建特色劳动教育体系</a></h5>      
+    <h5 class="fr"><span>下一篇：</span><a href="2892.htm">完美教案编写指南</a></h5>  
+    <div class="clear"></div>     
+    </section>
+              
+
+
+
+
+
+
+
+</div>
+</form>
+
+        <SECTION class="detail"></SECTION>
+            </div>
+  </section>
+    
+    
+    <!--============================主体 结束=============================-->
+
+
+
+    <!--底部开始-->
+     <div class="foot">
+      <div class="main">
+        <div class="left">
+          <div class="tit">联系我们</div>
+          <script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>电话：029-81891791 &nbsp; &nbsp;029-81891792</p> 
+<p>邮箱：jsfz@xidian.edu.cn</p> 
+<p>邮编：710126</p> 
+<p>地址：西安电子科技大学南校区行政楼118办公室</p>
+        </div>
+        <div class="center">
+          <img src="../../img/foot_logo.png" alt="">
+        </div>
+<img src="../../sj-img/ewm.jpg" style="width:133px;margin: 60px 0px 0px 0px;">
+        <div class="right">
+          <div class="tit">友情链接</div>
+          <select name="qq" onchange="javascript:window.open(this.options[this.selectedIndex].value)" class="lj1">
+              <option value="#">—— 校内链接 ——</option>
+               <script language="javascript" src="/system/resource/js/openlink.js"></script><option value="https://www.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64967)">西安电子科技大学</option>
+<option value="https://news.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64966)">新闻网</option>
+<option value="https://jwc.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64965)">西电教务处</option>
+<option value="https://bksy.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64990)">本科生院</option>
+
+           </select>
+           <select class="lj1" onchange="window.location=this.value;">
+              <option value="#"> —— 常用链接 ——</option>
+               <option value="http://www.moe.gov.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64970)">中华人民共和国教育部</option>
+<option value="http://jyt.shaanxi.gov.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64969)">陕西省教育厅</option>
+<option value="http://www.cfd.tsinghua.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64968)">清华大学教师发展中心</option>
+<option value="http://cetl.pku.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64991)">北京大学教师教学发展中心</option>
+<option value="http://jfzx.xjtu.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64992)">西安交通大学教师教学发展中心</option>
+
+           </select>
+           <select class="lj1" onchange="window.location=this.value;">
+              <option value="#"> —— 其他链接 ——</option>
+               
+           </select>
+        </div>
+      </div>
+      <!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright © 2013-2017 西安电子科技大学 教师教学发展中心 &nbsp;技术支持： <a href="https://xxzx.xidian.edu.cn/" target="_blank">信息网络技术中心</a> &nbsp; &nbsp;西安聚力</p>
+    </div>
+      <!--底部结束-->
+  </body>
+  </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

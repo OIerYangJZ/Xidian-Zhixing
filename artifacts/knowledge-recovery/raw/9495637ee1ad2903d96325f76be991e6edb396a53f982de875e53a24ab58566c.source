@@ -1,0 +1,398 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>夺冠x2！见证历史 西电男篮夺得陕西省一级二级联赛双冠军-西安电子科技大学体育部</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="夺冠x2！见证历史 西电男篮夺得陕西省一级二级联赛双冠军">
+<META Name="keywords" Content="西安电子科技大学体育部,运动竞赛首页新闻,西电,男篮,历史,夺得,见证,陕西省,联赛,x,夺冠,双冠军" />
+<META Name="description" Content="（通讯员 董颖初 郑添什 李俊潇）昨日，2025年陕西省大学生篮球联赛暨第28届CUBAL陕西赛区预选赛总决赛圆满收官，西安电子科技大学包揽一级联赛男篮、二级联赛男篮冠军，创造历史！一级男篮队决赛首回合在主场远望谷体育馆以85∶72先下一城，次回合在西北工业大学翱翔体育馆经过鏖战以84∶92告负，但凭借两回合总比分169∶164的5分优势力压对手，最终夺得陕西省总决赛冠军。二级男篮队小组赛全胜突围，半决赛客场凭借关键三分锁定胜局，..." />
+
+
+
+
+
+<META charset="UTF-8">
+<META name="description" content=""><LINK rel="stylesheet" href="../../css/reset.css"><LINK rel="stylesheet" href="../../css/style.css"><script type="text/javascript" src="../../js/bdtxk.js"></script><script type="text/javascript" src="../../js/slide.js"></script><script type="text/javascript" src="../../js/index.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1273,'/content.jsp',6912,1641759486)</script>
+</HEAD>
+<BODY><!-- header start -->
+<DIV id="header" class="w100">
+<DIV class="container">
+<DIV class="header_top">
+<DIV class="logo fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+
+<A href="../../index.htm" title="体育部2020"><IMG alt="" src="../../images/logo.png"> </A></DIV>
+<DIV class="hd_r_top fr">
+<DIV class="search fr"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError" style="padding:3px;margin:0px;display:inline;font-family:宋体;font-size:12px;">
+
+    <input autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" class="txt" value="请输入关键字！">
+    <input type="image" src="../../images/search_icon.png" align="absmiddle" v-on:click="onSubmit()" class="btn">
+ </div>
+        
+        
+        
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1641759486";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1641759486";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></DIV>
+<DIV class="hd_r_link fr"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><A href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 61540)" target="_blank">学校主页</A> 
+<A href="http://tyben.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 62678)" target="_blank">English</A> 
+</DIV></DIV></DIV><!-- nav start -->
+<DIV id="nav">
+<DIV class="nav_menu"><UL class="nav_list">
+<LI><A href="../../index.htm" title="首页">首页</A> 
+</LI>
+<LI><A href="../../bmgk1/bmjj.htm" title="部门概况">部门概况</A> 
+<DL class="menu">
+<DD><A href="../../bmgk1/bmjj.htm" title="部门简介">部门简介</A> </DD>
+<DD><A href="../../bmgk1/lsyg.htm" title="历史沿革">历史沿革</A> </DD>
+<DD><A href="../../bmgk1/xrld.htm" title="现任领导">现任领导</A> </DD>
+<DD><A href="../../bmgk1/jgsz.htm" title="机构设置">机构设置</A> </DD>
+<DD><A href="../../bmgk1/wyh.htm" title="委员会">委员会</A> </DD>
+<DD><A href="../../bmgk1/xcsp.htm" title="宣传视频">宣传视频</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../szdw.htm" title="师资队伍">师资队伍</A> 
+<DL class="menu">
+<DD><A href="../../szdw/js.htm" title="教授">教授</A> </DD>
+<DD><A href="../../szdw/fjs.htm" title="副教授">副教授</A> </DD>
+<DD><A href="../../szdw/js1.htm" title="讲师">讲师</A> </DD>
+<DD><A href="../../szdw/zj.htm" title="助教">助教</A> </DD>
+<DD><A href="../../szdw/zzgtjs.htm" title="专职公体教师">专职公体教师</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../djgz.htm" title="党建工作">党建工作</A> 
+<DL class="menu">
+<DD><A href="../../djgz/zzjg.htm" title="组织机构">组织机构</A> </DD>
+<DD><A href="../../djgz/gzdt.htm" title="工作动态">工作动态</A> </DD>
+<DD><A href="../../djgz/ztxx.htm" title="专题学习">专题学习</A> </DD>
+<DD><A href="../../djgz/ghgz.htm" title="工会工作">工会工作</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyjlb.htm" title="体育俱乐部">体育俱乐部</A> 
+<DL class="menu">
+<DD><A href="../../tyjlb/jlbjx.htm" title="俱乐部教学">俱乐部教学</A> </DD>
+<DD><A href="../../tyjlb/yjsjx.htm" title="研究生教学">研究生教学</A> </DD>
+<DD><A href="../../tyjlb/wskc.htm" title="网上课程">网上课程</A> </DD>
+<DD><A href="http://jpkc.xidian.edu.cn/dxty/" title="精品课程">精品课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../zspy.htm" title="招生培养">招生培养</A> 
+<DL class="menu">
+<DD><A href="../../zspy/sszs.htm" title="硕士招生">硕士招生</A> </DD>
+<DD><A href="../../zspy/sspy1.htm" title="硕士培养">硕士培养</A> </DD>
+<DD><A href="../../zspy/yddzsh.htm" title="运动队招生">运动队招生</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyky.htm" title="体育科研">体育科研</A> 
+<DL class="menu">
+<DD><A href="../../tyky/ktlx.htm" title="课题立项">课题立项</A> </DD>
+<DD><A href="../../tyky/xscg.htm" title="学术成果">学术成果</A> </DD>
+<DD><A href="../../tyky/kyhj.htm" title="科研获奖">科研获奖</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../ydjs.htm" title="运动竞赛">运动竞赛</A> 
+<DL class="menu">
+<DD><A href="../../ydjs/gspydd.htm" title="高水平运动队">高水平运动队</A> </DD>
+<DD><A href="../../ydjs/ptsydd.htm" title="普通生运动队">普通生运动队</A> </DD>
+<DD><A href="../../ydjs/xnjs.htm" title="校内竞赛">校内竞赛</A> </DD>
+<DD><A href="../../ydjs/syxw.htm" title="首页新闻">首页新闻</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../rydt.htm" title="荣誉殿堂">荣誉殿堂</A> 
+<DL class="menu">
+<DD><A href="../../rydt/xdqgry.htm" title="西电全国荣誉">西电全国荣誉</A> </DD>
+<DD><A href="../../rydt/xdsnry.htm" title="西电省内荣誉">西电省内荣誉</A> </DD>
+<DD><A href="../../rydt/xdxnry.htm" title="西电校内荣誉">西电校内荣誉</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../gzzd.htm" title="规章制度">规章制度</A> 
+</LI>
+<LI><A href="../../rczp.htm" title="人才招聘">人才招聘</A> 
+</LI>
+<LI><A href="#" title="下载专区">下载专区</A> 
+<DL class="menu">
+<DD><A href="../../xzzq1/xzzq.htm" title="下载专区">下载专区</A> </DD>
+<DD><A href="../../xzzq1/jxkyyb.htm" title="教学科研用表">教学科研用表</A> </DD>
+<DD><A href="../../xzzq1/rsfwxx.htm" title="人事服务信息">人事服务信息</A> </DD>
+<DD><A href="../../xzzq1/wskc.htm" title="网上课程">网上课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../cggl.htm" title="场馆管理">场馆管理</A> 
+<DL class="menu">
+<DD><A href="../../cggl/cgjs.htm" title="场馆介绍">场馆介绍</A> </DD>
+<DD><A href="../../cggl/glgd.htm" title="管理规定">管理规定</A> </DD>
+<DD><A href="../../cggl/cgsq.htm" title="场馆申请">场馆申请</A> </DD>
+</DL>
+</LI>
+</UL></DIV></DIV><!-- end nav --></DIV></DIV><!-- end header --><!-- ej_banner start -->
+<DIV id="ej_banner" class="w100">
+<DIV class="ej_banner_con">    <IMG alt="" src="../../images/ej_banner.jpg"> </DIV>
+<DIV class="ej_banner_bd">
+<DIV class="lmmc"><!-- header start -->
+首页新闻</DIV></DIV></DIV><!-- end ej_banner --><!-- main start -->
+<DIV id="main" class="w100">
+<DIV class="container">
+<DIV class="main_con clearfix">
+<DIV class="main_con_l fl">
+<DIV class="sidebar"><UL>
+<LI><A href="../../ydjs/gspydd.htm" title="高水平运动队">高水平运动队</A></LI>
+
+<LI><A href="../../ydjs/ptsydd.htm" title="普通生运动队">普通生运动队</A></LI>
+
+<LI><A href="../../ydjs/xnjs.htm" title="校内竞赛">校内竞赛</A></LI>
+
+<LI class="active"><A href="../../ydjs/syxw.htm" title="首页新闻">首页新闻</A></LI>
+
+</UL>
+</DIV></DIV>
+<DIV class="main_con_r fr">
+<DIV class="main_hd">
+<DIV class="dqwz"><div>
+    位置: 
+                        <a href="../../index.htm">首页</a>
+                >
+                <a href="../../ydjs.htm">运动竞赛</a>
+                >
+                <a href="../../ydjs/syxw.htm">首页新闻</a>
+                >
+                正文
+</div>
+
+</DIV><SPAN class="line"></SPAN></DIV>
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="nr">
+	<div class="main_bd">
+	         <div class="con_title">
+   <h2 class="title">夺冠x2！见证历史 西电男篮夺得陕西省一级二级联赛双冠军</h2>
+   <p class="info">来源：<span class="xxly">
+    </span>时间：<span class="time1">2026-01-11</span>点击数：<i class="djs"><script>_showDynClicks("wbnews", 1641759486, 6912)</script></i></p>
+                 </div>
+
+
+
+    <div id="vsb_content_2" class="content"><div class="v_news_content">
+<p class="vsbcontent_start" style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">（通讯员 董颖初 郑添什 李俊潇）昨日，2025年陕西省大学生篮球联赛暨第28届CUBAL陕西赛区预选赛总决赛圆满收官，西安电子科技大学包揽一级联赛男篮、二级联赛男篮冠军，创造历史！</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">一级男篮队决赛首回合在主场远望谷体育馆以85∶72先下一城，次回合在西北工业大学翱翔体育馆经过鏖战以84∶92告负，但凭借两回合总比分169∶164的5分优势力压对手，最终夺得陕西省总决赛冠军。二级男篮队小组赛全胜突围，半决赛客场凭借关键三分锁定胜局，决赛靠精准战术部署撕开防线，最终成功捧起冠军奖杯，为西电赢得荣光。两支队伍都将代表陕西省出征全国赛场。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/2/AA/C1/955233767E53454F121DAD730CA_9A37100C_4A7A8.jpg" width="400" vsbhref="vurl" vurl="/_vsl/2AAC1955233767E53454F121DAD730CA/9A37100C/4A7A8" vheight="" vwidth="400" orisrc="/__local/5/AB/33/5033EE6A2F1665D5CA401762838_8FB1E892_14F3D5.jpg" class="img_vsb_content"></p><p style="text-indent: 0em; font-size: 20px;"><span style="color: rgb(0, 0, 0);"><strong><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">一级男篮：两回合鏖战，力克西工大，斩获总决赛桂冠</span></strong></span></p><p style="text-align: left; text-indent: 2em; font-size: 20px;"><strong><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">主场先声夺人 85∶72奠定两回合优势</span></strong></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">首回合坐镇远望谷体育馆，西电男篮开局进入状态迅速。全队在防守端坚持强对抗与高专注度，积极拼抢篮板、快速回防补位，多次通过压迫式防守制造对手失误并打出转换反击；进攻端则内外结合、节奏明快，快攻与阵地战穿插推进，形成多点开花的局面。面对对手的阶段性反扑，西电男篮始终保持冷静，在关键回合敢于对抗、敢于出手，连续把握住二次进攻与罚球机会，逐步稳住领先优势。随着比赛深入，主场观众的助威声浪不断推高球队士气，西电男篮越打越坚定，最终以85∶72拿下首回合胜利，为两回合决战奠定了宝贵的13分领先优势。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/7/B5/87/D012FECE52BEF5F1980CD047C84_38BD6420_4E79A.jpg" width="400" vsbhref="vurl" vurl="/_vsl/7B587D012FECE52BEF5F1980CD047C84/38BD6420/4E79A" vheight="" vwidth="400" orisrc="/__local/C/7D/E8/47B6912CAFAB683EFCFEF5722E8_87B5FB20_161867.jpg" class="img_vsb_content"></p><p style="text-align: left; text-indent: 2em; font-size: 20px;"><strong><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">客场鏖战险象环生 顶住压力夺冠封王</span></strong></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">次回合客场之战更显胶着。比赛开场，西电男篮延续强势表现，凭借高强度防守与坚决推进长时间保持领先。然而进入第二、三节，球队遭遇犯规困扰，轮换与对抗强度受到影响；第三节后半段一度出现得分荒，对手抓住机会持续追分，主场建立的13分优势一度被抹平。关键时刻，西电男篮展现出“大心脏”和硬韧劲：全队咬住防守强度，连续拼下关键篮板；进攻端及时调整、敢打敢拼，在最需要得分的时刻命中关键三分、稳住局势。终场哨响，虽然单场以84∶92惜败，但西电男篮仍以两回合总比分169∶164夺得冠军，成功捧起总决赛桂冠。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">【队员感言】</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">队长王震（2023级，控球后卫）表示：“比分最胶着、犯规压力最大的那段时间，真正顶住的不是某一个人，而是全队每一个人。有人负责稳节奏，有人负责拼篮板，有人负责防守对抗，大家各司其职，心里都憋着一股劲儿。我们就是靠着彼此信任，一点点把得分荒打破，把比赛扛了回来。”</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">闫卓越（2022级，小前锋）感慨：“平时训练里教练要求很严，细节一遍遍抠，压力一遍遍顶，这其实是在帮我们练心态。到了客场、到了关键回合，我告诉自己先把动作做好、把防守站稳。正是这种训练出来的稳定，才让我们在最难的时候没有慌、能扛住。”</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">徐鑫博（2022级，得分后卫）说：“球队陷入困境的时候，我觉得自己就应该站出来为队伍得分、把气势提起来。后撤步三分是我练得最多、也最有把握的武器，关键时刻敢出手、能命中，就是对训练最好的回应。”</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">张昊琛（2025级，大一新生，得分后卫）表示：“第一次经历这么高强度的决赛，师哥们在场上真的很强，也特别沉着。我学到最多的是他们的执行力和韧劲。我们大一新生会继续跟着师哥们好好学、好好练，努力把接力棒接稳、接好。”</span></p><p style="text-indent: 0em; font-size: 20px;"><span style="color: rgb(0, 0, 0);"><strong><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">二级男篮：客场逆转劲敌，鏖战终夺二级联赛冠军</span></strong></span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/6/44/75/2B4425E10958D17F42F9EBCBDF4_ED5B1AF7_3A974.jpg" width="400" vurl="/_vsl/644752B4425E10958D17F42F9EBCBDF4/ED5B1AF7/3A974" vsbhref="vurl" vheight="" vwidth="400" orisrc="/__local/C/D5/08/EA20895927F8C1F106EC70159C4_03839F55_6D038.jpg" class="img_vsb_content"></p><p style="font-size: 20px;"><strong><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">小组赛势如破竹 全胜晋级显实力</span></strong></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">小组赛阶段，西电二级男篮就展现出碾压级的竞技状态。全队攻防体系运转流畅，防守端以严密联防筑起坚固屏障，抢断、盖帽频频上演；进攻端内外线火力全开，快攻反击迅猛凌厉，阵地战传导默契十足，多点开花让对手难以招架。面对各组劲旅，队员们带着十足的底气与拼劲，每场比赛都牢牢掌控节奏，最终以全胜战绩昂首挺进淘汰赛，用一场场干脆利落的胜利，为后续征程打下坚实基础。</span></p><p style="font-size: 20px;"><strong><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">客场鏖战西工大 关键三分定乾坤</span></strong></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">半决赛的较量堪称硬仗，西电二级男篮客场挑战去年惜败的老对手西北工业大学。翱翔体育馆内，西工大主场气势如虹，但自发前往助威的西电球迷们毫不示弱，呐喊声、加油声此起彼伏，成为球队最坚实的后盾。比赛全程陷入胶着，双方比分交替上升，攻防转换节奏快到极致，每一次篮板、每一次抢断都牵动着全场观众的心。鏖战至最后一刻，场上局势依旧悬而未决，关键时刻，核心球员彭骁晗与巴颜·恰肯挺身而出，接连命中两记价值千金的三分球，一举锁定胜局，帮助球队客场击败劲敌，昂首晋级总决赛。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/E/2F/5D/8822F3B5DEC2D048C0BEA32294C_6F7FB552_47F82.jpg" width="400" vsbhref="vurl" vurl="/_vsl/E2F5D8822F3B5DEC2D048C0BEA32294C/6F7FB552/47F82" vheight="" vwidth="400" orisrc="/__local/8/16/65/550A7AD34F11D8F2FE30F460CF0_35BB644C_B2FA9.jpg" class="img_vsb_content"></p><p style="font-size: 20px;"><strong><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">决赛迎战新对手 战术破局夺桂冠</span></strong></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">总决赛对阵新对手长安大学。比赛伊始，双方迅速进入状态，攻防两端展开白热化争夺，分差始终在毫厘之间。面对对手的严密防守，西电二级男篮并未急躁，教练团队在场边精准研判局势，及时调整人员轮换与战术部署，不断寻找对手防守漏洞。随着比赛推进，球队逐渐吃透对手节奏，按照既定战术稳步推进，突然发力连拿数分，成功拉开比分差距。后续阶段，队员们稳扎稳打，守住领先优势，最终将冠军奖杯收入囊中。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/F/28/80/1972BBC22EEB41A74E6EEFF150A_1AB7E091_52CDD.jpg" width="400" vsbhref="vurl" vurl="/_vsl/F28801972BBC22EEB41A74E6EEFF150A/1AB7E091/52CDD" vheight="" vwidth="400" orisrc="/__local/8/FF/47/23EA30F56537351A32289D35BF0_8CD21079_16ECC1.jpg" class="img_vsb_content"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">【队员感言】</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">核心球员巴颜·恰肯（2023级材料学院本科生）激动地说：“这场冠军太不容易了！半决赛客场打西工大，球迷们的呐喊给了我们无穷力量，最后那个关键三分，是全队信任的结果。平时一周五练六练，假期自发加练，赛后一起复盘、研究战术，正是这份坚持和凝聚力，让我们能顶住压力走到最后。”</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">核心球员彭骁晗（2025级网信院研究生）表示：“从小组赛到决赛，每一步都离不开团队的努力。决赛面对陌生的长安大学，教练的战术部署太关键了，大家严格执行才找到突破口。我们不仅是队友，更是并肩作战的兄弟，这份荣誉属于每一个人。”</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">大一新队员乔荣榛（2025级电院本科生）感慨道：“作为新人能跟着学长们夺冠，真的又激动又荣幸。这段时间跟着大家一起高强度训练、认真复盘，我学到的不仅是球技，更是永不言弃的拼搏精神。未来我会继续努力，为球队、为学校贡献更多力量。”</span></p><p style="font-size: 20px;"><strong><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">深耕细练铸实力 凝心聚力创辉煌</span></strong></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">此次夺冠，远不止于赛场比分的领先，更是西安电子科技大学体育育人体系成果的一次集中体现。是学校政策支持、运动员顽强拼搏、教练团队科学指导、全校上下凝心聚力的共同结晶，闪耀着西电人特有的精神底色与集体力量。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">西电一级男篮由体育部运动训练专业学生组成，组建仅4年，队中最大球员也只是大四。从“年轻之师”到“省赛冠军”，背后是日复一日的极致打磨：球队坚持“以赛促练、以练促强”，冬练三九、夏练三伏。二级男篮队员来自各个学院，他们因热爱齐聚。队伍保持一周五至六练的高强度节奏，即便假期也自发组织训练。每场比赛后必作复盘，平日也常聚在一起钻研战术，这份热爱与执着，凝聚成了无坚不摧的团队力量。在长期备战中，两支队伍更以“红色电波”精神为引领，锤炼纪律与执行力，关键时刻敢于承担，用行动诠释了西电学子的拼搏品格。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">冠军的取得同样凝结着学校上下的心血与付出。学校各级领导与相关部门在队伍建设、训练保障与竞赛组织上给予的大力支持，为球队冲击佳绩创造了坚实基础。师生亲临现场的助威，更是学校蓬勃体育文化氛围与团结一心风貌的最佳体现。雷鹏飞指导带领一级联赛男篮团队长期扎根训练一线，围绕体能、战术、对抗、心理等环节精细化备战，根据对手特点制定针对性方案，并在关键阶段及时调整、科学部署，为球队稳定发挥提供了坚强保障。严石峰指导带领二级联赛男篮团队深耕细作，从技术打磨、体能训练到战术设计、心理疏导，每一个环节都精益求精。</span></p><p class="vsbcontent_end" style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">荣耀加冕，征程不止。西电男篮将以本次夺冠为新的起点，继续刻苦训练、砥砺前行，在更高舞台上展现西电学子的拼搏风采，将红色电波的精神薪火相传。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/D/00/2B/4FBE43C6683E725AE965EACBB24_21761744_45C7D.jpg" width="400" vsbhref="vurl" vurl="/_vsl/D002B4FBE43C6683E725AE965EACBB24/21761744/45C7D" vheight="" vwidth="400" orisrc="/__local/1/F7/5E/3ED7D31EAA2A735DD30FC950AD9_3285AB15_14C568.jpg" class="img_vsb_content"></p>
+</div></div><div id="div_vote_id"></div>
+    
+<div class="page">
+  <p><span>上一条：</span><a href="6902.htm">雄关如铁从头越 西电女篮进八强</a></p>
+  <p><span>下一条：</span><a href="4766.htm">体育部组队参加教职工团体羽毛球赛荣获冠军</a></p>
+</div>
+
+
+</div></div>
+</form>
+</DIV></DIV></DIV></DIV><!-- end main --><!-- footer start -->
+<DIV id="footer" class="w100">
+<DIV class="container">
+<DIV class="foot_con clearfix">
+<DIV class="foot_top">
+<DIV class="address fl"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>北校区地址:西安市太白南路2号 邮编：710071</p> 
+<p>南校区地址:西安市西沣路兴隆段266号 邮编：710126</p> 
+<p>电话：（029）81891207 办公邮箱：tiyubu1294@126.com</p> 
+<p>意见投诉信箱：tyb@xidian.edu.cn</p> 
+<p>师德师风监督电话：（029）81891207</p></DIV>
+<DIV class="ft_ewm fr">    
+
+<IMG alt="" src="../../images/erweima.jpg"> 
+<P class="title">官方微信</P>
+</DIV></DIV>
+<DIV class="copyright"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright&nbsp;© 2007-2021 西安电子科技大学体育部 版权所有 技术支持： <a href="https://xxzx.xidian.edu.cn/" style="text-decoration: none; color: white">信息网络技术中心 </a>&nbsp;&nbsp;西安聚力</p></DIV></DIV></DIV></DIV><!-- end footer --><!-- back start -->
+<DIV id="back"></DIV><!-- end back -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

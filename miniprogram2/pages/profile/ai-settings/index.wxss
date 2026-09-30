@@ -1,0 +1,6 @@
+@import "../../../styles/settings.wxss";
+.ai-status { padding-top:24px; }
+.ai-service-icon { width:32px; height:32px; color:var(--app-accent); margin-bottom:18px; }
+.ai-status .settings-status { margin-top:12px; display:flex; }
+.ai-model { margin-top:8px; font-size:16px; line-height:1.6; font-weight:600; overflow-wrap:anywhere; }
+.ai-status .settings-text-button { margin-top:10px !important; }

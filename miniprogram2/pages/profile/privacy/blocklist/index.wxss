@@ -1,0 +1,7 @@
+@import "../../../../styles/settings.wxss";
+.blocklist-section { padding-top:8px; }
+.blocked-account { border-bottom:1px solid var(--app-divider); padding-bottom:8px; }
+.blocked-account:last-child { border:0; }
+.blocklist-row { border:0; }
+.blocklist-row .settings-avatar { width:40px; height:40px; flex-basis:40px; }
+.unblock-button { flex:0 0 auto; max-width:32% !important; font-size:12px; }

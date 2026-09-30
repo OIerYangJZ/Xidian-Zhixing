@@ -1,0 +1,570 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>中华人民共和国保守国家秘密法-西安电子科技大学教师发展中心</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="中华人民共和国保守国家秘密法">
+<META Name="keywords" Content="西安电子科技大学教师发展中心,中华人民共和国,中华人民,中华,华人,人民共和国,人民,共和国,共和,保守,国家秘密,国家,秘密,密法" />
+<META Name="description" Content="中华人民共和国主席令（第二十八号）《中华人民共和国保守国家秘密法》已由中华人民共和国第十一届全国人民代表大会常务委员会第十四次会议于2010年4月29日修订通过，现将修订后的《中华人民共和国保守国家秘密法》公布，自2010年10月1日起施行。中华人民共和国主席 胡锦涛2010年4月29日中华人民共和国保守国家秘密法目 录第一章 总 则第二章 国家秘密的范围和密级第三章 保密制度第四章 监督管理第五章 法律责任第六章 附 则第..." />
+
+    <link rel="stylesheet" href="../../css/style.css" />
+    <script type="text/javascript" src="../../js/jquery.js"></script>
+    <script type="text/javascript" src="../../js/superslide.js"></script>
+    <style>
+    
+#vsb_content_2 TABLE{
+    margin:0 auto !important;}
+    </style>
+    
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../nry.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1071,'/nry.jsp',2902,1720849302)</script>
+</head>
+<body>
+   <!--头部开始-->
+  <div class="head">
+    <div class="top">
+      <div class="main">
+        <div class="logo">
+          
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="21教师发展中心"><img src="../../img/logo.png" width="552" height="67" border="0" alt="21教师发展中心" title="21教师发展中心"></a>
+        </div>
+        <div class="fr">
+          
+
+<ul style="float: right;">
+
+            <li><a href="https://www.xidian.edu.cn/">学校首页&emsp;|</a></li>
+            <li><a href="http://mooc1.chaoxing.com/course/221457285.html">云端教育教学节</a></li>
+</ul>
+
+
+
+    <div class="clear"></div>
+          <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+            color: #fff;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        height: 35px;
+    width: 220px;
+    border-radius: 50px;
+    border: 1px solid #fff;
+    background: #004fa8;
+    padding: 0 20px 0;
+    margin-top: 12px;
+    outline: none;}
+    #appu2 .tj{/*
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;*/
+        position: absolute;
+    top: 22px;
+    right: 13px;
+    outline: none;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+            <input class="tj img" name="submit_button" type="image" value="" src="../../img/search.png" v-on:click="onSubmit()"/>
+          
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1720849302";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1720849302";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+          </div>
+        </div>
+        <div class="clear"></div>
+      </div>
+    </div>
+    <!--导航开始-->
+    <div class="nav">
+      <div class="main">
+          <ul id="nav" class="nav clearfix">
+              <li class="nLi  on ">
+                <h3><a href="../../index.htm" title="首页">首页</a></h3>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../zxgk1/bmjj.htm" title="中心概况">中心概况</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../zxgk1/bmjj.htm" title="部门简介">部门简介</a></li>
+                    <li><a href="../../zxgk1/lxwm.htm" title="联系我们">联系我们</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jspx/xrzjspx.htm" title="教师培训">教师培训</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jspx/xrzjspx.htm" title="新入职教师培训">新入职教师培训</a></li>
+                    <li><a href="../../jspx/jxztbg.htm" title="教学专题报告">教学专题报告</a></li>
+                    <li><a href="../../jspx/yxjxsl.htm" title="院系教学沙龙">院系教学沙龙</a></li>
+                    <li><a href="../../jspx/wl_zx_px.htm" title="网络（在线）培训">网络（在线）培训</a></li>
+                    <li><a href="../../jspx/xwyxb_yth.htm" title="校外研修班&amp;研讨会">校外研修班&amp;研讨会</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jxpj.htm" title="教学评价">教学评价</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jxpj/jxcxj.htm" title="教学创新奖">教学创新奖</a></li>
+                    <li><a href="../../jxpj/jxzrz.htm" title="教学准入证">教学准入证</a></li>
+                    <li><a href="../../jxpj/jxjd.htm" title="教学鉴定">教学鉴定</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jxjs.htm" title="教学竞赛">教学竞赛</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jxjs/qnjsjkjs.htm" title="青年教师讲课竞赛">青年教师讲课竞赛</a></li>
+                    <li><a href="../../jxjs/ktjxcxds.htm" title="课堂教学创新大赛">课堂教学创新大赛</a></li>
+                    <li><a href="../../jxjs/kcszbs.htm" title="课程思政比赛">课程思政比赛</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../pxzy.htm" title="培训资源">培训资源</a></h3>
+
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../xzzx.htm" title="下载中心">下载中心</a></h3>
+
+              </li>
+</ul>
+      </div>
+    </div>
+    <!--导航结束-->
+    <script>jQuery("#nav").slide({ type:"menu", titCell:".nLi", targetCell:".sub",effect:"slideDown",delayTime:300,triggerTime:0,returnDefault:true});</script>
+  </div>
+    <!--头部结束-->
+    <!--banner开始-->
+    <div id="slideBox" class="slideBox" style="height:300px;display:none;">
+        <div class="bd">
+              <script language="javascript" src="/system/resource/js/dynclicks.js"></script><ul>
+            <li><a><img src="../../img/banner.jpg" style="height: 300px;width: 1920px;"></a></li>
+</ul>
+        </div>
+      </div>
+    <!--banner结束-->
+
+ 
+
+<!--============================主体 开始=============================-->    
+
+
+<div class="clear"></div>
+ 
+    <section class="main">
+            <div class="right n_neiye">
+
+              <section class="n_title">
+                <div class="position">
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+                &gt;
+                <a href="../../index/zcyl.htm">政策引领</a>
+                &gt;
+                正文
+</div>
+              </section>
+              
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><div class="detail ar_article">
+    <h2 align="center">中华人民共和国保守国家秘密法</h2>
+    <div class="tittle"><span>发布时间：2021-05-27</span><span>点击数：<script>_showDynClicks("wbnews", 1720849302, 2902)</script></span> </span></div>
+                
+
+          
+    <div id="vsb_content_2"><div class="v_news_content">
+<div>
+ <p class="vsbcontent_start"><strong>中华人民共和国主席令</strong></p>
+ <p>（第二十八号）</p>
+ <p>《中华人民共和国保守国家秘密法》已由中华人民共和国第十一届全国人民代表大会常务委员会第十四次会议于2010年4月29日修订通过，现将修订后的《中华人民共和国保守国家秘密法》公布，自2010年10月1日起施行。</p>
+ <p style="text-align: right;">中华人民共和国主席 胡锦涛</p>
+ <p style="text-align: right;">2010年4月29日</p>
+ <p><strong>中华人民共和国保守国家秘密法</strong></p>
+ <p><strong>目 录</strong></p>
+ <p>第一章 总 则</p>
+ <p>第二章 国家秘密的范围和密级</p>
+ <p>第三章 保密制度</p>
+ <p>第四章 监督管理</p>
+ <p>第五章 法律责任</p>
+ <p>第六章 附 则</p>
+ <p><strong>第一章 总 则</strong></p>
+ <p><strong>第一条</strong> 为了保守国家秘密，维护国家安全和利益，保障改革开放和社会主义建设事业的顺利进行，制定本法。</p>
+ <p><strong>第二条</strong> 国家秘密是关系国家安全和利益，依照法定程序确定，在一定时间内只限一定范围的人员知悉的事项。</p>
+ <p><strong>第三条</strong> 国家秘密受法律保护。</p>
+ <p>一切国家机关、武装力量、政党、社会团体、企业事业单位和公民都有保守国家秘密的义务。</p>
+ <p>任何危害国家秘密安全的行为，都必须受到法律追究。</p>
+ <p><strong>第四条</strong> 保守国家秘密的工作（以下简称保密工作），实行积极防范、突出重点、依法管理的方针，既确保国家秘密安全，又便利信息资源合理利用。</p>
+ <p>法律、行政法规规定公开的事项，应当依法公开。</p>
+ <p><strong>第五条</strong> 国家保密行政管理部门主管全国的保密工作。县级以上地方各级保密行政管理部门主管本行政区域的保密工作。</p>
+ <p><strong>第六条</strong> 国家机关和涉及国家秘密的单位（以下简称机关、单位）管理本机关和本单位的保密工作。</p>
+ <p>中央国家机关在其职权范围内，管理或者指导本系统的保密工作。</p>
+ <p><strong>第七条</strong> 机关、单位应当实行保密工作责任制，健全保密管理制度，完善保密防护措施，开展保密宣传教育，加强保密检查。</p>
+ <p><strong>第八条</strong> 国家对在保守、保护国家秘密以及改进保密技术、措施等方面成绩显著的单位或者个人给予奖励。</p>
+ <p><strong>第二章 国家秘密的范围和密级</strong></p>
+ <p><strong>第九条</strong> 下列涉及国家安全和利益的事项，泄露后可能损害国家在政治、经济、国防、外交等领域的安全和利益的，应当确定为国家秘密：</p>
+ <p>（一）国家事务重大决策中的秘密事项；</p>
+ <p>（二）国防建设和武装力量活动中的秘密事项；</p>
+ <p>（三）外交和外事活动中的秘密事项以及对外承担保密义务的秘密事项；</p>
+ <p>（四）国民经济和社会发展中的秘密事项；</p>
+ <p>（五）科学技术中的秘密事项；</p>
+ <p>（六）维护国家安全活动和追查刑事犯罪中的秘密事项；</p>
+ <p>（七）经国家保密行政管理部门确定的其他秘密事项。</p>
+ <p>政党的秘密事项中符合前款规定的，属于国家秘密。</p>
+ <p><strong>第十条</strong> 国家秘密的密级分为绝密、机密、秘密三级。</p>
+ <p>绝密级国家秘密是最重要的国家秘密，泄露会使国家安全和利益遭受特别严重的损害；机密级国家秘密是重要的国家秘密，泄露会使国家安全和利益遭受严重的损害；秘密级国家秘密是一般的国家秘密，泄露会使国家安全和利益遭受损害。</p>
+ <p><strong>第十一条</strong> 国家秘密及其密级的具体范围，由国家保密行政管理部门分别会同外交、公安、国家安全和其他中央有关机关规定。</p>
+ <p>军事方面的国家秘密及其密级的具体范围，由中央军事委员会规定。</p>
+ <p>国家秘密及其密级的具体范围的规定，应当在有关范围内公布，并根据情况变化及时调整。</p>
+ <p><strong>第十二条</strong> 机关、单位负责人及其指定的人员为定密责任人，负责本机关、本单位的国家秘密确定、变更和解除工作。</p>
+ <p>机关、单位确定、变更和解除本机关、本单位的国家秘密，应当由承办人提出具体意见，经定密责任人审核批准。</p>
+ <p><strong>第十三条</strong> 确定国家秘密的密级，应当遵守定密权限。</p>
+ <p>中央国家机关、省级机关及其授权的机关、单位可以确定绝密级、机密级和秘密级国家秘密；设区的市、自治州一级的机关及其授权的机关、单位可以确定机密级和秘密级国家秘密。具体的定密权限、授权范围由国家保密行政管理部门规定。</p>
+ <p>机关、单位执行上级确定的国家秘密事项，需要定密的，根据所执行的国家秘密事项的密级确定。下级机关、单位认为本机关、本单位产生的有关定密事项属于上级机关、单位的定密权限，应当先行采取保密措施，并立即报请上级机关、单位确定；没有上级机关、单位的，应当立即提请有相应定密权限的业务主管部门或者保密行政管理部门确定。</p>
+ <p>公安、国家安全机关在其工作范围内按照规定的权限确定国家秘密的密级。</p>
+ <p><strong>第十四条</strong> 机关、单位对所产生的国家秘密事项，应当按照国家秘密及其密级的具体范围的规定确定密级，同时确定保密期限和知悉范围。</p>
+ <p><strong>第十五条</strong> 国家秘密的保密期限，应当根据事项的性质和特点，按照维护国家安全和利益的需要，限定在必要的期限内；不能确定期限的，应当确定解密的条件。</p>
+ <p>国家秘密的保密期限，除另有规定外，绝密级不超过三十年，机密级不超过二十年，秘密级不超过十年。</p>
+ <p>机关、单位应当根据工作需要，确定具体的保密期限、解密时间或者解密条件。</p>
+ <p>机关、单位对在决定和处理有关事项工作过程中确定需要保密的事项，根据工作需要决定公开的，正式公布时即视为解密。</p>
+ <p><strong>第十六条</strong> 国家秘密的知悉范围，应当根据工作需要限定在最小范围。</p>
+ <p>国家秘密的知悉范围能够限定到具体人员的，限定到具体人员；不能限定到具体人员的，限定到机关、单位，由机关、单位限定到具体人员。</p>
+ <p>国家秘密的知悉范围以外的人员，因工作需要知悉国家秘密的，应当经过机关、单位负责人批准。</p>
+ <p><strong>第十七条</strong> 机关、单位对承载国家秘密的纸介质、光介质、电磁介质等载体（以下简称国家秘密载体）以及属于国家秘密的设备、产品，应当做出国家秘密标志。</p>
+ <p>不属于国家秘密的，不应当做出国家秘密标志。</p>
+ <p><strong>第十八条</strong> 国家秘密的密级、保密期限和知悉范围，应当根据情况变化及时变更。国家秘密的密级、保密期限和知悉范围的变更，由原定密机关、单位决定，也可以由其上级机关决定。</p>
+ <p>国家秘密的密级、保密期限和知悉范围变更的，应当及时书面通知知悉范围内的机关、单位或者人员。</p>
+ <p><strong>第十九条</strong> 国家秘密的保密期限已满的，自行解密。</p>
+ <p>机关、单位应当定期审核所确定的国家秘密。对在保密期限内因保密事项范围调整不再作为国家秘密事项，或者公开后不会损害国家安全和利益，不需要继续保密的，应当及时解密；对需要延长保密期限的，应当在原保密期限届满前重新确定保密期限。提前解密或者延长保密期限的，由原定密机关、单位决定，也可以由其上级机关决定。</p>
+ <p><strong>第二十条</strong> 机关、单位对是否属于国家秘密或者属于何种密级不明确或者有争议的，由国家保密行政管理部门或者省、自治区、直辖市保密行政管理部门确定。</p>
+ <p><strong>第三章 保密制度</strong></p>
+ <p><strong>第二十一条</strong> 国家秘密载体的制作、收发、传递、使用、复制、保存、维修和销毁，应当符合国家保密规定。</p>
+ <p>绝密级国家秘密载体应当在符合国家保密标准的设施、设备中保存，并指定专人管理；未经原定密机关、单位或者其上级机关批准，不得复制和摘抄；收发、传递和外出携带，应当指定人员负责，并采取必要的安全措施。</p>
+ <p><strong>第二十二条</strong> 属于国家秘密的设备、产品的研制、生产、运输、使用、保存、维修和销毁，应当符合国家保密规定。</p>
+ <p><strong>第二十三条</strong> 存储、处理国家秘密的计算机信息系统（以下简称涉密信息系统）按照涉密程度实行分级保护。</p>
+ <p>涉密信息系统应当按照国家保密标准配备保密设施、设备。保密设施、设备应当与涉密信息系统同步规划，同步建设，同步运行。</p>
+ <p>涉密信息系统应当按照规定，经检查合格后，方可投入使用。</p>
+ <p><strong>第二十四条</strong> 机关、单位应当加强对涉密信息系统的管理，任何组织和个人不得有下列行为：</p>
+ <p>（一）将涉密计算机、涉密存储设备接入互联网及其他公共信息网络；</p>
+ <p>（二）在未采取防护措施的情况下，在涉密信息系统与互联网及其他公共信息网络之间进行信息交换；</p>
+ <p>（三）使用非涉密计算机、非涉密存储设备存储、处理国家秘密信息；</p>
+ <p>（四）擅自卸载、修改涉密信息系统的安全技术程序、管理程序；</p>
+ <p>（五）将未经安全技术处理的退出使用的涉密计算机、涉密存储设备赠送、出售、丢弃或者改作其他用途。</p>
+ <p><strong>第二十五条</strong> 机关、单位应当加强对国家秘密载体的管理，任何组织和个人不得有下列行为：</p>
+ <p>（一）非法获取、持有国家秘密载体；</p>
+ <p>（二）买卖、转送或者私自销毁国家秘密载体；</p>
+ <p>（三）通过普通邮政、快递等无保密措施的渠道传递国家秘密载体；</p>
+ <p>（四）邮寄、托运国家秘密载体出境；</p>
+ <p>（五）未经有关主管部门批准，携带、传递国家秘密载体出境。</p>
+ <p><strong>第二十六条</strong> 禁止非法复制、记录、存储国家秘密。</p>
+ <p>禁止在互联网及其他公共信息网络或者未采取保密措施的有线和无线通信中传递国家秘密。</p>
+ <p>禁止在私人交往和通信中涉及国家秘密。</p>
+ <p><strong>第二十七条</strong> 报刊、图书、音像制品、电子出版物的编辑、出版、印制、发行，广播节目、电视节目、电影的制作和播放，互联网、移动通信网等公共信息网络及其他传媒的信息编辑、发布，应当遵守有关保密规定。</p>
+ <p><strong>第二十八条</strong> 互联网及其他公共信息网络运营商、服务商应当配合公安机关、国家安全机关、检察机关对泄密案件进行调查；发现利用互联网及其他公共信息网络发布的信息涉及泄露国家秘密的，应当立即停止传输，保存有关记录，向公安机关、国家安全机关或者保密行政管理部门报告；应当根据公安机关、国家安全机关或者保密行政管理 部门的要求，删除涉及泄露国家秘密的信息。</p>
+ <p><strong>第二十九条</strong> 机关、单位公开发布信息以及对涉及国家秘密的工程、货物、服务进行采购时，应当遵守保密规定。</p>
+ <p><strong>第三十条</strong> 机关、单位对外交往与合作中需要提供国家秘密事项，或者任用、聘用的境外人员因工作需要知悉国家秘密的，应当报国务院有关主管部门或者省、自治区、直辖市人民政府有关主管部门批准，并与对方签订保密协议。</p>
+ <p><strong>第三十一条</strong> 举办会议或者其他活动涉及国家秘密的，主办单位应当采取保密措施，并对参加人员进行保密教育，提出具体保密要求。</p>
+ <p><strong>第三十二条</strong> 机关、单位应当将涉及绝密级或者较多机密级、秘密级国家秘密的机构确定为保密要害部门，将集中制作、存放、保管国家秘密载体的专门场所确定为保密要害部位，按照国家保密规定和标准配备、使用必要的技术防护设施、设备。</p>
+ <p><strong>第三十三条</strong> 军事禁区和属于国家秘密不对外开放的其他场所、部位，应当采取保密措施，未经有关部门批准，不得擅自决定对外开放或者扩大开放范围。</p>
+ <p><strong>第三十四条</strong> 从事国家秘密载体制作、复制、维修、销毁，涉密信息系统集成，或者武器装备科研生产等涉及国家秘密业务的企业事业单位，应当经过保密审查，具体办法由国务院规定。</p>
+ <p>机关、单位委托企业事业单位从事前款规定的业务，应当与其签订保密协议，提出保密要求，采取保密措施。</p>
+ <p><strong>第三十五条</strong> 在涉密岗位工作的人员（以下简称涉密人员），按照涉密程度分为核心涉密人员、重要涉密人员和一般涉密人员，实行分类管理。</p>
+ <p>任用、聘用涉密人员应当按照有关规定进行审查。</p>
+ <p>涉密人员应当具有良好的政治素质和品行，具有胜任涉密岗位所要求的工作能力。</p>
+ <p>涉密人员的合法权益受法律保护。</p>
+ <p><strong>第三十六条</strong> 涉密人员上岗应当经过保密教育培训，掌握保密知识技能，签订保密承诺书，严格遵守保密规章制度，不得以任何方式泄露国家秘密。</p>
+ <p><strong>第三十七条</strong> 涉密人员出境应当经有关部门批准，有关机关认为涉密人员出境将对国家安全造成危害或者对国家利益造成重大损失的，不得批准出境。</p>
+ <p><strong>第三十八条</strong> 涉密人员离岗离职实行脱密期管理。涉密人员在脱密期内，应当按照规定履行保密义务，不得违反规定就业，不得以任何方式泄露国家秘密。</p>
+ <p><strong>第三十九条</strong> 机关、单位应当建立健全涉密人员管理制度，明确涉密人员的权利、岗位责任和要求，对涉密人员履行职责情况开展经常性的监督检查。</p>
+ <p><strong>第四十条</strong> 国家工作人员或者其他公民发现国家秘密已经泄露或者可能泄露时，应当立即采取补救措施并及时报告有关机关、单位。机关、单位接到报告后，应当立即作出处理，并及时向保密行政管理部门报告。</p>
+ <p><strong>第四章 监督管理</strong></p>
+ <p><strong>第四十一条</strong> 国家保密行政管理部门依照法律、行政法规的规定，制定保密规章和国家保密标准。</p>
+ <p><strong>第四十二条</strong> 保密行政管理部门依法组织开展保密宣传教育、保密检查、保密技术防护和泄密案件查处工作，对机关、单位的保密工作进行指导和监督。</p>
+ <p><strong>第四十三条</strong> 保密行政管理部门发现国家秘密确定、变更或者解除不当的，应当及时通知有关机关、单位予以纠正。</p>
+ <p><strong>第四十四条</strong> 保密行政管理部门对机关、单位遵守保密制度的情况进行检查，有关机关、单位应当配合。保密行政管理部门发现机关、单位存在泄密隐患的，应当要求其采取措施，限期整改；对存在泄密隐患的设施、设备、场所，应当责令停止使用；对严重违反保密规定的涉密人员，应当建议有关机关、单位给予处分并调离涉密岗位；发现涉嫌泄露国家秘密的，应当督促、指导有关机关、单位进行调查处理。涉嫌犯罪的，移送司法机关处理。</p>
+ <p><strong>第四十五条</strong> 保密行政管理部门对保密检查中发现的非法获取、持有的国家秘密载体，应当予以收缴。</p>
+ <p><strong>第四十六条</strong> 办理涉嫌泄露国家秘密案件的机关，需要对有关事项是否属于国家秘密以及属于何种密级进行鉴定的，由国家保密行政管理部门或者省、自治区、直辖市保密行政管理部门鉴定。</p>
+ <p><strong>第四十七条</strong> 机关、单位对违反保密规定的人员不依法给予处分的，保密行政管理部门应当建议纠正，对拒不纠正的，提请其上一级机关或者监察机关对该机关、单位负有责任的领导人员和直接责任人员依法予以处理。</p>
+ <p><strong>第五章 法律责任</strong></p>
+ <p><strong>第四十八条</strong> 违反本法规定，有下列行为之一的，依法给予处分；构成犯罪的，依法追究刑事责任：</p>
+ <p>（一）非法获取、持有国家秘密载体的；</p>
+ <p>（二）买卖、转送或者私自销毁国家秘密载体的；</p>
+ <p>（三）通过普通邮政、快递等无保密措施的渠道传递国家秘密载体的；</p>
+ <p>（四）邮寄、托运国家秘密载体出境，或者未经有关主管部门批准，携带、传递国家秘密载体出境的；</p>
+ <p>（五）非法复制、记录、存储国家秘密的；</p>
+ <p>（六）在私人交往和通信中涉及国家秘密的；</p>
+ <p>（七）在互联网及其他公共信息网络或者未采取保密措施的有线和无线通信中传递国家秘密的；</p>
+ <p>（八）将涉密计算机、涉密存储设备接入互联网及其他公共信息网络的；</p>
+ <p>（九）在未采取防护措施的情况下，在涉密信息系统与互联网及其他公共信息网络之间进行信息交换的；</p>
+ <p>（十）使用非涉密计算机、非涉密存储设备存储、处理国家秘密信息的；</p>
+ <p>（十一）擅自卸载、修改涉密信息系统的安全技术程序、管理程序的；</p>
+ <p>（十二）将未经安全技术处理的退出使用的涉密计算机、涉密存储设备赠送、出售、丢弃或者改作其他用途的。</p>
+ <p>有前款行为尚不构成犯罪，且不适用处分的人员，由保密行政管理部门督促其所在机关、单位予以处理。</p>
+ <p><strong>第四十九条</strong> 机关、单位违反本法规定，发生重大泄密案件的，由有关机关、单位依法对直接负责的主管人员和其他直接责任人员给予处分；不适用处分的人员，由保密行政管理部门督促其主管部门予以处理。</p>
+ <p>机关、单位违反本法规定，对应当定密的事项不定密，或者对不应当定密的事项定密，造成严重后果的，由有关机关、单位依法对直接负责的主管人员和其他直接责任人员给予处分。</p>
+ <p><strong>第五十条</strong> 互联网及其他公共信息网络运营商、服务商违反本法第二十八条规定的，由公安机关或者国家安全机关、信息产业主管部门按照各自职责分工依法予以处罚。</p>
+ <p><strong>第五十一条</strong> 保密行政管理部门的工作人员在履行保密管理职责中滥用职权、玩忽职守、徇私舞弊的，依法给予处分；构成犯罪的，依法追究刑事责任。</p>
+ <p><strong>第六章 附 则</strong></p>
+ <p><strong>第五十二条</strong> 中央军事委员会根据本法制定中国人民解放军保密条例。</p>
+ <p class="vsbcontent_end"><strong>第五十三条</strong> 本法自2010年10月1日起施行。</p>
+ <p class="vsbcontent_end" style="text-align: right;">来源：政策法规司</p>
+</div>
+</div></div><div id="div_vote_id"></div>
+  
+    <section id="ar_fot">        
+        <h5 class="fl"><span>上一篇：</span><a href="2913.htm">国家秘密的密点</a></h5>      
+    <h5 class="fr"><span>下一篇：</span><a href="2802.htm">教育部关于一流本科课程建设的实施意见</a></h5>  
+    <div class="clear"></div>     
+    </section>
+              
+
+
+
+
+
+
+
+</div>
+</form>
+
+        <SECTION class="detail"></SECTION>
+            </div>
+  </section>
+    
+    
+    <!--============================主体 结束=============================-->
+
+
+
+    <!--底部开始-->
+     <div class="foot">
+      <div class="main">
+        <div class="left">
+          <div class="tit">联系我们</div>
+          <script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>电话：029-81891791 &nbsp; &nbsp;029-81891792</p> 
+<p>邮箱：jsfz@xidian.edu.cn</p> 
+<p>邮编：710126</p> 
+<p>地址：西安电子科技大学南校区行政楼118办公室</p>
+        </div>
+        <div class="center">
+          <img src="../../img/foot_logo.png" alt="">
+        </div>
+<img src="../../sj-img/ewm.jpg" style="width:133px;margin: 60px 0px 0px 0px;">
+        <div class="right">
+          <div class="tit">友情链接</div>
+          <select name="qq" onchange="javascript:window.open(this.options[this.selectedIndex].value)" class="lj1">
+              <option value="#">—— 校内链接 ——</option>
+               <script language="javascript" src="/system/resource/js/openlink.js"></script><option value="https://www.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64967)">西安电子科技大学</option>
+<option value="https://news.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64966)">新闻网</option>
+<option value="https://jwc.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64965)">西电教务处</option>
+<option value="https://bksy.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64990)">本科生院</option>
+
+           </select>
+           <select class="lj1" onchange="window.location=this.value;">
+              <option value="#"> —— 常用链接 ——</option>
+               <option value="http://www.moe.gov.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64970)">中华人民共和国教育部</option>
+<option value="http://jyt.shaanxi.gov.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64969)">陕西省教育厅</option>
+<option value="http://www.cfd.tsinghua.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64968)">清华大学教师发展中心</option>
+<option value="http://cetl.pku.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64991)">北京大学教师教学发展中心</option>
+<option value="http://jfzx.xjtu.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64992)">西安交通大学教师教学发展中心</option>
+
+           </select>
+           <select class="lj1" onchange="window.location=this.value;">
+              <option value="#"> —— 其他链接 ——</option>
+               
+           </select>
+        </div>
+      </div>
+      <!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright © 2013-2017 西安电子科技大学 教师教学发展中心 &nbsp;技术支持： <a href="https://xxzx.xidian.edu.cn/" target="_blank">信息网络技术中心</a> &nbsp; &nbsp;西安聚力</p>
+    </div>
+      <!--底部结束-->
+  </body>
+  </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

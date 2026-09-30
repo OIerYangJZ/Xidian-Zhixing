@@ -12,7 +12,7 @@ export default {
       const isLoggedIn = !!auth?.user;
       const isOnAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
 
-      const unProtectedPages = ['/terms', '/privacy-policy', '/zhixing-home']; // Add more here if needed
+      const unProtectedPages = ['/terms', '/privacy-policy', '/zhixing-home', '/miniprogram-auth']; // Add more here if needed
       const isOnUnprotectedPage =
         pathname === '/' || // The root page '/' is also an unprotected page
         unProtectedPages.some((page) => pathname.startsWith(page));

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/static/electronic/j/layer/theme/default/layer.css" />
+<link rel="stylesheet" type="text/css" href="/assets/5d41dd9d/artdialog/skins/blue.css" />
+<link rel="stylesheet" type="text/css" href="/static/video.js/5.10.2/video-js.min.css" />
+<link rel="stylesheet" type="text/css" href="/assets/93d023cb/third-party/video-js/video-js.css" />
+<link rel="stylesheet" type="text/css" href="/static/common/c/ueditor-reset.css" />
+<link rel="stylesheet" type="text/css" href="/static/template17_xd/c/css.css" />
+<link rel="stylesheet" type="text/css" href="/static/iconfont/iconfont.css" />
+<link rel="stylesheet" type="text/css" href="/static/template17_xd/c/swiper.min.css" />
+<link rel="stylesheet" type="text/css" href="/static/template17_xd/c/font/iconfont.css" />
+<link rel="stylesheet" type="text/css" href="/static/common/c/common-1200.css?v=20240906180817" />
+<link rel="stylesheet" type="text/css" href="/static/electronic/c/css.css?v=20240906180818" />
+<link rel="stylesheet" type="text/css" href="/static/jysd-jylm/c/jysc-form.css?v=20240906180815" />
+<link rel="stylesheet" type="text/css" href="//at.alicdn.com/t/c/font_1976613_c6ika4bzla.css" />
+<link rel="stylesheet" type="text/css" href="/static/color/template17-red.css" />
+<script type="text/javascript" src="/static/js/jquery.js"></script>
+<script type="text/javascript" src="/assets/5d41dd9d/artdialog/jquery.artDialog.js?skin=blue"></script>
+<script type="text/javascript" src="/static/video.js/5.10.2/video.min.js"></script>
+<script type="text/javascript" src="/static/video.js/5.10.2/ie8/videojs-ie8.min.js"></script>
+<script type="text/javascript" src="/static/video.js/5.10.2/html5media.min.js"></script>
+<script type="text/javascript" src="/assets/93d023cb/third-party/video-js/video.js"></script>
+<script type="text/javascript" src="/assets/93d023cb/ueditor.parse.js"></script>
+<script type="text/javascript" src="/static/js/base64.min.js?v20211020"></script>
+<script type="text/javascript" src="/static/jysd-jylm/j/html5.js"></script>
+<script type="text/javascript" src="/static/jysd-jylm/j/jquery-ui-1.10.3.full.min.js"></script>
+<script type="text/javascript" src="/static/jysd-jylm/j/jquery.royalslider.min.js"></script>
+<script type="text/javascript" src="/static/template17_xd/j/swiper.min.js"></script>
+<script type="text/javascript" src="/static/template17_xd/j/jQuery.rTabs.js"></script>
+<script type="text/javascript" src="/static/template17_xd/j/SuperSlide.js"></script>
+<script type="text/javascript" src="/static/js/j.core.js?v=20210810110906"></script>
+<script type="text/javascript" src="/static/js/jui.min.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+videojs.options.flash.swf = "/static/video.js/5.10.2/video-js.swf"
+/*]]>*/
+</script>
+<title>关于引导2026届毕业生到国家重点单位、 基层和部队就业的通知</title>
+  <link href="/static/iconfont/iconfont.css" rel="stylesheet">
+                              </head>
+
+<body>
+  <div class="wrapper">
+          <div class="toprow">
+        <div class="container-index">
+                      <!-- <div class="logo_box">
+                        <a href="/user/login" class="color1">
+                            <i class="iconfont icon-xuesheng"></i>
+                            <span>学生登录</span>
+                        </a>
+                                                    <a href="/default/xd/type/login/role/teacher" class="color2">
+                                <i class="iconfont icon-xuexiao2"></i>
+                                <span>学校登录</span>
+                            </a>
+                                                <a href="/vip/user/login" class="color3">
+                            <i class="iconfont icon-shigongdanwei"></i>
+                            <span>单位登录</span>
+                        </a>
+                    </div> -->
+          
+          <a href="/">西安电子科技大学就业信息网</a>
+        </div>
+      </div>
+      <div class="header">
+        <div class="container-index">
+                      <div class="login-box">
+                                                                                                        <div class="item-s">
+                    <div class="title">
+                      <p class="name">首页<span class="iconfont icon-right"></p>
+                      <p></p>
+                    </div>
+                    <div class="dropdown-box">
+                      <ul class="dropdown ">
+                                                                                                                <li><a href="https://job.xidian.edu.cn/" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>就业网首页                                  </a></li>
+                                                                                                      </ul>
+                    </div>
+                  </div>
+                                                                                                                        <div class="item-s">
+                    <div class="title">
+                      <p class="name">学生服务<span class="iconfont icon-right"></p>
+                      <p></p>
+                    </div>
+                    <div class="dropdown-box">
+                      <ul class="dropdown ">
+                                                                                                                <li><a href="/campus" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>就业信息                                  </a></li>
+                                                                                                                      <li><a href="/affair/sinfo" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>生源核对                                  </a></li>
+                                                                                                                      <li><a href="/home" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>办事大厅                                  </a></li>
+                                                                                                                                                                                                                      </ul>
+                    </div>
+                  </div>
+                                                                                                                        <div class="item-s">
+                    <div class="title">
+                      <p class="name">单位服务<span class="iconfont icon-right"></p>
+                      <p></p>
+                    </div>
+                    <div class="dropdown-box">
+                      <ul class="dropdown ">
+                                                                                                                <li><a href="/news/view/tag/zpsc" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>招聘指南                                  </a></li>
+                                                                                                                      <li><a href="/news/view/tag/syxx" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>生源信息                                  </a></li>
+                                                                                                                      <li><a href="/news/view/tag/xylxfs" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>院系联系                                  </a></li>
+                                                                                                                      <li><a href="/news/view/tag/xxfbfs" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>信息发布                                  </a></li>
+                                                                                                                      <li><a href="/news/view/tag/chxz" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>参会须知                                  </a></li>
+                                                                                                      </ul>
+                    </div>
+                  </div>
+                                                                                                                                                                                    <div class="item-s">
+                    <div class="title">
+                      <p class="name">关于我们<span class="iconfont icon-right"></p>
+                      <p></p>
+                    </div>
+                    <div class="dropdown-box">
+                      <ul class="dropdown ">
+                                                                                                                <li><a href="/news/view/tag/zxjs" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>中心介绍                                  </a></li>
+                                                                                                                      <li><a href="/news/view/tag/zzjg" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>组织机构                                  </a></li>
+                                                                                                                      <li><a href="/news/view/tag/lxfs" target="_self">
+                                    <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>联系方式                                  </a></li>
+                                                                                                      </ul>
+                    </div>
+                  </div>
+                                                                          <div class="item-s  login_con">
+                <div class="title">
+                  <p class="name">登录
+                    <span class="iconfont icon-right">
+                  </p>
+                </div>
+                <div class="dropdown-box">
+                  <ul class="dropdown">
+                    <li><a href="/user/login">
+                        <p class="bgicon"><img src="/static/template17_xd/i/stu.png" alt=""></p>学生登录
+                      </a></li>
+                    <li><a href="/vip/user/login">
+                        <p class="bgicon"><img src="/static/template17_xd/i/unit.png" alt=""></p>单位登录
+                      </a></li>
+                                          <li><a href="/default/xd/type/login/role/teacher">
+                          <p class="bgicon"><img src="/static/template17_xd/i/school.png" alt=""></p>教师登录
+                        </a></li>
+                                      </ul>
+                </div>
+              </div>
+              <div class="search item-s">
+                <i class="iconfont icon-sousuo567"></i>
+                <input type="text" name="title" placeholder="请输入关键词汇" class="search-box">
+              </div>
+                <script type="text/javascript">
+                    $('.search').click(function() {
+                        var val = $('input[name="title"]').val();
+                        if (val && $('input[name="title"]').hasClass('active')) {
+                            location.href = '/search/list?keyword='+ val;
+                        }
+                    })
+                </script>
+            </div>
+                                <a href="/" class="logo"><img src="/attachment/university/ef/df/8a69d803e45fc1c665eb74ba78d91bc4.png?v=20210902211727" alt="西安电子科技大学就业信息网"></a>
+          
+        </div>
+      </div>
+        <div class="css-out-content">
+            <div class="container"><div class="breadcrumb"><ol>
+<li><a href="http://job.xidian.edu.cn">首页</a></li><li><i class="icon icon-xiangyoujiantou"></i></li><li><a href="/news/index/tag/tzgg">通知公告</a></li><li><i class="icon icon-xiangyoujiantou"></i></li><li><span>文章</span></li></ol></div></div>
+    <!-- 2级导航-->
+                <style>
+    /*返回顶部*/
+    .back-top:hover {
+        background-position: 40px 0px;
+        cursor: pointer;
+    }
+
+    .back-top {
+        position: fixed;
+        right: 0px;
+        bottom: 20%;
+        background: url(/static/images/scrolltop.png);
+        width: 40px;
+        height: 30px;
+        overflow: hidden;
+    }
+</style>
+<div class="container cl share-container">
+                    <div class="mn  css-common-view share-details" id="mn">
+        <div class="ct cl">
+            <div class="aTitle">关于引导2026届毕业生到国家重点单位、 基层和部队就业的通知</div>
+                            <div class="share-collection-btn">
+                    <a class="btn btn-default" id="yw0" data-collect="0" href="#"><i class="icon icon-shoucang"></i> 收藏</a>                </div>
+                <div class="share-container">
+                    <span>浏览：8113次</span>
+                                            &nbsp;
+                        <span class="share-text">分享至：</span> <div class="share-link"><a class="fn-share-wechat icon icon-weixin" title="分享到微信" href="#"></a><a class="fn-share-qq icon icon-qq" title="分享到QQ好友" href="#"></a><a target="_blank" title="分享到新浪微博" class="icon icon-weibo" href="https://service.weibo.com/share/share.php?url=http%3A%2F%2Fjob.xidian.edu.cn%2Fnews%2Fview%2Faid%2F338416%2Ftag%2Ftzgg&amp;title=%E5%85%B3%E4%BA%8E%E5%BC%95%E5%AF%BC2026%E5%B1%8A%E6%AF%95%E4%B8%9A%E7%94%9F%E5%88%B0%E5%9B%BD%E5%AE%B6%E9%87%8D%E7%82%B9%E5%8D%95%E4%BD%8D%E3%80%81%20%E5%9F%BA%E5%B1%82%E5%92%8C%E9%83%A8%E9%98%9F%E5%B0%B1%E4%B8%9A%E7%9A%84%E9%80%9A%E7%9F%A5"></a></div>                                    </div>
+                <div class="aInfo">
+                    发布时间：<span id="pub_date">2026年05月21日17:39</span>
+                                            &nbsp;
+                        <span>来源：西安电子科技大学</span>
+                                    </div>
+                        <div class="aContent"><section id="content2657" style="padding: 50px;background-image: url(/static/axui-v1.0.2-20210211/images/loading.gif);background-position: center;background-repeat: no-repeat;"></section></div>                            <ul class="pagebreak">
+                    <li class="z">上一篇：<a href="/news/view/aid/338415/tag/tzgg">【通知公告】关于开展2023-2025届毕业生职业发展跟踪调查的通知</a></li>
+                    <li class="y">下一篇：<a href="/news/view/aid/338418/tag/tzgg">关于做好我校2027届毕业生一次性求职补贴申报工作的通知</a></li>
+                </ul>
+                    </div>
+    </div>
+</div>
+<script>
+    $(function() {
+        var pos = $(".breadcrumb");
+        if (pos.length) {
+            left = pos.offset().left + pos.width();
+            $("body").append('<div class="back-top" title="返回顶部"></div>');
+            $(".back-top").css("left", left).hide().click(function() {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 200);
+            });
+            $(document).scroll(function() {
+                if ($(this).scrollTop() < 50) {
+                    $(".back-top").hide('slow');
+                } else {
+                    $(".back-top").show('slow');
+                }
+
+            });
+        }
+
+        var h = $("body").height()
+        var contentH = $(".share-details").height()
+        if (contentH < h) {
+            $(window.parent.document).find('.layui-layer-close1').css("display", "block")
+        }
+        $(document).scroll(function() {
+            var c = $(this).scrollTop();
+            if (Math.ceil(h < c)) {
+                $(window.parent.document).find('.layui-layer-close1').css("display", "block")
+            }
+        })
+        uParse('.aContent', {
+            rootPath: '/'
+        })
+    });
+</script>
+
+
+
+<!-- <div class="brandTemplate_container">
+       雇主品牌
+      <div class="employerList">
+        <ul>
+            <li>
+                <div class="box">
+                    <img src="/static/template16/i/left.png" alt="">
+                    <div class="btn-box">
+                        <a href="#" class="btn btn-primary">招聘信息</a>
+                        <a href="#" class="btn btn-primary">单位详情</a>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="box">
+                    <img src="/static/template16/i/left.png" alt="">
+                    <div class="btn-box">
+                        <a href="#" class="btn btn-primary">招聘信息</a>
+                        <a href="#" class="btn btn-primary">单位详情</a>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="box">
+                    <img src="/static/template16/i/left.png" alt="">
+                    <div class="btn-box">
+                        <a href="#" class="btn btn-primary">招聘信息</a>
+                        <a href="#" class="btn btn-primary">单位详情</a>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="box">
+                    <img src="/static/template16/i/left.png" alt="">
+                    <div class="btn-box">
+                        <a href="#" class="btn btn-primary">招聘信息</a>
+                        <a href="#" class="btn btn-primary">单位详情</a>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="box">
+                    <img src="/static/template16/i/left.png" alt="">
+                    <div class="btn-box">
+                        <a href="#" class="btn btn-primary">招聘信息</a>
+                        <a href="#" class="btn btn-primary">单位详情</a>
+                    </div>
+                </div>
+            </li>
+        </ul>
+      </div>
+      引才工作站
+      <div class="workstationList">
+        <ul>
+            <li>
+                <div class="box">
+                    <a href="#">
+                        <img src="/static/template16/i/left.png" alt="">
+                        <p>杭州引才</p>
+                    </a>
+                </div>
+            </li>
+            <li>
+                <div class="box">
+                    <a href="#">
+                        <img src="/static/template16/i/left.png" alt="">
+                        <p>杭州引才</p>
+                    </a>
+                </div>
+            </li>
+            <li>
+                <div class="box">
+                    <a href="#">
+                        <img src="/static/template16/i/left.png" alt="">
+                        <p>杭州引才</p>
+                    </a>
+                </div>
+            </li>
+            <li>
+                <div class="box">
+                    <a href="#">
+                        <img src="/static/template16/i/left.png" alt="">
+                        <p>杭州引才</p>
+                    </a>
+                </div>
+            </li>
+            <li>
+                <div class="box">
+                    <a href="#">
+                        <img src="/static/template16/i/left.png" alt="">
+                        <p>杭州引才</p>
+                    </a>
+                </div>
+            </li>
+            <li>
+                <div class="box">
+                    <a href="#">
+                        <img src="/static/template16/i/left.png" alt="">
+                        <p>杭州引才</p>
+                    </a>
+                </div>
+            </li>
+        </ul>
+      </div>
+  </div> -->
+</div>
+
+</div>
+<div class="css-footer">
+    <div class="container-index">
+        <div class="left">
+            <img src="/static/template12/i/flogo.png" alt="">
+        </div>
+        <div class="content">
+            <div class="top">
+                <div class="item">
+                    <p>学生服务：</p>
+                    <span>029-81891198</span>
+                    <span><i></i>029-81891222</span>
+                </div>
+                <div class="item">
+                    <p>单位服务：</p>
+                    <span>029-88202234</span>
+                    <span><i></i>029-88202307</span>
+                </div>
+                <div class="item">
+                    <p>电子邮箱：</p>
+                    <span>xdjy@xidian.edu.cn</span>
+                </div>
+            </div>
+            <span id="cnzz_stat_icon_1280320565"><a href="https://www.cnzz.com/stat/website.php?web_id=1280320565" target="_blank" title="站长统计"><img border="0" hspace="0" vspace="0" src="https://icon.cnzz.com/img/pic.gif"></a></span>
+        </div>
+        <div class="right">
+            <div class="box">
+                <img src="/static/template12/i/er.jpg" alt="">
+            </div>
+        </div>
+    </div>
+    <!-- <div class="bottomBox">
+        <div class="bottom">
+            <p>友情链接：</p>
+            <div class="item">
+                                        <a href="http://www.moe.gov.cn/ " target="_blank">教育部</a>
+                                        <a href="https://www.chsi.com.cn/ " target="_blank">学信网</a>
+                                        <a href="https://xidian.ncss.cn/student/index.html " target="_blank">国家24365</a>
+                                        <a href="http://jyweb.sneducloud.com/website/index.aspx " target="_blank">陕西省高校就业信息网</a>
+                                        <a href="https://www.csc.edu.cn/ " target="_blank">国家留学网</a>
+                                        <a href="https://yz.chsi.com.cn/ " target="_blank">中国研究生招生网</a>
+                                        <a href="https://gj.ncss.cn/index.html " target="_blank">国际组织实习信息服务平台</a>
+                                        <a href="http://xibu.youth.cn/ " target="_blank">西部计划</a>
+                                        <a href="https://www.gfbzb.gov.cn/ " target="_blank">全国征兵网</a>
+                                        <a href="http://www.xds.work/ " target="_blank">选调生</a>
+                            </div>
+        </div>
+    </div> -->
+</div>
+<script src="/static/ningcc/j/slider.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+    $(function() {
+        $.datepicker.setDefaults({
+            closeText: '关闭',
+            prevText: '',
+            nextText: '',
+            currentText: '今天',
+            monthNames: ['01', '02', '03', '04', '05', '06',
+                '07', '08', '09', '10', '11', '12'
+            ],
+            monthNamesShort: ['一', '二', '三', '四', '五', '六',
+                '七', '八', '九', '十', '十一', '十二'
+            ],
+            dayNames: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
+            dayNamesShort: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+            dayNamesMin: ['日', '一', '二', '三', '四', '五', '六'],
+            weekHeader: '周',
+            dateFormat: 'yy-mm-dd',
+            firstDay: 1,
+            isRTL: false,
+            showMonthAfterYear: true,
+            yearSuffix: '/'
+        });
+        //切换
+        $(".caption").each(function() {
+            var th = $(this);
+            $("li a", this).mouseover(function(event) {
+                var currentIndex = $(this).parent().index()
+                $(this).parent('li').addClass("current").siblings('li').removeClass('current');
+                $(this).parents(".caption").next('.newslistBox').find(".contentList").addClass('hide').eq($(this).parent('li').index()).removeClass('hide');
+                $(this).parents(".caption").next('.content').find(">ul,>div").addClass('hide').eq($(this).parent('li').index()).removeClass('hide');
+                $('.contentList').eq(currentIndex).find(".tab-con-item").css("left", '0')
+                event.preventDefault();
+            }).eq(2).mouseover();
+        });
+
+        $(".moreurl", this).click(function(event) {
+            $(this).attr("href", $(this).parent().siblings('.caption').children(".j-tab-nav").find("li a").attr("href"));
+        });
+
+        jQuery(document).ready(function($) {
+            $('#full-width-slider').royalSlider({
+                arrowsNav: true,
+                loop: true,
+                keyboardNavEnabled: true,
+                controlsInside: false,
+                imageScaleMode: 'fill',
+                arrowsNavAutoHide: false,
+                autoScaleSlider: true,
+                autoScaleSliderWidth: 960,
+                autoScaleSliderHeight: 420,
+                controlNavigation: 'bullets',
+                thumbsFitInViewport: false,
+                navigateByClick: true,
+                startSlideId: 0,
+                autoPlay: {
+                    enabled: true,
+                    stopAtAction: false,
+                    pauseOnHover: true,
+                    delay: 5000
+                },
+                transitionType: 'move',
+                globalCaption: true,
+                // transitionSpeed: 600,
+                autoPlay: {
+                    enabled: true,
+                    stopAtAction: false,
+                    pauseOnHover: true,
+                    delay: 5000
+                },
+                deeplinking: {
+                    enabled: true,
+                    change: false
+                },
+                imgWidth: 1200,
+                imgHeight: 420
+            });
+
+        });
+        $(".search i").click(function() {
+            $(".search-box").toggleClass("active");
+
+        })
+        $(".css-navbar .css-navlist>li").hover(function() {
+            $(this).siblings().find(".css-dropdown").hide();
+            $(this).find(".css-dropdown").show();
+        }, function() {
+            var obj = $(this).find(".css-dropdown");
+            var focusi = false;
+            obj.hover(function() {
+                focusi = true;
+            }, function() {
+                $(this).hide();
+            });
+            setTimeout(function() {
+                if (!focusi) {
+                    obj.hide();
+                }
+            }, 20);
+        });
+        var cssfooterHeight = $(".css-footer").height();
+        $(".css-out-content").css({
+            "padding-bottom": cssfooterHeight
+        });
+        $(".css-footer").css({
+            "margin-top": -(cssfooterHeight)
+        });
+        // if ($(".banner").html()) {
+        //     $(".header").css('position', 'absolute')
+        // }
+
+    });
+</script>
+
+<script type="text/javascript" src="/static/electronic/j/layer/layer.js"></script>
+<script type="text/javascript" src="/static/js/qrcode.min.js"></script>
+<script type="text/javascript" src="/assets/5d41dd9d/artdialog/jquery.artDialog.js"></script>
+<script type="text/javascript" src="/assets/5d41dd9d/artdialog/plugins/iframeTools.js"></script>
+<script type="text/javascript" src="/static/electronic/j/common.js?v=20240906180818"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+
+			var _paq = window._paq = window._paq || [];
+			_paq.push(["setDocumentTitle", ""]);
+			_paq.push(["trackPageView"]);
+			(function() {
+				var u="/"; _paq.push(["setTrackerUrl", u+"tj.php?_k=59fd5429841522"]); _paq.push(["setSiteId", "2227"]);
+				var d=document, g=d.createElement("script"), s=d.getElementsByTagName("script")[0];
+				g.type="text/javascript"; g.async=true; g.src="/static/js/tj.js"; s.parentNode.insertBefore(g,s);
+			})();
+		
+jQuery(function($) {
+
+            $('#yw0').click(function(e) {
+                e.preventDefault();
+                if (!$(this).data('collect')) {
+                    addFollow(6, 338416);
+                    setTimeout(function() {
+                        $(this).data('collect', 1).html('<i class="icon icon-arrow"></i> 已收藏');
+                    }, 2000);
+                }
+            });
+        
+
+            $(".fn-share-wechat").click(function(e) {
+                e.preventDefault();
+                layer.open({
+                    type: 1,
+                    title: "分享到微信朋友圈",
+                    skin: "share-wechat-container",
+                    content: "<div id=\"wechat-qrcode\" style=\"width: 180px; margin: 10px auto;\"></div><div style=\"margin: 10px\">打开微信，点击底部的“发现”，<br>使用“扫一扫”即可将网页分享至朋友圈。</div>"
+                });
+                var qrcode = new QRCode(document.getElementById("wechat-qrcode"), {
+                    text: window.location.href,
+                    width: 180,
+                    height: 180,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            });
+        
+
+            $(".fn-share-qq").click(function(e) {
+                e.preventDefault();
+                layer.open({
+                    type: 1,
+                    title: "分享到QQ好友",
+                    skin: "share-wechat-container",
+                    content: "<div id=\"qq-qrcode\" style=\"width: 180px; margin: 10px auto;\"></div><div style=\"margin: 10px\">打开QQ<br>使用“扫一扫”即可将网页分享至QQ好友。</div>"
+                });
+                var qrcode = new QRCode(document.getElementById("qq-qrcode"), {
+                    text: window.location.href,
+                    width: 180,
+                    height: 180,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            });
+        
+
+            $("#content2657").each(function() {
+                $(this).parent().html(Base64.decode(unzip("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").substr(31)).substr(62));
+            });
+        
+});
+/*]]>*/
+</script>
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+<view class="{{pageMotion}} page history-page {{themeClass}}">
+  <view class="head" wx:if="{{rows.length}}">
+    <view class="count">{{rows.length}} 条记录</view>
+    <view class="clear" bindtap="clearHistory">清空</view>
+  </view>
+  <view wx:if="{{!rows.length}}" class="empty">暂无浏览记录</view>
+  <view wx:else class="history-list">
+    <view class="history-card" wx:for="{{rows}}" wx:key="id" data-id="{{item.id}}" bindtap="openPost">
+      <view class="history-avatar {{item.authorAvatarUrl ? 'has-image' : ''}}">
+        <image wx:if="{{item.authorAvatarUrl}}" class="history-avatar-image" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
+        <text wx:else class="history-avatar-text">{{item.avatarInitial}}</text>
+      </view>
+      <view class="history-main">
+        <view class="history-meta"><text>{{item.authorAlias}}</text><text>· {{item.timeText}}</text></view>
+        <view class="history-title">{{item.titleText}}</view>
+        <view class="history-summary" wx:if="{{item.summaryText}}">{{item.summaryText}}</view>
+        <view class="history-section" wx:if="{{item.sectionName}}">{{item.sectionName}}</view>
+      </view>
+      <view class="ui-icon icon-chevron-right history-chevron"></view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,399 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>十四运与十一届残运会羽毛球竞委会工作掠影-西安电子科技大学体育部</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="十四运与十一届残运会羽毛球竞委会工作掠影">
+<META Name="keywords" Content="西安电子科技大学体育部,十四,十一届,十一,一届,残运会,羽毛球,羽毛,委会,工作,掠影" />
+<META Name="description" Content="第十四届全国运动会全国第十一届残运会暨第八届特奥会羽毛球竞赛委员会工作掠影" />
+
+
+
+
+
+<META charset="UTF-8">
+<META name="description" content=""><LINK rel="stylesheet" href="../../css/reset.css"><LINK rel="stylesheet" href="../../css/style.css"><script type="text/javascript" src="../../js/bdtxk.js"></script><script type="text/javascript" src="../../js/slide.js"></script><script type="text/javascript" src="../../js/index.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1079,'/content.jsp',3732,1641759486)</script>
+</HEAD>
+<BODY><!-- header start -->
+<DIV id="header" class="w100">
+<DIV class="container">
+<DIV class="header_top">
+<DIV class="logo fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+
+<A href="../../index.htm" title="体育部2020"><IMG alt="" src="../../images/logo.png"> </A></DIV>
+<DIV class="hd_r_top fr">
+<DIV class="search fr"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError" style="padding:3px;margin:0px;display:inline;font-family:宋体;font-size:12px;">
+
+    <input autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" class="txt" value="请输入关键字！">
+    <input type="image" src="../../images/search_icon.png" align="absmiddle" v-on:click="onSubmit()" class="btn">
+ </div>
+        
+        
+        
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1641759486";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1641759486";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></DIV>
+<DIV class="hd_r_link fr"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><A href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 61540)" target="_blank">学校主页</A> 
+<A href="http://tyben.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 62678)" target="_blank">English</A> 
+</DIV></DIV></DIV><!-- nav start -->
+<DIV id="nav">
+<DIV class="nav_menu"><UL class="nav_list">
+<LI><A href="../../index.htm" title="首页">首页</A> 
+</LI>
+<LI><A href="../../bmgk1/bmjj.htm" title="部门概况">部门概况</A> 
+<DL class="menu">
+<DD><A href="../../bmgk1/bmjj.htm" title="部门简介">部门简介</A> </DD>
+<DD><A href="../../bmgk1/lsyg.htm" title="历史沿革">历史沿革</A> </DD>
+<DD><A href="../../bmgk1/xrld.htm" title="现任领导">现任领导</A> </DD>
+<DD><A href="../../bmgk1/jgsz.htm" title="机构设置">机构设置</A> </DD>
+<DD><A href="../../bmgk1/wyh.htm" title="委员会">委员会</A> </DD>
+<DD><A href="../../bmgk1/xcsp.htm" title="宣传视频">宣传视频</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../szdw.htm" title="师资队伍">师资队伍</A> 
+<DL class="menu">
+<DD><A href="../../szdw/js.htm" title="教授">教授</A> </DD>
+<DD><A href="../../szdw/fjs.htm" title="副教授">副教授</A> </DD>
+<DD><A href="../../szdw/js1.htm" title="讲师">讲师</A> </DD>
+<DD><A href="../../szdw/zj.htm" title="助教">助教</A> </DD>
+<DD><A href="../../szdw/zzgtjs.htm" title="专职公体教师">专职公体教师</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../djgz.htm" title="党建工作">党建工作</A> 
+<DL class="menu">
+<DD><A href="../../djgz/zzjg.htm" title="组织机构">组织机构</A> </DD>
+<DD><A href="../../djgz/gzdt.htm" title="工作动态">工作动态</A> </DD>
+<DD><A href="../../djgz/ztxx.htm" title="专题学习">专题学习</A> </DD>
+<DD><A href="../../djgz/ghgz.htm" title="工会工作">工会工作</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyjlb.htm" title="体育俱乐部">体育俱乐部</A> 
+<DL class="menu">
+<DD><A href="../../tyjlb/jlbjx.htm" title="俱乐部教学">俱乐部教学</A> </DD>
+<DD><A href="../../tyjlb/yjsjx.htm" title="研究生教学">研究生教学</A> </DD>
+<DD><A href="../../tyjlb/wskc.htm" title="网上课程">网上课程</A> </DD>
+<DD><A href="http://jpkc.xidian.edu.cn/dxty/" title="精品课程">精品课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../zspy.htm" title="招生培养">招生培养</A> 
+<DL class="menu">
+<DD><A href="../../zspy/sszs.htm" title="硕士招生">硕士招生</A> </DD>
+<DD><A href="../../zspy/sspy1.htm" title="硕士培养">硕士培养</A> </DD>
+<DD><A href="../../zspy/yddzsh.htm" title="运动队招生">运动队招生</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyky.htm" title="体育科研">体育科研</A> 
+<DL class="menu">
+<DD><A href="../../tyky/ktlx.htm" title="课题立项">课题立项</A> </DD>
+<DD><A href="../../tyky/xscg.htm" title="学术成果">学术成果</A> </DD>
+<DD><A href="../../tyky/kyhj.htm" title="科研获奖">科研获奖</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../ydjs.htm" title="运动竞赛">运动竞赛</A> 
+<DL class="menu">
+<DD><A href="../../ydjs/gspydd.htm" title="高水平运动队">高水平运动队</A> </DD>
+<DD><A href="../../ydjs/ptsydd.htm" title="普通生运动队">普通生运动队</A> </DD>
+<DD><A href="../../ydjs/xnjs.htm" title="校内竞赛">校内竞赛</A> </DD>
+<DD><A href="../../ydjs/syxw.htm" title="首页新闻">首页新闻</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../rydt.htm" title="荣誉殿堂">荣誉殿堂</A> 
+<DL class="menu">
+<DD><A href="../../rydt/xdqgry.htm" title="西电全国荣誉">西电全国荣誉</A> </DD>
+<DD><A href="../../rydt/xdsnry.htm" title="西电省内荣誉">西电省内荣誉</A> </DD>
+<DD><A href="../../rydt/xdxnry.htm" title="西电校内荣誉">西电校内荣誉</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../gzzd.htm" title="规章制度">规章制度</A> 
+</LI>
+<LI><A href="../../rczp.htm" title="人才招聘">人才招聘</A> 
+</LI>
+<LI><A href="#" title="下载专区">下载专区</A> 
+<DL class="menu">
+<DD><A href="../../xzzq1/xzzq.htm" title="下载专区">下载专区</A> </DD>
+<DD><A href="../../xzzq1/jxkyyb.htm" title="教学科研用表">教学科研用表</A> </DD>
+<DD><A href="../../xzzq1/rsfwxx.htm" title="人事服务信息">人事服务信息</A> </DD>
+<DD><A href="../../xzzq1/wskc.htm" title="网上课程">网上课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../cggl.htm" title="场馆管理">场馆管理</A> 
+<DL class="menu">
+<DD><A href="../../cggl/cgjs.htm" title="场馆介绍">场馆介绍</A> </DD>
+<DD><A href="../../cggl/glgd.htm" title="管理规定">管理规定</A> </DD>
+<DD><A href="../../cggl/cgsq.htm" title="场馆申请">场馆申请</A> </DD>
+</DL>
+</LI>
+</UL></DIV></DIV><!-- end nav --></DIV></DIV><!-- end header --><!-- ej_banner start -->
+<DIV id="ej_banner" class="w100">
+<DIV class="ej_banner_con">    <IMG alt="" src="../../images/ej_banner.jpg"> </DIV>
+<DIV class="ej_banner_bd">
+<DIV class="lmmc"><!-- header start -->
+场馆介绍</DIV></DIV></DIV><!-- end ej_banner --><!-- main start -->
+<DIV id="main" class="w100">
+<DIV class="container">
+<DIV class="main_con clearfix">
+<DIV class="main_con_l fl">
+<DIV class="sidebar"><UL>
+<LI class="active"><A href="../../cggl/cgjs.htm" title="场馆介绍">场馆介绍</A></LI>
+
+<LI><A href="../../cggl/glgd.htm" title="管理规定">管理规定</A></LI>
+
+<LI><A href="../../cggl/cgsq.htm" title="场馆申请">场馆申请</A></LI>
+
+</UL>
+</DIV></DIV>
+<DIV class="main_con_r fr">
+<DIV class="main_hd">
+<DIV class="dqwz"><div>
+    位置: 
+                        <a href="../../index.htm">首页</a>
+                >
+                <a href="../../cggl.htm">场馆管理</a>
+                >
+                <a href="../../cggl/cgjs.htm">场馆介绍</a>
+                >
+                正文
+</div>
+
+</DIV><SPAN class="line"></SPAN></DIV>
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><script language="javascript" src="/system/resource/js/news/mp4video.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="nr">
+	<div class="main_bd">
+	         <div class="con_title">
+   <h2 class="title">十四运与十一届残运会羽毛球竞委会工作掠影</h2>
+   <p class="info">来源：<span class="xxly">
+    </span>时间：<span class="time1">2022-05-20</span>点击数：<i class="djs"><script>_showDynClicks("wbnews", 1641759486, 3732)</script></i></p>
+                 </div>
+
+
+
+    <div id="vsb_content" class="content"><div class="v_news_content">
+<p><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 20px;">第十四届全国运动会</span></p>
+<p><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 20px;">全国第十一届残运会暨第八届特奥会</span></p>
+<p><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 20px;">羽毛球竞赛委员会工作掠影</span></p>
+<p style="text-align: center;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 20px;"><script name="_videourl" vurl="/__local/3/CD/09/E58EC8058511B55227AD73EB0A3_709D975D_57FAD24.mp4?e=.mp4" vwidth="600" vheight="450" rand="null" align="" vsbhrefname="vurl" style="float:none">showVsbVideo("/__local/3/CD/09/E58EC8058511B55227AD73EB0A3_709D975D_57FAD24.mp4?e=.mp4","height=\"450\"","width=\"600\"","","float:none","false");</script></span></p>
+</div></div><div id="div_vote_id"></div>
+    
+<div class="page">
+  <p><span></p>
+  <p><span>下一条：</span><a href="1900.htm">北校区室外体育场地</a></p>
+</div>
+
+
+</div></div>
+</form>
+</DIV></DIV></DIV></DIV><!-- end main --><!-- footer start -->
+<DIV id="footer" class="w100">
+<DIV class="container">
+<DIV class="foot_con clearfix">
+<DIV class="foot_top">
+<DIV class="address fl">
+<p>北校区地址:西安市太白南路2号 邮编：710071</p> 
+<p>南校区地址:西安市西沣路兴隆段266号 邮编：710126</p> 
+<p>电话：（029）81891207 办公邮箱：tiyubu1294@126.com</p> 
+<p>意见投诉信箱：tyb@xidian.edu.cn</p> 
+<p>师德师风监督电话：（029）81891207</p></DIV>
+<DIV class="ft_ewm fr">    
+
+<IMG alt="" src="../../images/erweima.jpg"> 
+<P class="title">官方微信</P>
+</DIV></DIV>
+<DIV class="copyright"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright&nbsp;© 2007-2021 西安电子科技大学体育部 版权所有 技术支持： <a href="https://xxzx.xidian.edu.cn/" style="text-decoration: none; color: white">信息网络技术中心 </a>&nbsp;&nbsp;西安聚力</p></DIV></DIV></DIV></DIV><!-- end footer --><!-- back start -->
+<DIV id="back"></DIV><!-- end back -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

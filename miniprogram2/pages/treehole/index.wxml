@@ -1,0 +1,127 @@
+<view class="{{pageMotion}} page campus-page {{themeClass}} treehole-layout-threads {{drawerOpen ? 'drawer-active' : ''}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+  <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
+
+  <social-header fixed collapsed="{{headerCollapsed}}" profile="{{userInfo}}"></social-header>
+
+  <view class="refresh-feedback" wx:if="{{!searchOpen && homeTabs[activeHomeTabIndex].refreshFeedbackVisible}}" style="top: {{headerCollapsed ? navTop + 48 : navTop + navHeight + 56}}px;">
+    <view class="refresh-feedback-pill">正在刷新</view>
+  </view>
+
+  <view class="feed-tabs {{searchOpen ? 'searching' : ''}}" style="top: {{headerCollapsed ? navTop : navTop + navHeight + 8}}px; padding-right: {{headerCollapsed && !searchOpen ? navRight : 0}}px;">
+    <view class="feed-tab-viewport">
+      <scroll-view class="feed-tab-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="feed-tab-list">
+          <view wx:for="{{homeTabs}}" wx:key="value" id="home-tab-{{item.value}}" data-tab="{{item.value}}" class="feed-tab section-tab {{activeHomeTab === item.value ? 'active' : ''}}" bindtap="onHomeTabTap" hover-class="section-tab-pressed" role="button" aria-label="{{item.label}}">
+            <text class="feed-tab-label">{{item.label}}</text>
+          </view>
+          <view class="section-tab-cursor" style="width:88px; transform:translateX({{activeHomeTabIndex * 100}}%);" aria-hidden="true"><view class="section-tab-line"></view></view>
+        </view>
+      </scroll-view>
+    </view>
+    <view class="feed-search-area">
+      <view class="feed-tab-fade" aria-hidden="true"></view>
+      <button class="feed-search" bindtap="goSearch" hover-class="tap-active" aria-label="搜索"><view class="ui-icon icon-search"></view></button>
+    </view>
+    <view wx:if="{{searchOpen}}" class="inline-search-bar" style="right: {{headerCollapsed ? navRight : 0}}px;">
+      <button class="inline-search-exit" bindtap="closeInlineSearch" aria-label="退出搜索"><view class="ui-icon icon-close"></view></button>
+      <view class="inline-search-field">
+        <view class="ui-icon icon-search"></view>
+        <input value="{{searchKeyword}}" focus="{{searchOpen}}" placeholder="搜索帖子" confirm-type="search" bindinput="onInlineSearchInput" bindconfirm="submitInlineSearch" />
+      </view>
+      <button class="inline-search-submit" bindtap="submitInlineSearch">搜索</button>
+    </view>
+  </view>
+  <view class="feed-body" style="top: {{headerCollapsed ? navTop + 48 : navTop + navHeight + 56}}px; height: calc(100vh - {{headerCollapsed ? navTop + 48 : navTop + navHeight + 56}}px - var(--tab-height));">
+    <view wx:if="{{bootstrapError}}" class="bootstrap-error">
+      <view class="bootstrap-error-icon ui-icon icon-info"></view>
+      <view class="empty-state-title">暂时无法载入主页</view>
+      <view class="empty-state-desc">{{bootstrapError}}</view>
+      <button class="primary-button empty-state-btn" bindtap="initializeHome">重新加载</button>
+    </view>
+    <swiper id="home-pager" class="home-pager {{searchOpen || drawerOpen ? 'pager-locked' : ''}}" current="{{activeHomeTabIndex}}" duration="420" easing-function="easeInOutCubic" circular="{{false}}" autoplay="{{false}}" indicator-dots="{{false}}" skip-hidden-item-layout="{{false}}" bindchange="onHomeSwipeChange" bindanimationfinish="onHomeSwipeFinish" bindtouchstart="onHomePagerTouchStart" bindtouchend="onHomePagerTouchEnd" bindtouchcancel="onHomePagerTouchEnd">
+      <swiper-item wx:for="{{homeTabs}}" wx:for-item="feed" wx:key="value" item-id="{{feed.value}}" class="home-panel">
+        <scroll-view class="feed-list" data-tab="{{feed.value}}" scroll-y enhanced show-scrollbar="{{false}}" lower-threshold="160" refresher-enabled="{{feed.value === activeHomeTab && feed.value !== 'clubs' && feed.value !== 'organizations' && !searchOpen}}" refresher-threshold="72" refresher-triggered="{{feed.refreshTriggered}}" refresher-background="transparent" scroll-into-view="{{feed.feedScrollIntoView}}" scroll-with-animation bindrefresherrefresh="onRefresherRefresh" bindscrolltolower="onReachBottom" bindscroll="onScroll">
+          <view id="feed-top-{{feed.value}}" class="feed-top-anchor"></view>
+          <view class="feed-content">
+            <view wx:if="{{feed.value === 'clubs' || feed.value === 'organizations'}}" class="feed-placeholder"></view>
+            <block wx:else>
+              <view class="college-browser" wx:if="{{feed.value === 'colleges' && !feed.activeCollege}}">
+                <view class="college-heading">选择学院</view>
+                <view class="college-grid">
+                  <view wx:for="{{collegeOptions}}" wx:key="id" class="college-item" data-college="{{item}}" bindtap="selectCollege" hover-class="tap-active">
+                    <view class="college-item-name">{{item.sectionName}}</view>
+                  </view>
+                </view>
+                <view class="college-empty" wx:if="{{!collegeOptions.length}}">暂无学院数据</view>
+              </view>
+              <view class="active-college-bar" wx:if="{{feed.value === 'colleges' && feed.activeCollege}}">
+                <text>{{feed.activeCollege.sectionName}}</text>
+                <view bindtap="clearActiveCollege">切换学院</view>
+              </view>
+              <block wx:if="{{feed.value !== 'colleges' || feed.activeCollege}}">
+                <post-row wx:for="{{feed.posts}}" wx:key="id" item="{{item}}" index="{{index}}" list-key="{{feed.value}}" bind:open="goToDetail" bind:author="openAuthorProfile" bind:tag="goTagPosts" bind:like="togglePostLike" bind:favorite="togglePostFavorite" />
+                <view class="feed-skeleton" wx:if="{{!bootstrapError && !feed.posts.length && (!feed.initialized || feed.loading)}}" role="status" aria-label="正在加载校园动态">
+                  <view class="feed-loading-label"><view class="feed-loading-mark"></view><text>正在加载校园动态</text></view>
+                  <view class="skeleton-post" wx:for="{{[0, 1, 2]}}" wx:for-item="skeleton" wx:key="*this" aria-hidden="true">
+                    <view class="skeleton-avatar skeleton-pulse"></view>
+                    <view class="skeleton-body">
+                      <view class="skeleton-heading skeleton-pulse"></view>
+                      <view class="skeleton-line skeleton-pulse"></view>
+                      <view class="skeleton-line skeleton-short skeleton-pulse"></view>
+                      <view wx:if="{{skeleton === 1}}" class="skeleton-media skeleton-pulse"></view>
+                      <view class="skeleton-tools"><view></view><view></view><view></view><view></view></view>
+                    </view>
+                  </view>
+                </view>
+                <view class="loading-state" wx:if="{{feed.loading && feed.posts.length && !feed.refreshTriggered}}">正在加载更多...</view>
+                <view class="empty-state-container" wx:if="{{feed.initialized && !feed.loading && feed.errorMessage && !feed.posts.length}}">
+                  <view class="empty-state-title">加载失败</view>
+                  <view class="empty-state-desc">{{feed.errorMessage}}</view>
+                  <button class="primary-button empty-state-btn" data-tab="{{feed.value}}" bindtap="retryFeed">重新加载</button>
+                </view>
+                <view class="empty-state-container" wx:elif="{{feed.initialized && !feed.loading && !feed.posts.length}}">
+                  <view class="social-empty-illustration ui-icon icon-chat" aria-hidden="true"></view>
+                  <view class="empty-state-title">还没有帖子</view>
+                  <view class="empty-state-desc">发布的帖子会出现在这里。</view>
+                  <button class="primary-button empty-state-btn" bindtap="goCreatePost">发帖</button>
+                </view>
+                <view class="feed-more-error" wx:if="{{!feed.loading && feed.errorMessage && feed.posts.length}}">
+                  <text>{{feed.errorMessage}}</text>
+                  <button data-tab="{{feed.value}}" bindtap="retryLoadMore">重试</button>
+                </view>
+                <view class="no-more" wx:if="{{!feed.loading && !feed.hasMore && feed.posts.length}}">没有更多了</view>
+              </block>
+            </block>
+          </view>
+        </scroll-view>
+      </swiper-item>
+    </swiper>
+    <scroll-view wx:if="{{searchOpen && searchSearched}}" class="feed-search-results" data-tab="search" scroll-y enhanced show-scrollbar="{{false}}" bindscroll="onScroll">
+      <view class="loading-state" wx:if="{{searchLoading}}">搜索中...</view>
+      <view class="empty-state-container" wx:elif="{{searchError}}">
+        <view class="empty-state-title">搜索失败</view>
+        <view class="empty-state-desc">{{searchError}}</view>
+        <button class="primary-button empty-state-btn" bindtap="submitInlineSearch">重新搜索</button>
+      </view>
+      <view class="empty-state-container" wx:elif="{{searchSearched && !searchResults.length}}">
+        <view class="social-empty-illustration ui-icon icon-search" aria-hidden="true"></view>
+        <view class="empty-state-title">没有找到相关帖子</view>
+        <view class="empty-state-desc">换个关键词试试。</view>
+      </view>
+      <post-row
+        wx:for="{{searchResults}}"
+        wx:key="id"
+        item="{{item}}"
+        index="{{index}}"
+        bind:open="goToDetail"
+        bind:author="openAuthorProfile"
+        bind:tag="goTagPosts"
+        bind:like="toggleSearchPostLike"
+        bind:favorite="toggleSearchPostFavorite"
+      />
+    </scroll-view>
+  </view>
+
+  <button wx:if="{{showBackToTop && !drawerOpen}}" class="back-to-top" bindtap="backToTop" aria-label="返回顶部"><view class="ui-icon icon-arrow"></view></button>
+  <button wx:if="{{(activeHomeTab === 'hot' || activeHomeTab === 'latest') && !drawerOpen}}" class="floating-publish {{showPublishButton ? '' : 'hidden'}}" bindtap="goCreatePost" aria-label="发帖"><view class="ui-icon icon-compose"></view></button>
+</view>

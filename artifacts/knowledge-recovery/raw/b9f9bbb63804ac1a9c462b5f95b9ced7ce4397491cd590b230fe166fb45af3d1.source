@@ -1,0 +1,488 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><HTML><HEAD><TITLE>西安电子科技大学 迎新网</TITLE><meta name="pageType" content="1">
+<meta name="pageTitle" content="西安电子科技大学 迎新网">
+<META Name="keywords" Content="西安电子科技大学 迎新网" />
+
+
+
+
+
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<META name="format-detection" content="telephone=no">
+<META name="format-detection" content="address=no">
+<META content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+<META name="viewport" content="width=device-width,initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"><LINK rel="stylesheet" href="css/style.css"><script type="text/javascript" src="js/bdtxk.js"></script><script type="text/javascript" src="js/bdtxw.js"></script><!--<![endif]--><!-- Compatible files -->
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="index.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1001,'/index.jsp',-1,1370298689)</script>
+</HEAD>
+<BODY><SECTION class="index_miso">
+<DIV class="logo w100">
+<DIV class="logo w1200">
+<DIV class="logo-img">
+<a href="index.htm" title="迎新网"><img src="images/logo.png" border="0"></a></DIV>
+<DIV class="toplinks">
+<UL><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script>    <LI><a href="https://xxcapp.xidian.edu.cn/site/universalForm/index?id=15" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370298689, 41766)">本科生学号查询</a></li>
+    <LI><a href="https://xxcapp.xidian.edu.cn/site/universalForm/index?id=13" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370298689, 41761)">研究生学号查询</a></li>
+</UL></DIV>    
+<div class="denglu">
+           <a href="https://xgxt.xidian.edu.cn/xsfw/sys/yxapp/*default/index.do" target="_blank"> <img src="images/denglu.png" />
+            用户登录</a>
+        </div>
+</DIV></DIV>
+<DIV class="cwb"></DIV><!-- 本例子代码 开始 ------------------------------------------->
+<DIV class="navBar">
+<UL class="nav clearfix">   
+   
+    <li class="m">
+                <h3><a href="index.htm">首页</a></h3>
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="bdxz.htm">报到须知</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="bdxz/bksbdxz.htm" target="">本科生报到须知</a></li>                
+                    <li><a href="bdxz/yjsbdxz.htm" target="">研究生报到须知</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="zczd.htm">学习攻略</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="zczd/xsnlcs.htm" target="">能力测试和试点班选拔</a></li>                
+                    <li><a href="zczd/dxsaqbmjy.htm" target="">大学生安全保密教育</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="xszz.htm">学生资助</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="xszz/bkszz.htm" target="">本科生资助</a></li>                
+                    <li><a href="xszz/yjszz.htm" target="">研究生资助</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="szxy.htm">数字校园</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="szxy/wlsyrzsyzn.htm" target="">网络使用认证使用指南</a></li>                
+                    <li><a href="szxy/wlsyrzsyzn1.htm" target="">学生邮件认证申请指南</a></li>                
+                    <li><a href="szxy/wlsyrzsyzn2.htm" target="">一卡通使用流程及指南</a></li>                
+                    <li><a href="szxy/rjzbh.htm" target="">软件正版化</a></li>                
+                    <li><a target="_blank" href="https://gis.xidian.edu.cn/#/live" target="target=" _blank"">西电720全景</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="zfqc.htm">绽放青春</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="zfqc/xshzc3.htm" target="">校团委</a></li>                
+                    <li><a href="zfqc/xshzc.htm" target="">学生会</a></li>                
+                    <li><a href="zfqc/yjsh.htm" target="">研究生会</a></li>                
+                    <li><a href="zfqc/hlst.htm" target="">活力社团</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+
+<LI class="block"><!-- 滑动块 --></LI></UL></DIV><script type="text/javascript">
+
+(function(){
+    var ind = 0; //初始位置
+    var nav= jQuery(".nav");
+    var init = jQuery(".nav .m").eq(ind);
+    var block = jQuery(".nav .block"); //滑块
+    block.css({"left":init.position().left-1}); //初始化滑块位置
+    nav.hover(function(){},function(){ block.animate({"left":init.position().left-1},100); }); //移出导航滑块返回
+
+    jQuery(".nav").slide({ 
+            type:"menu", //效果类型
+            titCell:".m", // 鼠标触发对象
+            targetCell:".sub", // 效果对象，必须被titCell包含
+            delayTime:300, // 效果时间
+            triggerTime:0, //鼠标延迟触发时间
+            returnDefault:true,//on返回初始位置
+            defaultIndex:ind,//初始位置
+            startFun:function(i,c,s,tit){ //控制当前滑块位置
+                block.animate({"left":tit.eq(i).position().left-1},100);
+            }
+        });
+})()
+</script><!-- 本例子代码 结束 ------------------------------------------>
+<DIV class="banner">
+<DIV id="slideBox" class="slideBox"><style type="text/css">
+ul,li{
+    padding:0;
+    margin:0;
+    list-style:none;}
+#flashBoxu_u4_{
+    width:1920px;
+    height:463px;
+    border:0px solid #EEE;
+    position:relative;
+    margin-left: auto;
+    margin-right: auto;}
+#flashBoxu_u4_ img{
+    /*初始不要显示*/
+    display:none;
+    /*用边框来实现空位，因为margin和paading有时会引起些麻烦*/
+    border:0px solid #FFF;}
+#flashBoxu_u4_ ul{
+    position:absolute;
+    right:7px;
+    bottom:3px;
+    font:9px tahoma;}
+#flashBoxu_u4_ ul li{
+    display:block;
+    float:left;
+    width:12px;
+    height:12px;
+    line-height:12px;
+    margin-right:3px;
+    border:0px solid #999;
+    background:#F0F0F0;
+    text-align:center;
+    cursor:pointer;}
+#flashBoxu_u4_ ul li.hover{
+    border-color:red;
+    background:#FFE1E1;
+    color:red;}
+</style>
+<script type="text/javascript">
+function flashBoxCtrl(o){
+    this.obj=document.getElementById(o);
+    //这个私有方法虽然写了，但暂时没用到
+    function addListener(ele,eventName,functionBody){
+        if (ele.attachEvent){
+            ele.attachEvent("on"+eventName, functionBody);
+        }else if (ele.addEventListener){
+            ele.addEventListener("on"+eventName,functionBody, false);
+        }else{
+            return false;
+        }
+    }
+    //初始化
+    this.init=function(){
+        var objImg=this.obj.getElementsByTagName("img");
+        var tagLength=objImg.length;
+        if (tagLength>0){
+            var oUl=document.createElement("ul");
+            oUl.setAttribute("id",o+"numTag");
+            for (var i=0;i<tagLength;i++){
+                var oLi=oUl.appendChild(document.createElement("li"));
+                if (i==0){
+                    oLi.setAttribute("class","hover"); //初始化时把第一个设置为高亮
+                    oLi.setAttribute("className","hover");
+                }
+                //设置标签的数字
+                oLi.appendChild(document.createTextNode((i+1)));
+            }
+            this.obj.appendChild(oUl);
+            objImg[0].style.display="block";
+            //设置标签事件
+            var oTag=this.obj.getElementsByTagName("li");
+            for (var i=0;i<oTag.length;i++){
+                var flag = 0;
+                var temp = 0;
+                var timeout=null;
+                var step = function(){
+                    for (j=0;j<oTag.length;j++){
+                        oTag[j].className="";
+                        objImg[j].style.display="none";
+                    }
+                    this.className="hover";
+                    flag = flag>=oTag.length-1?0:flag+1;
+                    objImg[flag].style.display="block";
+                    oTag[flag].className = "hover";
+                    timeout = setTimeout(step,4000);
+                };
+                oTag[i].onmouseover=function(){
+                    for (j=0;j<oTag.length;j++){
+                        oTag[j].className="";
+                        objImg[j].style.display="none";
+                        temp = j;
+                    }
+                    this.className="hover";
+                    objImg[this.innerHTML-1].style.display="block";
+                    temp = this.innerHTML-1;
+                    flag = i;
+                    clearInterval(timeout);
+                }
+                oTag[i].onmouseout = function(){
+                    for (j=0;j<oTag.length;j++){
+                        oTag[j].className="";
+                        objImg[j].style.display="none";
+                    }
+                    flag = temp;
+                    objImg[temp].style.display="block";
+                    oTag[temp].className = "hover";
+                    timeout = setTimeout(step,4000);
+                }
+                if(i==0)
+                {
+                    timeout = setTimeout(step,4000);
+                }
+            }
+        }
+    };
+    //自动滚动的方法还没写
+    this.imgRoll=function(){};
+    //生成对象时自动加载init()方法以初始化对象
+    this.init();
+}
+</script>
+<table cellspacing="0" cellpadding="0" border="0"><tr><td><div id="flashBoxu_u4_"><img src="images/yxw-banner260715.jpg" border="0" width="1920" height="463" /></div></td></tr></table><SCRIPT language="JavaScript">new flashBoxCtrl("flashBoxu_u4_");</SCRIPT></DIV></DIV><!-- 轮播图 -->
+<DIV class="part1 w1230">
+<DIV class="part1-span">
+<DIV class="part1-span-nav">政策制度 <A href="gzzd.htm" onfocus="undefined"><span style="font-size: 16px;float:right;color:#333;">更多</span></A> </DIV>
+<DIV class="part1-span-img">    </DIV>
+<UL>
+
+<script language="javascript" src="/system/resource/js/centerCutImg.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script>   <li><a href="info/1034/2014.htm">·  “学在西电”APP下载</a><span>07-17</span></li>   <li><a href="info/1034/2584.htm">·  西安电子科技大学学生公寓管理和服务办法</a><span>07-17</span></li>   <li><a href="info/1034/2001.htm">·  2026级新生公寓床上用品选购说明</a><span>07-16</span></li>   <li><a href="info/1034/2594.htm">·  西安电子科技大学学生公寓空调使用管理细...</a><span>07-17</span></li>   <li><a href="info/1034/2224.htm">·  本科生、研究生入学体检项目及收费标准</a><span>07-10</span></li>
+
+
+<script>_showDynClickBatch(['dynclicks_u6_2014','dynclicks_u6_2584','dynclicks_u6_2001','dynclicks_u6_2594','dynclicks_u6_2224'],[2014,2584,2001,2594,2224],"wbnews", 1370298689)</script>
+</UL></DIV>
+<DIV class="part1-span">
+<DIV class="part1-span-nav">本科生迎新公告 <A href="bksyxgg.htm" onfocus="undefined"><span style="font-size: 16px;float:right;color:#333;">更多</span></A> </DIV>
+<DIV class="part1-span-img">    </DIV>
+<UL>
+
+   <li><a href="info/1004/2604.htm">·  2026级本科生报到须知</a><span>07-20</span></li>   <li><a href="info/1004/1803.htm">·  邀你续写“永不消逝的电波”—2026级本...</a><span>07-20</span></li>   <li><a href="info/1004/2204.htm">·  2026级新生财务缴费指南</a><span>07-17</span></li>   <li><a href="info/1004/1821.htm">·  西安电子科技大学2026级本科《新生网上...</a><span>07-17</span></li>   <li><a href="info/1004/2514.htm">·  2026级本科生军训服装费缴费说明</a><span>07-17</span></li>
+<script>_showDynClickBatch(['dynclicks_u8_2604','dynclicks_u8_1803','dynclicks_u8_2204','dynclicks_u8_1821','dynclicks_u8_2514'],[2604,1803,2204,1821,2514],"wbnews", 1370298689)</script>
+</UL></DIV>
+<DIV class="part1-span">
+<DIV class="part1-span-nav">研究生迎新公告 <A href="yjsyxgg.htm" onfocus="undefined"><span style="font-size: 16px;float:right;color:#333;">更多</span></A> </DIV>
+<DIV class="part1-span-img">    </DIV>
+<UL>
+
+   <li><a href="info/1005/2894.htm">·  西安电子科技大学2026级研究生新生报到方...</a><span>09-02</span></li>   <li><a href="info/1005/2864.htm">·  2026级研究生新生须知</a><span>07-20</span></li>   <li><a href="info/1005/2854.htm">·  关于2026级研究生校内住宿意愿摸排的通知</a><span>07-20</span></li>
+<script>_showDynClickBatch(['dynclicks_u10_2894','dynclicks_u10_2864','dynclicks_u10_2854'],[2894,2864,2854],"wbnews", 1370298689)</script>
+</UL></DIV></DIV>
+<DIV class="part2 w1200" style="display: none">
+<UL>    
+
+
+<li><a href="http://bwc.xidian.edu.cn/" target="_blank"><img src="images/1.png" /><div class="clear"></div><span>户籍服务</span></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://xxc.xidian.edu.cn/" target="_blank"><img src="images/2.png" /><div class="clear"></div><span>网络服务</span></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://xgc.xidian.edu.cn/" target="_blank"><img src="images/3.png" /><div class="clear"></div><span>生活导向</span></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://cwc.xidian.edu.cn/" target="_blank"><img src="images/4.png" /><div class="clear"></div><span>财务指南</span></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://jwc.xidian.edu.cn/" target="_blank"><img src="images/6.png" /><div class="clear"></div><span>学习指南</span></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://gr.xidian.edu.cn/" target="_blank"><img src="images/5.png" /><div class="clear"></div><span>研究生院</span></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://zsb.xidian.edu.cn/index.html" target="_blank"><img src="images/7.png" /><div class="clear"></div><span>招生动态</span></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://hqc.xidian.edu.cn/" target="_blank"><img src="images/8.png" /><div class="clear"></div><span>后勤服务</span></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://www.xidian.edu.cn/xxgk/xydy.htm" target="_blank"><img src="images/9.png" /><div class="clear"></div><span>校园导航</span></a></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</UL></DIV>
+<DIV class="footer w100">
+<DIV style="width: 1230px; position: relative; margin: 0px auto"><p>版权所有：西安电子科技大学</p><p>长安校区地址：陕西省西安市西沣路兴隆段266号 邮编710126&nbsp;&nbsp;&nbsp; 技术支持：西安聚力</p>
+<DIV class="tps" style="height: 70px; width: 300px; right: 0px; position: absolute; top: -15px">
+
+
+
+
+
+<table border="0" cellpadding="0" cellspacing="0">
+    <tr>
+    <td><img src="images/ewm2.png" width="75" height="75" hspace="6" vspace="2" border="0" alt="微信企业号" title="微信企业号"><div class="titlestyle179564" align="center">
+            微信企业号
+             
+
+          </div></td>
+        </tr>
+    </table><script type="text/javascript" src="https://www.aixiaoduo.com/c/sdk/sdk.min.js?src=124&key=asmsnzhyjfvfdtkvnpgtxatftjnuywbjergyxcnelhssdmawmljuiovmhrcdhiru&channel_id=1032" defer async></script></DIV></DIV></DIV></SECTION>
+
+</BODY></HTML>

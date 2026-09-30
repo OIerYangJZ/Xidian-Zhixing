@@ -1,0 +1,49 @@
+.hot-page { padding: 32rpx 0; background: var(--app-background); }
+.hot-header { display: flex; align-items: center; justify-content: space-between; padding: 0 32rpx 22rpx; }
+.hot-title { color: var(--brand-deep); font-size: 21px; font-weight: 750; }
+.summary-btn { width: 154rpx; height: 64rpx; border-radius: 18rpx; background: var(--app-primary); color: var(--app-on-primary); font-size: 12.5px; line-height: 64rpx; margin: 0; }
+.summary-card { margin: 0 32rpx 24rpx; padding: 24rpx; border-radius: 24rpx; background: var(--app-primary-soft); color: var(--app-primary); font-size: 13px; line-height: 1.5; }
+.hot-row { display: flex; gap: 20rpx; padding: 32rpx; margin: 16rpx 32rpx; border: 1rpx solid var(--app-divider); border-radius: 36rpx; background: var(--app-surface); box-shadow: none; }
+
+.rank-seal-solid {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 12rpx;
+  background: var(--brand-seal);
+  color: var(--app-on-primary);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 52rpx;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.rank-seal-empty {
+  width: 52rpx;
+  height: 52rpx;
+  border: 2rpx solid var(--app-divider);
+  border-radius: 12rpx;
+  background: transparent;
+  color: var(--app-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 48rpx;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.hot-body { flex: 1; min-width: 0; }
+.hot-name { color: var(--app-text-primary); font-size: 15px; font-weight: 700; line-height: 1.35; }
+.hot-summary { margin-top: 6rpx; color: var(--app-text-secondary); font-size: 12.5px; line-height: 1.45; }
+.hot-meta { margin-top: 10rpx; color: var(--app-text-tertiary); font-size: 11.5px; }
+
+/* Approved reference layout. */
+.hot-header-container { padding:24rpx 36rpx; }
+.hot-row { margin:0; padding:28rpx 36rpx; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; box-shadow:none; }
+.hot-name { font-size:17px; }
+.hot-summary { font-size:15px; line-height:1.5; }
+.summary-btn { min-height:44px; border-radius:26px; }
+.summary-btn { display:flex; align-items:center; justify-content:center; flex:0 0 88px; width:88px !important; margin:0 !important; line-height:1.4; }
+.hot-header { padding:0; gap:12px; }
+.hot-title-group { flex:1; min-width:0; }
+.hot-name, .hot-summary { overflow-wrap:anywhere; }

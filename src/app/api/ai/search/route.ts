@@ -13,9 +13,9 @@ export async function POST(request: Request) {
     const result = await searchCampusKnowledge(query, { includeCommunity: false });
     const items = result.items.map((item) => ({
       id: item.id,
-      title: item.originalTitle || item.title,
+      title: item.title,
       summary: item.summary || item.content.slice(0, 260),
-      sourceUrl: item.originalSourceUrl || item.sourceUrl || '',
+      sourceUrl: item.sourceUrl || '',
       authority: item.authority || '',
       score: item.score || 0,
     }));

@@ -1,0 +1,58 @@
+<view class="{{pageMotion}} settings-page {{themeClass}}">
+  <settings-header title="{{c.account}}" theme-class="{{themeClass}}" english="{{currentLanguage === 'en'}}" busy="{{submitting}}" />
+  <view wx:if="{{loading}}" class="settings-empty settings-caption">{{c.loading}}</view>
+  <view wx:elif="{{errorMessage}}" class="settings-empty"><view class="settings-error">{{errorMessage}}</view><button class="settings-text-button" bindtap="loadProfile">{{c.retry}}</button></view>
+  <block wx:elif="{{profile}}">
+    <view class="settings-section account-profile">
+      <view class="settings-row account-summary">
+        <image wx:if="{{profile.avatarUrl}}" class="settings-avatar" src="{{profile.avatarUrl}}" mode="aspectFill" />
+        <view wx:else class="settings-avatar">{{profile.avatarInitial}}</view>
+        <view class="settings-row-body"><view class="settings-title">{{profile.nickname || profile.alias}}</view><view class="settings-caption">{{profile.userLevelLabel}}</view></view>
+        <button class="settings-text-button" bindtap="editProfile" disabled="{{submitting}}">{{c.edit}}</button>
+      </view>
+    </view>
+    <view class="settings-section">
+      <view class="settings-section-title">{{c.identity}}</view>
+      <view class="settings-row"><view class="settings-row-body settings-title">{{currentLanguage === 'en' ? 'Verification' : '认证状态'}}</view><view class="settings-status {{profile.verified ? 'settings-success' : ''}}"><view class="settings-status-mark"></view>{{profile.verified ? c.verified : c.unverified}}</view></view>
+      <view class="settings-row identity-field"><view class="settings-row-body settings-title">{{c.studentId}}</view><text class="settings-value" selectable>{{profile.studentId || c.unset}}</text></view>
+      <view class="settings-row identity-field"><view class="settings-row-body settings-title">{{c.email}}</view><text class="settings-value" selectable>{{profile.email || c.unset}}</text></view>
+      <view class="settings-row identity-field"><view class="settings-row-body settings-title">{{c.college}}</view><view class="settings-value">{{profile.college || c.unset}}</view></view>
+    </view>
+    <view class="settings-section">
+      <view class="settings-section-title">{{c.level}}</view>
+      <view class="settings-row">
+        <view class="settings-row-body"><view class="settings-title">{{profile.userLevelLabel}}</view></view>
+        <view wx:if="{{profile.levelUpgradeRequest && profile.levelUpgradeRequest.status === 'pending'}}" class="settings-status">{{c.pending}}</view>
+        <button wx:elif="{{!profile.isLevelOneUser}}" class="settings-text-button" data-type="upgrade" bindtap="openRequest" disabled="{{submitting}}">{{c.upgrade}}</button>
+      </view>
+      <view wx:if="{{formType === 'upgrade'}}" class="settings-inline-panel">
+        <view class="settings-label">{{c.reason}} · {{c.optional}}</view>
+        <textarea class="settings-textarea request-textarea" value="{{reason}}" maxlength="500" disabled="{{submitting}}" placeholder="{{c.requestReason}}" placeholder-class="settings-placeholder" bindinput="onReasonInput" />
+        <view wx:if="{{submitError}}" class="settings-error">{{submitError}}</view>
+        <view class="request-actions"><button class="settings-button secondary" disabled="{{submitting}}" bindtap="closeRequest">{{c.cancel}}</button><button class="settings-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitRequest">{{submitting ? c.submitting : c.submit}}</button></view>
+      </view>
+    </view>
+    <view wx:if="{{requests.length}}" class="settings-section">
+      <view class="settings-section-title">{{c.application}}</view>
+      <view wx:for="{{requests}}" wx:key="type" class="request-record">
+        <view class="request-heading"><view class="settings-title">{{item.label}}</view><view class="settings-status">{{item.statusText}}</view></view>
+        <view class="settings-caption">{{item.timeText}}</view>
+        <view wx:if="{{item.reason}}" class="settings-caption">{{item.reason}}</view>
+        <view wx:if="{{item.reviewNote}}" class="request-note">{{c.replyLabel}}：{{item.reviewNote}}</view>
+      </view>
+    </view>
+    <view class="settings-section">
+      <view class="settings-section-title">{{c.accountManagement}}</view>
+      <view class="settings-title">{{c.cancellation}}</view>
+      <view class="settings-caption">{{c.cancellationCopy}}</view>
+      <view wx:if="{{profile.accountCancellationRequest && profile.accountCancellationRequest.status === 'pending'}}" class="settings-inline-state">{{c.pending}}</view>
+      <button wx:elif="{{formType !== 'cancellation'}}" class="settings-text-button account-danger" data-type="cancellation" bindtap="openRequest" disabled="{{submitting}}">{{c.cancellation}}</button>
+      <view wx:if="{{formType === 'cancellation'}}" class="settings-inline-panel">
+        <view class="settings-label">{{c.reason}} · {{c.optional}}</view>
+        <textarea class="settings-textarea request-textarea" value="{{reason}}" maxlength="500" disabled="{{submitting}}" placeholder="{{c.requestReason}}" placeholder-class="settings-placeholder" bindinput="onReasonInput" />
+        <view wx:if="{{submitError}}" class="settings-error">{{submitError}}</view>
+        <view class="request-actions"><button class="settings-button secondary" disabled="{{submitting}}" bindtap="closeRequest">{{c.cancel}}</button><button class="settings-button danger" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitRequest">{{submitting ? c.submitting : c.submit}}</button></view>
+      </view>
+    </view>
+  </block>
+</view>

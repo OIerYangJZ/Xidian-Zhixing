@@ -1,0 +1,545 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>临床科室-西安电子科技大学-校医院</title><meta name="pageType" content="2">
+<meta name="pageTitle" content="临床科室">
+<META Name="keywords" Content="西安电子科技大学-校医院" />
+
+<link rel="stylesheet" href="../../style/public.css" />
+<link rel="stylesheet" href="../../style/master.css" />
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.SuperSlide.js"></script>
+<script type="text/javascript" src="../../js/index.js"></script>
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../list3.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1102,'/list3.jsp',-1,1827564999)</script>
+</head>
+<body>
+<!--top-->
+<div class="stickWrap"></div>
+<div class="headerWrap">
+    
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" class="logo"></a>
+ <div class="xyy-tblj">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><UL>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71980)">24小时急诊</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71981)">北校区：029-88202779</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71982)">南校区：029-81891203</a></li>
+</UL>
+
+    </div>    
+<div class="linSea">
+        <div class="link"><UL>
+    <LI style="    float: right;    margin-left: 20px;"><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71967)" style="font-size: 9pt"> 学校首页</a></li>
+</UL>
+
+
+</div>
+        <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        width: 243px;
+    height: 24px;
+    font-size: 14px;
+    color: rgb(162, 162, 162);
+    margin-top: 5px;
+    margin-left: 16px;
+    line-height: 24px;
+    font-family: 微软雅黑;
+    background: rgb(255, 255, 255);
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    outline: none;}
+    }
+    #appu3 .tj{}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="请输入关键字进行搜索" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+           
+            <span>
+ <input class="tj" type="image" src="../../images/search.png" v-on:click="onSubmit()"/>
+</span>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "1827564999";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "1827564999";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+        </div>
+    </div>
+</div>
+<!--nav-->
+<div class="navWrap">
+    <div class="innavWrap">
+        <ul class="cleafix">
+
+               <li class="mainMenu">
+                <a class="link " href="../../index.htm">首页</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link  cur " href="../yyjj.htm">医院概况</a>
+                                <div id="nav">
+
+                                           <a href="../yyjj.htm">医院简介</a>
+                                           <a href="../zzjg.htm">组织架构</a>
+                                           <a href="../xrld.htm">现任领导</a>
+                                           <a href="lcks.htm">科室介绍</a>
+                                           <a href="../ysjs1/ebhk.htm">医师介绍</a>
+                                           <a href="../yyfc.htm">医院风采</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../ywgk.htm">院务公开</a>
+                                <div id="nav">
+
+                                           <a href="../../ywgk/yydt.htm">医院动态</a>
+                                           <a href="../../ywgk/tzgg.htm">通知公告</a>
+                                           <a href="../../ywgk/zcfg.htm">政策法规</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../djgz.htm">党建工作</a>
+                                <div id="nav">
+
+                                           <a href="../../djgz/zzjg.htm">组织架构</a>
+                                           <a href="../../djgz/xfjs.htm">行风建设</a>
+                                           <a href="../../djgz/zbjs.htm">支部建设</a>
+                                           <a href="../../djgz/xxyd.htm">学习园地</a>
+                                           <a href="../../djgz/ghgz.htm">工会工作</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../fwzn.htm">服务指南</a>
+                                <div id="nav">
+
+                                           <a href="../../fwzn/ksdh.htm">科室电话</a>
+                                           <a href="../../fwzn/jzlc.htm">就诊流程</a>
+                                           <a href="../../fwzn/jzsj.htm">就诊时间</a>
+                                           <a href="../../fwzn/wjxz.htm">文件下载</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jkgl.htm">健康管理</a>
+                                <div id="nav">
+
+                                           <a href="../../jkgl/yfjz.htm">预防接种</a>
+                                           <a href="../../jkgl/jkjy.htm">健康教育</a>
+                                           <a href="../../jkgl/crbfz.htm">传染病防治</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../zhyl.htm">智慧医疗</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jjyl.htm">居家养老</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../ybzl.htm">医保专栏</a>
+                                <div id="nav">
+
+                                           <a href="../../ybzl/dxsyb.htm">大学生医保</a>
+                                           <a href="../../ybzl/gfyl.htm">公费医疗</a>
+                                           <a href="../../ybzl/jzgyb.htm">教职工医保</a>
+                                           <a href="../../ybzl/zzzn.htm">转诊指南</a>
+                                           <a href="../../ybzl/bxzn.htm">报销指南</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../rczp.htm">人才招聘</a>
+                                <div id="nav">
+
+                                           <a href="../../rczp/zpqs.htm">招聘启事</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../lxwm.htm">联系我们</a>
+                                <div id="nav">
+
+                                           <a href="../../lxwm/tsjy.htm">投诉建议</a>
+                                </div> 
+           </li>
+
+   
+
+</ul>
+
+
+
+    </div>
+</div>
+<div class="n_ban">    
+            
+              <img src="../../images/ban001.jpg" />  
+      
+</div>
+<!--内页主体部分-->
+<div class="vsb-box">
+    <div class="vsb-container mainCon" containerid="2" columns="4">
+        <div class="local cleafix">
+            <i><img src="../../images/ico9.png" /></i> 
+                        <a href="../../index.htm">首页</a>
+                <em>&gt;</em>
+                <a href="../yyjj.htm">医院概况</a>
+                <em>&gt;</em>
+                <a href="lcks.htm">科室介绍</a>
+                <em>&gt;</em>
+                <a href="lcks.htm" class="cur">临床科室</a>
+
+        </div>
+        <div class="vsb-space n_left" columns="1">
+            <h2>
+医院概况</h2>
+            <ul class="nl_con">
+    <li><a href="lcks.htm" class="cur">临床科室</a></li>
+    <li><a href="yjks.htm">医技科室</a></li>
+    <li><a href="znks.htm">职能科室</a></li>
+</ul>
+        </div>
+        <div class="vsb-space n_right" columns="3">
+            
+
+
+<script language="javascript" src="/system/resource/js/centerCutImg.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><ul class="list">
+            <li class="cleafix">
+                    <div class="list_time fl">
+                        <p class="day">28</p>
+                        <p class="month">2015.05</p>
+                    </div>
+                    <div class="list_wen fr">
+                        <a href="../../info/1102/1088.htm" class="tit">急诊科</a>
+                        <p>急诊科急诊科现有各级医护人员11名，其中副主任医师1名，主治医师1名，主管护师1名；在完成基础医疗和急危重症抢救的同时，还承担着校内区域急诊出诊服务。我科拥有先进...[<a href="../../info/1102/1088.htm">详细</a>]</p>
+                    </div>
+                </li>
+                
+        <li class="cleafix">
+                    <div class="list_time fl">
+                        <p class="day">28</p>
+                        <p class="month">2015.05</p>
+                    </div>
+                    <div class="list_wen fr">
+                        <a href="../../info/1102/1090.htm" class="tit">内儿科</a>
+                        <p>儿科门诊时间：周一至周五内科门诊时间：周一至周五内科病区：拥有可开放床位60张，其中内一病区42张（包括有独立卫生间的特需病房4间）；内二病区18张，可隔离收治常见...[<a href="../../info/1102/1090.htm">详细</a>]</p>
+                    </div>
+                </li>
+                
+        <li class="cleafix">
+                    <div class="list_time fl">
+                        <p class="day">02</p>
+                        <p class="month">2015.06</p>
+                    </div>
+                    <div class="list_wen fr">
+                        <a href="../../info/1102/1089.htm" class="tit">外妇科</a>
+                        <p>外妇科    联系电话  外科门诊  029-88202758-8201                   外科病房 029-88202776                   妇科门诊 029-88202758-8401全科有医护人员18余人，其...[<a href="../../info/1102/1089.htm">详细</a>]</p>
+                    </div>
+                </li>
+                
+        <li class="cleafix">
+                    <div class="list_time fl">
+                        <p class="day">28</p>
+                        <p class="month">2015.05</p>
+                    </div>
+                    <div class="list_wen fr">
+                        <a href="../../info/1102/1086.htm" class="tit">口腔科</a>
+                        <p>西安电子科技大学校医院口腔科（北校区）是综合性口腔专科门诊，共有医务人员5人（4名医生1名护士），设备精良（5台牙科综合治疗椅，口腔CR数字化成像系统，进口高温高...[<a href="../../info/1102/1086.htm">详细</a>]</p>
+                    </div>
+                </li>
+                
+        <li class="cleafix">
+                    <div class="list_time fl">
+                        <p class="day">28</p>
+                        <p class="month">2015.05</p>
+                    </div>
+                    <div class="list_wen fr">
+                        <a href="../../info/1102/1092.htm" class="tit">中医针灸理疗科</a>
+                        <p>我院中医针灸理疗科为集中医、针灸、理疗、康复为一体的综合科室。位于二楼东侧，面积约200平米，设有20余张治疗床，为医院重点科室，多次被学校及医院评为先进科室。1...[<a href="../../info/1102/1092.htm">详细</a>]</p>
+                    </div>
+                </li>
+                
+        <li class="cleafix">
+                    <div class="list_time fl">
+                        <p class="day">28</p>
+                        <p class="month">2015.05</p>
+                    </div>
+                    <div class="list_wen fr">
+                        <a href="../../info/1102/1094.htm" class="tit">耳鼻喉科</a>
+                        <p>门诊时间：周一至周五全天门诊接诊联系电话：88202758—8207。科室简介：西安电子科技大学医院耳鼻喉科的主要业务范围为耳鼻喉科常见疾病的诊疗及手术。我科室拥有副主...[<a href="../../info/1102/1094.htm">详细</a>]</p>
+                    </div>
+                </li>
+                
+        <li class="cleafix">
+                    <div class="list_time fl">
+                        <p class="day">28</p>
+                        <p class="month">2015.05</p>
+                    </div>
+                    <div class="list_wen fr">
+                        <a href="../../info/1102/1093.htm" class="tit">眼科</a>
+                        <p>门诊时间：周一至周五全天门诊接诊值班电话：88202758-8203科室简介：业务范围: 眼科常见外眼疾病、白内障、虹睫炎、青光眼、黄斑变性、视网膜静脉阻塞、糖尿病视网膜病...[<a href="../../info/1102/1093.htm">详细</a>]</p>
+                    </div>
+                </li>
+                
+        <li class="cleafix">
+                    <div class="list_time fl">
+                        <p class="day">28</p>
+                        <p class="month">2015.05</p>
+                    </div>
+                    <div class="list_wen fr">
+                        <a href="../../info/1102/1095.htm" class="tit">疾控科</a>
+                        <p>疾控科是医院的一个职能科室，是社区卫生服务站的重要组成部分，是在医院领导的带领下和上级卫生机构指导下，以基层卫生机构为主体，全科医师为骨干，合理使用社区资源...[<a href="../../info/1102/1095.htm">详细</a>]</p>
+                    </div>
+                </li>
+                
+        <li class="cleafix">
+                    <div class="list_time fl">
+                        <p class="day">17</p>
+                        <p class="month">2018.05</p>
+                    </div>
+                    <div class="list_wen fr">
+                        <a href="../../info/1102/1091.htm" class="tit">疼痛科</a>
+                        <p>疼痛已被现代医学列为继呼吸、脉搏、血压、体温之后的第五大生命体征，有些慢性疼痛本身还是一种疾病（如三叉神经痛、带状疱疹后遗神经痛等）。长期的局部疼痛会形成复...[<a href="../../info/1102/1091.htm">详细</a>]</p>
+                    </div>
+                </li>
+                
+        <li class="cleafix">
+                    <div class="list_time fl">
+                        <p class="day">28</p>
+                        <p class="month">2015.05</p>
+                    </div>
+                    <div class="list_wen fr">
+                        <a href="../../info/1102/1087.htm" class="tit">长安校区门诊部</a>
+                        <p>门诊部担负着长安校区师生员工的常见病、多发病/急危重症病人的诊疗、救护工作，是一所集医疗、预防、检测、康复为一体的综合性门诊部。门诊部现设有临床科室为：内科、...[<a href="../../info/1102/1087.htm">详细</a>]</p>
+                    </div>
+                </li>
+                
+    </UL>
+    <link rel="stylesheet" Content-type="text/css" href="/system/resource/css/pagedown/sys.css"><div class="pb_sys_common pb_sys_full pb_sys_style1" style="margin-top:10px;text-align:center;"><span class="p_t">共10条</span><span class="p_t">1/1</span> <span class="p_pages"><span class="p_first_d p_fun_d">首页</span><span class="p_prev_d p_fun_d">上页</span><span class="p_no_d">1</span><span class="p_next_d p_fun_d">下页</span><span class="p_last_d p_fun_d">尾页</span></span>  <span class="p_t">到第</span><span class="p_goto"><script language="javascript" src="/system/resource/js/gotopage.js"></script><input type="text" class="p_goto_input" maxlength="10" id="u9_goto" onkeydown="if(event.keyCode==13){_simple_list_gotopage_fun(1,&quot;u9_goto&quot;,2)}" spellcheck="false"></span><span class="p_t">页</span> <span class="p_goto"><a href="javascript:;" onclick="_simple_list_gotopage_fun(1,&quot;u9_goto&quot;,2)">跳转</a></span></div><script>_showDynClickBatch(['dynclicks_u9_1088','dynclicks_u9_1090','dynclicks_u9_1089','dynclicks_u9_1086','dynclicks_u9_1092','dynclicks_u9_1094','dynclicks_u9_1093','dynclicks_u9_1095','dynclicks_u9_1091','dynclicks_u9_1087'],[1088,1090,1089,1086,1092,1094,1093,1095,1091,1087],"wbnews", 1827564999)</script>
+            
+        </div>
+    </div>
+    
+</div>
+
+
+
+<!--footer-->
+<div class="footerWrap">
+    <!--footTwo-->
+    <div class="footTwo">
+        <div class="foot cleafix">
+            <ul class="fttwo_l fl">
+</UL>
+            <div class="fttwo_r fl">        
+
+</div>
+        </div>
+    </div>
+    <!--footThree-->
+    <div class="footThree"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>CopyRight 2015 西安电子科技大学医院</p><p>地址: 西安市太白南路2号 西安电子科技大学医院&nbsp; &nbsp; &nbsp;技术支持：西安聚力</p></div>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

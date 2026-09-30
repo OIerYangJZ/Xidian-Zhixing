@@ -1,0 +1,56 @@
+<view class="{{pageMotion}} page conversations-page {{themeClass}} social-tab-page">
+  <social-header fixed brand="{{false}}">
+    <view slot="center" class="social-page-title">私信</view>
+    <button slot="actions" class="social-icon-button" bindtap="openMessageSettings" aria-label="私信设置"><view class="ui-icon icon-settings"></view></button>
+  </social-header>
+  <view class="message-search-wrap" style="top: {{navTop + navHeight + 8}}px;">
+    <view class="message-search {{searchFocused ? 'focused' : ''}}">
+      <view class="ui-icon icon-search"></view>
+      <input value="{{searchKeyword}}" bindinput="onSearchInput" bindfocus="onSearchFocus" bindblur="onSearchBlur" placeholder="搜索私信" placeholder-style="color: {{resolvedDisplayMode === 'dark' ? '#a6b1ba' : '#536471'}};" confirm-type="search" />
+      <button wx:if="{{searchKeyword}}" class="search-clear" bindtap="clearSearch" aria-label="清除搜索"><view class="ui-icon icon-close"></view></button>
+    </view>
+  </view>
+  <scroll-view class="conversation-scroll" scroll-y enhanced show-scrollbar="{{false}}" refresher-enabled refresher-triggered="{{refreshing}}" refresher-background="{{resolvedDisplayMode === 'dark' ? '#171b21' : '#ffffff'}}" bindrefresherrefresh="refreshList" style="top: {{navTop + navHeight + 70}}px; height: calc(100vh - {{navTop + navHeight + 70}}px - var(--tab-height));">
+    <view wx:if="{{loading && !conversations.length}}" class="loading-state">加载中...</view>
+    <view wx:elif="{{errorMessage}}" class="message-empty"><view class="message-empty-title">暂时无法加载私信</view><view class="message-empty-copy">{{errorMessage}}</view><button class="primary-button empty-action" bindtap="retryLoad">重试</button></view>
+    <view wx:elif="{{!visibleConversations.length}}" class="message-empty">
+      <view class="message-empty-title">{{searchKeyword ? '没有找到会话' : '欢迎来到你的收件箱'}}</view>
+      <view class="message-empty-copy">{{searchKeyword ? '试试其他名字或关键词。' : '在这里，和同学聊聊。'}}</view>
+      <button wx:if="{{!searchKeyword}}" class="new-message-button empty-action" bindtap="openNewMessage">发起私信</button>
+    </view>
+    <view wx:else class="conversation-list motion-content">
+      <view class="conversation-shell" wx:for="{{visibleConversations}}" wx:key="id">
+        <view class="conversation-actions"><button class="delete-button" data-index="{{item.sourceIndex}}" catchtap="removeConversation">删除</button></view>
+        <view class="conversation-row {{item.hasUnread ? 'unread' : ''}}" style="transform: translateX({{item.offsetX || 0}}rpx);" data-index="{{item.sourceIndex}}" bindtap="openChat" bindlongpress="onConversationLongPress" bindtouchstart="onRowTouchStart" bindtouchmove="onRowTouchMove" bindtouchend="onRowTouchEnd" bindtouchcancel="onRowTouchEnd">
+          <image wx:if="{{item.avatarUrl}}" class="avatar" src="{{item.avatarUrl}}" mode="aspectFill" data-id="{{item.peerUserId}}" catchtap="openProfile" />
+          <view wx:else class="avatar avatar-fallback" data-id="{{item.peerUserId}}" catchtap="openProfile">{{item.avatarInitial}}</view>
+          <view class="conversation-body">
+            <view class="conversation-head">
+              <view class="name-row"><text class="name">{{item.name}}</text><text wx:if="{{item.blockedByMe || item.blockedByPeer}}" class="blocked-tag">已屏蔽</text></view>
+              <text class="time">{{item.timeText}}</text>
+            </view>
+            <view class="preview-line"><view class="message">{{item.lastMessage}}</view><view wx:if="{{item.hasUnread}}" class="unread-dot" aria-label="{{item.unreadCount}} 条未读私信"></view></view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="conversation-end"></view>
+  </scroll-view>
+  <view wx:if="{{newMessageOpen || newMessageOpenLeaving}}" class="message-picker {{newMessageOpenLeaving && !newMessageOpen ? 'is-leaving' : ''}}">
+    <view class="picker-mask motion-mask" bindtap="closeNewMessage"></view>
+    <view class="picker-sheet motion-sheet">
+      <view class="picker-header"><button class="picker-close" bindtap="closeNewMessage" aria-label="关闭"><view class="ui-icon icon-close"></view></button><text>新私信</text></view>
+      <view class="recipient-search"><view class="ui-icon icon-search"></view><input value="{{recipientKeyword}}" focus="{{newMessageOpen}}" bindinput="onRecipientInput" bindconfirm="searchRecipients" placeholder="搜索同学" placeholder-style="color: {{resolvedDisplayMode === 'dark' ? '#a6b1ba' : '#536471'}};" confirm-type="search" /><button class="recipient-submit" bindtap="searchRecipients" disabled="{{recipientLoading || creatingConversation}}">搜索</button></view>
+      <scroll-view class="recipient-list" scroll-y enhanced show-scrollbar="{{false}}">
+        <view wx:if="{{recipientLoading}}" class="loading-state">搜索中...</view>
+        <view wx:elif="{{recipientError}}" class="recipient-status">{{recipientError}}</view>
+        <view wx:elif="{{recipientSearched && !recipients.length}}" class="recipient-status">没有找到同学</view>
+        <view wx:for="{{recipients}}" wx:key="id" class="recipient-row {{creatingConversation ? 'busy' : ''}}" data-index="{{index}}" bindtap="startConversation" hover-class="tap-active">
+          <image wx:if="{{item.avatarUrl}}" class="avatar" src="{{item.avatarUrl}}" mode="aspectFill" /><view wx:else class="avatar avatar-fallback">{{item.avatarInitial}}</view>
+          <view class="recipient-info"><view class="name">{{item.nickname}}</view><view wx:if="{{item.college}}" class="recipient-college">{{item.college}}</view></view>
+          <view class="ui-icon icon-mail"></view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

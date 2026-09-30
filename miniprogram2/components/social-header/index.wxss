@@ -1,0 +1,18 @@
+@import "../../styles/icons.wxss";
+:host { display: block; }
+.social-header { position: relative; display: flex; align-items: center; gap: 6px; box-sizing: border-box; padding-left: 10px; padding-bottom: 8px; background: var(--app-surface); color: var(--app-text-primary); font-family: var(--font-body); }
+.fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 60; background: var(--app-translucent-surface); transition:transform .32s cubic-bezier(.2,.72,.24,1), opacity .26s ease; }
+.fixed.collapsed { transform:translateY(-100%); opacity:0; pointer-events:none; }
+.avatar-button { width: 40px; height: 36px; flex: 0 0 40px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; background: transparent; color: inherit; transition:transform .14s ease, opacity .14s ease; }
+.avatar-button::after { border: 0; }
+.back-button { width: 40px; height: 36px; flex: 0 0 40px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; background: transparent; color: inherit; transition:transform .14s ease, opacity .14s ease; }
+.back-button::after { border: 0; }
+.back-button .ui-icon { width: 24px; height: 24px; }
+.avatar { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--app-control); color: var(--app-text-secondary); font-size: 15px; font-weight: 700; }
+.header-center { flex: 1; min-width: 0; display: flex; align-items: center; padding-right:40px; }
+.header-brand { position: absolute; left: 50%; transform: translateX(-50%); font-size: 23px; font-weight: 800; color: var(--app-primary); pointer-events: none; }
+.header-actions { position:absolute; display:flex; align-items:center; justify-content:flex-end; width:36px; }
+.pressed { opacity: .62; transform: scale(.88); }
+.profile-error .avatar { outline: 1px solid var(--app-error); }
+.avatar-button, .back-button { width:40px !important; min-width:40px; max-width:40px; margin:0 !important; }
+@media (prefers-reduced-motion: reduce) { .fixed, .avatar-button, .back-button { transition:none; } }

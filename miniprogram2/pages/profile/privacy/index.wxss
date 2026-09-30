@@ -1,0 +1,7 @@
+@import "../../../styles/settings.wxss";
+.preference-item { border-bottom:1px solid var(--app-divider); }
+.preference-item:last-child { border-bottom:0; }
+.preference-item .settings-row { border-bottom:0; gap:20px; }
+.preference-error { display:flex; align-items:center; gap:12px; padding-bottom:8px; }
+.preference-error .settings-error { flex:1; margin:0; }
+.preference-error .settings-text-button { flex-shrink:0; }

@@ -1,0 +1,31 @@
+<view class="{{pageMotion}} settings-page {{themeClass}}">
+  <settings-header title="{{c.edit}}" theme-class="{{themeClass}}" english="{{currentLanguage === 'en'}}" busy="{{saving || uploadingAvatar || uploadingBackground}}" confirm-leave-message="{{dirty ? (currentLanguage === 'en' ? 'Your changes have not been saved.' : '资料修改尚未保存。') : ''}}" />
+  <view wx:if="{{loading}}" class="settings-empty settings-caption">{{c.loading}}</view>
+  <view wx:elif="{{errorMessage}}" class="settings-empty"><view class="settings-error">{{errorMessage}}</view><button class="settings-text-button" bindtap="loadProfile">{{c.retry}}</button></view>
+  <block wx:elif="{{profile}}">
+    <view class="profile-media-section">
+      <button class="profile-cover" bindtap="chooseBackground" disabled="{{saving || uploadingBackground || uploadingAvatar}}" aria-label="{{c.changeCover}}">
+        <image wx:if="{{backgroundPreview}}" class="profile-cover-image" src="{{backgroundPreview}}" mode="aspectFill" />
+        <view wx:else class="cover-empty"><view class="ui-icon icon-image"></view><text>{{c.cover}}</text></view>
+        <view class="cover-action">{{uploadingBackground ? c.saving : c.changeCover}}</view>
+      </button>
+      <view class="profile-avatar-row">
+        <button class="profile-avatar-button" bindtap="chooseAvatar" disabled="{{saving || uploadingAvatar || uploadingBackground}}" aria-label="{{c.changeAvatar}}">
+          <image wx:if="{{avatarPreview}}" class="profile-avatar" src="{{avatarPreview}}" mode="aspectFill" /><view wx:else class="profile-avatar">{{avatarInitial}}</view>
+        </button>
+        <button class="settings-text-button" bindtap="chooseAvatar" disabled="{{saving || uploadingAvatar || uploadingBackground}}">{{uploadingAvatar ? c.saving : c.changeAvatar}}</button>
+        <button wx:if="{{backgroundPreview}}" class="settings-text-button remove-cover" bindtap="clearBackground" disabled="{{saving || uploadingAvatar || uploadingBackground}}">{{c.removeCover}}</button>
+      </view>
+      <view wx:if="{{mediaError}}" class="settings-error">{{mediaError}}</view><view wx:elif="{{mediaMessage}}" class="settings-caption settings-success">{{mediaMessage}}</view>
+    </view>
+    <view class="settings-section profile-form">
+      <view class="settings-field"><view class="settings-label">{{c.nickname}}</view><input class="settings-input" value="{{form.nickname}}" data-key="nickname" bindinput="onFieldInput" maxlength="30" disabled="{{saving}}" placeholder="{{c.nickname}}" placeholder-class="settings-placeholder" /></view>
+      <view class="settings-field"><view class="settings-label">{{c.bio}}</view><textarea class="settings-textarea profile-bio" value="{{form.bio}}" data-key="bio" bindinput="onFieldInput" maxlength="100" disabled="{{saving}}" placeholder="{{c.bioPlaceholder}}" placeholder-class="settings-placeholder" /><view class="settings-field-footer"><text></text><text>{{form.bio.length}} / 100</text></view></view>
+      <picker range="{{genderOptions}}" value="{{genderIndex}}" bindchange="onGenderChange" disabled="{{saving}}"><view class="settings-row"><view class="settings-row-body settings-title">{{c.gender}}</view><view class="settings-value">{{genderOptions[genderIndex]}}</view><view class="ui-icon icon-chevron-right settings-chevron"></view></view></picker>
+      <view class="settings-field"><view class="settings-label">{{c.college}}</view><input class="settings-input" value="{{form.college}}" data-key="college" bindinput="onFieldInput" maxlength="80" disabled="{{saving}}" placeholder="{{c.optional}}" placeholder-class="settings-placeholder" /></view>
+      <view class="settings-field"><view class="settings-label">{{c.major}}</view><input class="settings-input" value="{{form.major}}" data-key="major" bindinput="onFieldInput" maxlength="80" disabled="{{saving}}" placeholder="{{c.optional}}" placeholder-class="settings-placeholder" /></view>
+      <view wx:if="{{saveError}}" class="settings-error">{{saveError}}</view><view wx:elif="{{saved}}" class="settings-caption settings-success">{{c.saved}}</view>
+    </view>
+    <view class="settings-actions"><button class="settings-button" bindtap="saveProfile" loading="{{saving}}" disabled="{{!dirty || saving || uploadingAvatar || uploadingBackground}}">{{saving ? c.saving : c.save}}</button></view>
+  </block>
+</view>

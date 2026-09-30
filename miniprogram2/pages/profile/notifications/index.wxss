@@ -1,0 +1,34 @@
+.notification-page { height:100vh; overflow:hidden; padding-bottom:0; animation:none; }
+.social-icon-button { flex:0 0 36px; width:36px; min-width:36px; max-width:36px; height:32px; margin:0; padding:0; background:transparent; }
+.social-icon-button .ui-icon { width:22px; height:22px; }
+.notification-tabs { position:fixed; left:0; right:0; z-index:55; display:flex; height:48px; border-bottom:1px solid var(--app-divider); background:var(--app-background); }
+.notification-tab { flex:1 1 0%; width:0 !important; min-width:0; margin:0 !important; display:flex; align-items:center; justify-content:center; height:48px; padding:0; background:transparent; color:var(--app-text-secondary); font-size:15px; font-weight:500; }
+.notification-tab.active { color:var(--app-text-primary); font-weight:700; }
+.tab-label { position:relative; display:flex; align-items:center; height:48px; }
+.tab-unread { position:absolute; top:10px; right:-10px; width:5px; height:5px; border-radius:50%; background:var(--app-accent); }
+.notification-scroll { position:fixed; left:0; right:0; bottom:var(--tab-height); width:100%; }
+.inbox-status { display:flex; align-items:center; justify-content:space-between; height:42px; padding:0 16px 0 64px; border-bottom:1px solid var(--app-divider); color:var(--app-text-secondary); font-size:13px; }
+.mark-read-button { display:flex; align-items:center; justify-content:center; flex:0 0 40px; width:40px !important; min-width:40px; max-width:40px; margin:0 !important; height:40px; background:transparent; color:var(--app-accent); }
+.mark-read-button .ui-icon { width:19px; height:19px; }
+.notice { display:flex; gap:12px; min-height:100px; padding:16px; border-bottom:1px solid var(--app-divider); background:var(--app-background); transition:background-color .2s ease; }
+.notice.unread { background:var(--app-accent-soft); }
+.notice-pressed { opacity:.72; }
+.notice-symbol { display:flex; justify-content:flex-end; flex:0 0 36px; padding-top:6px; color:var(--app-accent); }
+.notice-symbol .ui-icon { width:28px; height:28px; }
+.notice-like .notice-symbol { color:var(--app-like); }
+.notice-system .notice-symbol { color:var(--app-text-secondary); }
+.notice-body { min-width:0; flex:1; }
+.notice-topline { display:flex; align-items:center; gap:8px; min-height:32px; margin-bottom:8px; }
+.notice-avatar { flex:0 0 32px; width:32px; height:32px; border-radius:50%; background:var(--app-control); color:var(--app-text-secondary); }
+.text-avatar { display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; }
+.notice-time { margin-left:auto; font-size:12px; color:var(--app-text-secondary); }
+.notice-dot { width:6px; height:6px; flex-shrink:0; border-radius:50%; background:var(--app-accent); }
+.notice-title { font-size:15px; font-weight:600; line-height:1.45; overflow-wrap:anywhere; }
+.notice-content { margin-top:5px; color:var(--app-text-secondary); font-size:15px; line-height:1.5; overflow-wrap:anywhere; white-space:pre-wrap; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.notice-reply .notice-content { color:var(--app-text-primary); }
+.inbox-empty { max-width:360px; margin:0 auto; padding:42px 28px; }
+.inbox-empty-title { font-size:28px; font-weight:800; line-height:1.3; }
+.inbox-empty-copy { margin-top:12px; font-size:15px; line-height:1.6; color:var(--app-text-secondary); }
+.retry-button { margin-top:22px; width:100px; }
+.list-safe-end { height:24px; }
+@media (prefers-reduced-motion:reduce) { .notice { transition:none; } .notification-list { animation:none; } }

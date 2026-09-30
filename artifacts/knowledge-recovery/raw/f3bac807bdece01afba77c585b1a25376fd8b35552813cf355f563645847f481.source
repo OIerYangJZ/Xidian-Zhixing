@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="no-js">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="renderer" content="webkit"> 
+        <link rel="icon" type="image/x-icon" href="/cf-web/favicon.ico">
+         <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+        <meta content="IE=EmulateIE8" http-equiv="X-UA-Compatible">
+        <meta content="yes" name="apple-mobile-web-app-capable">
+        <meta content="black" name="apple-mobile-web-app-status-bar-style">
+        <meta name="robots" content="index,follow">
+        <meta http-equiv="pragma" content="no-cache">
+ 		<meta http-equiv="cache-control" content="no-cache">
+	 	<meta http-equiv="expires" content="0">   
+        <script type="text/javascript" src="/easitline-static/js/jquery.min.js?version=20250603114712"></script> 
+        <title>西安电子科技大学</title>
+     <meta charset="UTF-8">
+	 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+     <meta name="theme-color" content="#FFF" />
+     <meta name="viewport" content="width=device-width, initial-scale=1" />
+     <meta name="format-detection" content="telephone=no">
+     <link rel="stylesheet" href="/cf-web/pages/css/frame.css">
+     <style>
+        body{
+            min-width: 1300px;
+        }
+		.btn:hover {
+			cursor: pointer;
+		}
+     </style>
+<link href="/easitline-static/lib/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+		<link href="/easitline-static/lib/check/awesome-bootstrap-checkbox.css" rel="stylesheet">
+    </head>
+<body>
+		<div id="contentDiv">
+	        <!-- 顶部区域 -->
+	<div style="height: 124px; background: url(/cf-web/pages/images/frame/head-bg.gif) repeat-x">
+		<div style="width: 1150px; height: 90px; margin: 0 auto;">
+			<div style="width: 287px; height: 67px; margin: 0 0 0 11px;">
+				<a href="" title="西安电子科技大学（新）"><img
+					src="/cf-web/pages/images/frame/logo.png" border="0" style="margin-top: 12px;"></a>
+			</div>
+			<div style="text-align: center; color: white; font-size: 30px; margin-top: -44px; margin-right: 200px;font-weight: bold;">师生服务热线平台</div>
+			<div class="clear"></div>
+		</div>
+		<div class="navbg"></div>
+	</div>
+	<!-- 内容区域 -->
+	<input type="hidden" id="telephone" value="">
+	<div class="page-content">
+		<div class="wrapper">
+			<form class="page-form">
+				<div class="index-panel">
+					<div class="index-content pd-20">
+						<div class="flex-box">
+							<div class="left-side">
+								<div class="bg-hover">
+									<input type="text" hidden id="userAcct"  value=""  class="form-input" />
+									<input type="text" hidden id="userName"  value=""  class="form-input" />
+									<input type="text" hidden id="userPhone"  value=""  class="form-input" />
+
+									<ul class="list-dataview">
+										<li style="padding: 0px 0px 20px 0px;">
+											<button type="button" class="btn" title="我有话说" onclick="orderIndex.appealType('/cf-web/page/frameForm?userAcct=&userName=&userPhone=')" style="padding: 15px 15px; color: black; background-color: white; box-shadow: 0px 0px 10px 0px rgba(108, 110, 113, 0.5);">我有话说</button>
+										</li>
+										<li style="padding: 0px 0px 20px 0px;"  >
+											<button type="button" class="btn" title="办理查询" onclick="orderIndex.sendMsg()" style="padding: 15px 15px; color: black; background-color: white; box-shadow: 0px 0px 10px 0px rgba(108, 110, 113, 0.5);">办理查询</button>
+										</li>
+										<li style="padding: 0px 0px 20px 0px;" hidden>
+										    <button type="button" class="btn" title="案例公开" onclick="orderIndex.appealType('/cf-web/page/framePublic?pageNum=1')" style="padding: 15px 15px; color: black; background-color: white; box-shadow: 0px 0px 10px 0px rgba(108, 110, 113, 0.5);">案例公开</button>
+										</li>
+									</ul>
+								</div>
+							</div>
+							
+							<div class="left-side">
+							    <img src="/cf-web/pages/images/frame/bg_login.png" style="width: 400px; height: 230px;">
+							</div>
+							<div class="left-side">
+								<div class="intro-12345" style=" background: #962020;">
+									<div class="intro-box">
+										<div class="intro-title" style="font-size: 15px;">热线电话：029-81891234</div>
+										<div class="intro-content" style="font-size: 15px;">热线简介：师生服务热线提供电话、微信、智能客服、网站等多渠道诉求受理途径，实行7x24小时服务，为全校师生提供统一的服务入口，热线“一号对外、 集中受理、分类处理、统一协调、各方联动、限时办结”，提供全方位、全天候、高效率的校园师生服务。</div>
+									</div>
+								</div>
+								<!-- <div style="width: 780px; height: 720px; position: relative;">
+								    <iframe id="appealType" frameborder="no" border="0" scrolling="yes" width="100%" height="100%" src="/web12345/mayorOrder/publicOrder" style="margin-top:20px;"></iframe>
+								</div> -->
+							</div>
+							<div class="left-side">
+							    <img src="/cf-web/pages/images/frame/gzh.jpg" style="width: 200px; height: 210px;">
+							</div>
+						</div>
+					</div>
+					<div id="iframeWin" style="width: auto;height: 1200px;padding: 20px;padding-top: 0px;">
+						<iframe id="appealType" onload="orderIndex.changeIframeWin()" frameborder="no" border="0" scrolling="yes" width="100%" height="100%" src="/cf-web/page/frameForm?userAcct=&userName=&userPhone="></iframe>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div style="border-top: 6px solid #570000; padding: 12px 0 20px 0; background: #a40000;">
+	    <div style="width: 1260px; margin: 0 auto; height: 90px; ">
+	        <div style="width: 1040px; text-align: left; float: left; display: inline;">
+	             <span style="display: inline-block; padding: 0 20px; color: #fff; font-size: 12px; vertical-align: top; margin-top: 15px;">
+	                 <p style="padding-left: 22px; background: url(/cf-web/pages/images/frame/icon_bq_wz.png) no-repeat left center">南校区地址：陕西省西安市西沣路兴隆段266号</p> 
+	                 <p style="padding-left: 22px; background: url(/cf-web/pages/images/frame/icon_bq_yb.png) no-repeat left center">邮编：710126</p>
+	             </span>
+	             <i style="width: 2px; display: inline-block; height: 86px; background: url(/cf-web/pages/images/frame/icon_bq_xian.png) no-repeat;"></i>
+	             <span style="display: inline-block; padding: 0 20px; color: #fff; font-size: 12px; vertical-align: top; margin-top: 15px;">
+	                 <p style="padding-left: 22px; background: url(/cf-web/pages/images/frame/icon_bq_wz.png) no-repeat left center">北校区地址：陕西省西安市太白南路2号</p> 
+	                 <p style="padding-left: 22px; background: url(/cf-web/pages/images/frame/icon_bq_yb.png) no-repeat left center">邮编：710071</p>
+	             </span>
+	             <i style="width: 2px; display: inline-block; height: 86px; background: url(/cf-web/pages/images/frame/icon_bq_xian.png) no-repeat;"></i>
+	             <span style="display: inline-block; padding: 0 20px; color: #fff; font-size: 12px; vertical-align: top; margin-top: 15px;">
+	                 <p style="padding-left: 22px; background: url(/cf-web/pages/images/frame/icon_bq_dh.png) no-repeat left center">电话：029-81891234</p> 
+	             </span>
+	             <i style="width: 2px; display: inline-block; height: 86px; background: url(/cf-web/pages/images/frame/icon_bq_xian.png) no-repeat;"></i>
+	             <span style="display: inline-block; padding: 0 20px; color: #fff; font-size: 12px; vertical-align: top; margin-top: 15px;">
+	                 <p style="padding-left: 22px; background: url(/cf-web/pages/images/frame/icon_bq_yb.png) no-repeat left center"><label title="使用邮箱渠道提交诉求时需提供姓名、电话、是否保密、是否可以作为案例公开等信息。">邮箱：81891234@xidian.edu.cn</label></p> 
+	             </span>
+	        </div>
+	        <div style="margin-top: 12px; float: right; display: inline; ">
+	             <a href=""><img src="/cf-web/pages/images/frame/2019logo.png" border="0" style="width: 220px;"></a>
+	        </div>
+	    </div>
+	    <!-- <div style="width: 1280px; margin: 10px auto 0 auto; text-align: center; color: #fff;">
+	        <p>版权所有：西安电子科技大学&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;陕ICP备05016463号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;建设与运维：信息网络技术中心&nbsp;</p>
+	    </div> -->
+</div>
+</div>
+		<script type="text/javascript" src="/easitline-static/lib/bootstrap/js/bootstrap.min.js?version=20250603114712"></script>
+		<script type="text/javascript" src="/easitline-static/js/jsrender.min.js?version=20250603114712"></script>
+		<script type="text/javascript" src="/easitline-static/lib/layer/layer.js?version=20250603114712"></script>
+		<script type="text/javascript" src="/easitline-static/lib/layui/layui.js?version=20250603114712"></script>
+		<script type="text/javascript" src="/easitline-static/js/easitline.core-2.0.0.js?v=20181214"></script>
+		<script type="text/javascript" src="/easitline-static/js/requreLib.js?version=20250603114712"></script>
+		<script type="text/javascript" src="/easitline-static/js/layTable.js?version=20250603114712"></script>
+		<script type="text/javascript" src="/easitline-static/lib/jquery/jquery.md5.js"></script>
+		<script type="text/javascript" src="/easitline-static/lib/jquery/jquery.base64.min.js"></script>
+		<script type="text/javascript" src="/cf-web/static/js/common.js?version=20250603114712"></script>
+
+  	    <script type="text/javascript" src="/easitline-static/lib/jquery/jquery.md5.js"></script>
+<script type="text/javascript">
+$(function(){
+	$('body').on('keyup','textarea[data-toggle="counttext"]',function(e){
+		$t = $(this);
+		var id = $t.attr('id');
+		if($('[data-count='+id+']')){
+			var maxlength = $t.attr('maxlength');
+			var v = $t.val().length;
+			$('[data-count='+id+']').text(v+'/'+maxlength);
+		}
+	});
+});
+var ctxPath=getCtxPath();
+var waitTime = 180;
+var flag = true;
+var timeOut;
+var orderIndex = {
+		appealType:function(src){
+			$('#appealType').attr("src",src);
+		},
+
+		changeIframeWin:function(){
+			var iframeWin = document.getElementById('appealType');
+			if(iframeWin){
+				var bHeight = iframeWin.contentWindow.document.body.scrollHeight;
+				var dHeight = iframeWin.contentWindow.document.documentElement.scrollHeight;
+				//iframeWin.contentDocument.body.scrollHeight
+				var element = iframeWin.contentWindow.document.getElementById('contentDiv');
+				$('#iframeWin').css('height',element.scrollHeight);
+			}
+		},
+		sendMsg : function(){
+			// if(orderIndex.getSessionId()){
+				// if(confirm("继续查找该手机号码诉求？")){
+			var phoneMD5 =$.base64.encode("");
+
+					orderIndex.appealType(ctxPath+"/page/frameMine?pageNum=1");
+
+
+		// 		}else{
+		// 			layer.open({
+		// 		        type: 1
+		// 		        ,title:'发送短信验证码'
+		// 		        ,offset: 'auto'
+		// 		        ,id: 'layerAuto'
+		// 		        ,area: ['500px', '330px']
+		// 		        ,content: div_open
+		// 		        ,btn: '关闭'
+		// 		        ,btn: ['确认', '取消']
+		// 		        ,btnAlign: 'c'
+		// 		        ,shade: 0.8
+		// 		        ,yes: function(){
+		// 		        	orderIndex.selectMine();
+		// 		        }
+		// 		      });
+		// 		}
+		// 	}else{
+		// 		layer.open({
+		// 	        type: 1
+		// 	        ,title:'发送短信验证码'
+		// 	        ,offset: 'auto'
+		// 	        ,id: 'layerAuto'
+		// 	        ,area: ['500px', '330px']
+		// 	        ,content: div_open
+		// 	        ,btn: '关闭'
+		// 	        ,btn: ['确认', '取消']
+		// 	        ,btnAlign: 'c'
+		// 	        ,shade: 0.8
+		// 	        ,yes: function(){
+		// 	        	orderIndex.selectMine();
+		// 	        }
+		// 	      });
+		// 	}
+		},
+		selectMine:function(){
+			var contactTel = $('#contact_tel').val();
+			if(contactTel==""||contactTel==undefined){
+				contactTel = $('#telephone').val();
+			}
+			var code = $('#smsCode').val();
+			var rightPhone = /^[1][3,4,5,7,8][0-9]{9}$/;
+			if (!rightPhone.test(contactTel)) {
+				alert("请输入正确的联系方式!");
+			    return;
+			}
+			if(!orderIndex.verifyCode(contactTel,code)){
+				alert('短信验证码错误!')
+				return;
+			}else{
+				orderIndex.appealType(ctxPath+"/page/frameMine?pageNum=1");
+	        	$("#j_imagecode").val("");
+	        	orderIndex.reloadImageCode();
+	        	clearTimeout(timeOut);
+	        	waitTime = 180;
+	        	flag=true;
+	        	layer.closeAll();
+			}
+		},
+		sendSms:function(ele) {
+		    if (waitTime == 0) {
+		        $("#"+ele).attr('disabled',false);
+		        $("#"+ele).text("获取验证码");
+		        waitTime = 180;// 恢复计时
+		        flag=true;
+		    } else {
+		    	if(flag){
+		    		if(orderIndex.smsVerify()){
+		    			flag=false;
+		    		}else{
+		    			return;
+		    		}
+		        }
+		    	$("#"+ele).attr('disabled',true);
+		    	$("#"+ele).text("有效时间"+waitTime + "s");
+		        waitTime--;
+		        timeOut = setTimeout(function() {
+		        	orderIndex.sendSms(ele)// 关键处-定时循环调用
+		        }, 1000)
+		    }
+		},
+		smsVerify:function(){
+			var result_flag = false;
+			var rightPhone = /^[1][3,4,5,7,8][0-9]{9}$/;
+			//判断是否为电话或手机号码
+			var telephone = $('#contact_tel').val();
+			var j_imagecode = $('#j_imagecode').val();
+			if (!rightPhone.test(telephone)) {
+				alert("请输入正确的联系方式!");
+			    return;
+			}
+			if(j_imagecode==""){
+				alert("图形验证码不能为空!");
+				return;
+			}
+			ajax.remoteCall(ctxPath+"/servlet/orderQuery?action=smsVerify", {telephone:telephone,j_imagecode:j_imagecode}, function (result) {
+				if(result.state=='1') {
+					/* $('#myOrder').css("padding-top","50px");
+					$('#smsSpan').html("");
+					$('#smsCol').css("display","none"); */
+					result_flag = true;
+		        } else {
+					alert(result.msg);
+		        }
+				$("#j_imagecode").val("");
+				orderIndex.reloadImageCode();
+			},{async:false});
+			return result_flag;
+		},
+		verifyCode:function(telephone, code){
+			var flag = false;
+			ajax.remoteCall(ctxPath+"/servlet/orderQuery?action=verifyCode", {telephone:telephone,code:code}, function (result) {
+				var state = result.state;
+				if(state=='1') {
+					
+					flag = true;
+		        }
+			},{async:false});
+			return flag;
+		},
+		login:function(){
+			layer.open({
+		        type: 1
+		        ,title:'用户登录'
+		        ,offset: 'auto' 
+		        ,id: 'layerAuto' 
+		        ,area: ['500px', '330px']
+		        ,content: div_login
+		        ,btn: '关闭'
+		        ,btn: ['确认', '取消']
+		        ,btnAlign: 'c' 
+		        ,shade: 0.8 
+		        ,yes: function(){
+		        	orderIndex.verifyLogin();
+		        }
+		      });
+		},
+		verifyLogin:function(){
+			var j_username = $('#j_username').val();
+			var j_password = $.base64.encode($('#j_password').val());
+			var j_imagecode = $('#j_imagecode').val();
+			ajax.remoteCall("/rs-portal/weblogin?action=login&j_username="+j_username+"&j_password="+j_password+"&j_imagecode="+j_imagecode+"&callback=/rs-portal?", {}, function (result) {
+				var state = result.state;
+				if(state=='0') {
+					$("#j_imagecode").val("");
+					orderIndex.reloadImageCodeRs();
+					alert(result.msg);
+		        }else{
+		        	window.location.href="/yc-login/authen?action=success&ctxPath=/rs-portal&busiId=12345";
+		        }
+			});
+		},
+		reloadImageCode:function(){
+			$("#imageCode").attr("src",ctxPath+"/servlet/orderQuery?action=ImageCode&ts"+new Date().getTime());
+		},
+		reloadImageCodeRs:function(){
+			$("#imageCode").attr("src","/rs-portal/weblogin?action=ImageCode&ts"+new Date().getTime());
+		},
+		imageBlock:function(){
+			$('#smsSpan').html("");
+			if($('#contact_tel').val()!=""){
+				$('#myOrder').removeAttr("style","padding-top");
+				$('#smsSpan').append('<img id="imageCode" style="cursor: pointer;" onclick="orderIndex.reloadImageCode();" title="点击刷新验证码" src="/cf-web/servlet/orderQuery?action=ImageCode&st='+1790504682396+'" alt="">');
+				$('#smsCol').removeAttr("style","display");
+				orderIndex.reloadImageCode();
+				//$('#j_imagecode').focus();
+			}else{
+				$('#myOrder').css("padding-top","50px");
+				$('#smsSpan').html("");
+				$('#smsCol').css("display","none");
+			}
+		},
+		getSessionId:function(){
+			var flag = false;
+			ajax.remoteCall(ctxPath+"/servlet/orderQuery/getSessionId", {}, function (result) {
+				if(result=='0') {
+					flag = true;
+		        }else{
+		        	flag = false;
+		        }
+			},{async:false});
+			return flag;
+		}
+
+}
+var div_open = '<form class="page-form" id="myOrder" style="padding-top: 50px;">'+
+'<div class="index-panel">'+
+'<div class="index-content pd-40" style="padding: 10px;">'+
+'<div class="row" style="padding: 0px 50px 0px 50px;">'+
+'<div class="col-12">'+
+'<div class="form-group">'+
+'<div class="form-label" style="width: 130px;">'+
+'<span class="require-label">手机号码</span>'+
+'</div>	'+
+'<div class="form-control">'+
+'<input type="text" id="contact_tel" name="CONTACT_TEL" onchange="orderIndex.imageBlock()" placeholder="请输入您的手机号码" class="form-input" />'+
+'</div>'+
+'</div>'+
+'</div>'+
+'<div class="col-12">'+
+'<div class="form-group">'+
+'<div class="form-label" style="width: 130px;">'+
+'<span class="">'+
+'<button type="button" id="smsCodeButton" title="获取验证码" onclick=orderIndex.sendSms("smsCodeButton") class="btn" style="background-color: #ec551b;">获取验证码</button>'+
+'</span>'+
+'</div>'+
+'<div class="form-control">'+
+'<input type="text" id="smsCode" placeholder="请输入短信验证码" class="form-input" maxlength="10" />'+
+'</div>'+
+'</div>'+
+'</div>'+
+'<div class="col-12" id="smsCol" style="display:none;">'+
+'<div class="form-group">'+
+'<div class="form-label" style="width: 130px;">'+
+'<span class="" id="smsSpan">'+
+'</span>'+
+'</div>'+
+'<div class="form-control">'+
+'<input type="text" id="j_imagecode" placeholder="请先输入图形验证码再获取短信验证码" class="form-input" maxlength="10" />'+
+'</div>'+
+'</div>'+
+'</div>'+
+'</div></div></div></form>';
+
+var div_login = '<form class="page-form" id="myOrder">'+
+'<div class="index-panel">'+
+'<div class="index-content pd-40" style="padding: 10px;">'+
+'<div class="row" style="padding: 0px 50px 0px 50px;">'+
+'<div class="col-12">'+
+'<div class="form-group">'+
+'<div class="form-label" style="width: 130px;">'+
+'<span class="require-label">账号</span>'+
+'</div>	'+
+'<div class="form-control">'+
+'<input type="text" id="j_username" name="j_username" placeholder="请输入账号" class="form-input" maxlength="30"/>'+
+'</div>'+
+'</div>'+
+'</div>'+
+'<div class="col-12">'+
+'<div class="form-group">'+
+'<div class="form-label" style="width: 130px;">'+
+'<span class="require-label">密码</span>'+
+'</div>'+
+'<div class="form-control">'+
+'<input type="password" id="j_password" name="j_password" placeholder="请输入密码" class="form-input" maxlength="30" />'+
+'</div></div></div>'+
+'<div class="col-12">'+
+'<div class="form-group">'+
+'<div class="form-label" style="width: 130px;">'+
+'<span class="">'+
+'<img id="imageCode" style="cursor: pointer;" onclick="orderIndex.reloadImageCodeRs();" title="点击刷新验证码" src="/rs-portal/weblogin?action=ImageCode&st='+1790504682396+'" alt="">'+
+'</span>'+
+'</div>'+
+'<div class="form-control">'+
+'<input type="text" id="j_imagecode" placeholder="请输入验证码" class="form-input" maxlength="10" />'+
+'</div></div></div>'+
+'</div></div></div></form>';
+
+
+</script>
+</body>
+</html>

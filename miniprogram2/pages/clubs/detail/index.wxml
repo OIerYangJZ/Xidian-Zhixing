@@ -1,0 +1,20 @@
+<view class="{{pageMotion}} page club-detail {{themeClass}}">
+  <status-view wx:if="{{errorMessage}}" mode="error" text="{{errorMessage}}" show-retry="true" bind:retry="retryLoad" />
+  <status-view wx:elif="{{!club}}" mode="loading" text="加载中..." />
+  <block wx:else>
+  <view class="club-title">{{club.name}}</view>
+  <view class="club-owner">负责人：{{club.ownerName}}</view>
+  <view class="club-text">{{club.description}}</view>
+  <view class="section-title">社团发布</view>
+  <post-row
+    wx:for="{{club.posts}}"
+    wx:key="id"
+    item="{{item}}"
+    index="{{index}}"
+    bind:open="openPost"
+    bind:like="togglePostLike"
+    bind:favorite="togglePostFavorite"
+  />
+  <status-view wx:if="{{!club.posts.length}}" mode="empty" text="暂无发布" />
+  </block>
+</view>

@@ -1,0 +1,398 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>雄关如铁从头越 西电女篮进八强-西安电子科技大学体育部</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="雄关如铁从头越 西电女篮进八强">
+<META Name="keywords" Content="西安电子科技大学体育部,运动竞赛首页新闻,越,西电,女篮,从头,进,铁,雄关,强" />
+<META Name="description" Content="（通讯员：张一 李明智）第28届CUBAL中国大学生篮球联赛陕西赛区二级女子预选赛于2026年1月8日圆满落幕。本次比赛共32支高校队伍参与，我校女子篮球队在领队体育部副部长高鹏飞、教练员李明智带领下，最终获得第七名成绩。本次15名参赛队员中，有8名队员首次参赛，经验丰富的老队员悉数毕业。没有老队员坐镇压阵，没有过往战绩的光环加持，年轻队员们有的只是对篮球的一腔热爱，以及并肩作战的坚定信念。从训练时的磨合适应，到赛场上的默契渐生，..." />
+
+
+
+
+
+<META charset="UTF-8">
+<META name="description" content=""><LINK rel="stylesheet" href="../../css/reset.css"><LINK rel="stylesheet" href="../../css/style.css"><script type="text/javascript" src="../../js/bdtxk.js"></script><script type="text/javascript" src="../../js/slide.js"></script><script type="text/javascript" src="../../js/index.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1273,'/content.jsp',6902,1641759486)</script>
+</HEAD>
+<BODY><!-- header start -->
+<DIV id="header" class="w100">
+<DIV class="container">
+<DIV class="header_top">
+<DIV class="logo fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+
+<A href="../../index.htm" title="体育部2020"><IMG alt="" src="../../images/logo.png"> </A></DIV>
+<DIV class="hd_r_top fr">
+<DIV class="search fr"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError" style="padding:3px;margin:0px;display:inline;font-family:宋体;font-size:12px;">
+
+    <input autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" class="txt" value="请输入关键字！">
+    <input type="image" src="../../images/search_icon.png" align="absmiddle" v-on:click="onSubmit()" class="btn">
+ </div>
+        
+        
+        
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1641759486";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1641759486";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></DIV>
+<DIV class="hd_r_link fr"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><A href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 61540)" target="_blank">学校主页</A> 
+<A href="http://tyben.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 62678)" target="_blank">English</A> 
+</DIV></DIV></DIV><!-- nav start -->
+<DIV id="nav">
+<DIV class="nav_menu"><UL class="nav_list">
+<LI><A href="../../index.htm" title="首页">首页</A> 
+</LI>
+<LI><A href="../../bmgk1/bmjj.htm" title="部门概况">部门概况</A> 
+<DL class="menu">
+<DD><A href="../../bmgk1/bmjj.htm" title="部门简介">部门简介</A> </DD>
+<DD><A href="../../bmgk1/lsyg.htm" title="历史沿革">历史沿革</A> </DD>
+<DD><A href="../../bmgk1/xrld.htm" title="现任领导">现任领导</A> </DD>
+<DD><A href="../../bmgk1/jgsz.htm" title="机构设置">机构设置</A> </DD>
+<DD><A href="../../bmgk1/wyh.htm" title="委员会">委员会</A> </DD>
+<DD><A href="../../bmgk1/xcsp.htm" title="宣传视频">宣传视频</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../szdw.htm" title="师资队伍">师资队伍</A> 
+<DL class="menu">
+<DD><A href="../../szdw/js.htm" title="教授">教授</A> </DD>
+<DD><A href="../../szdw/fjs.htm" title="副教授">副教授</A> </DD>
+<DD><A href="../../szdw/js1.htm" title="讲师">讲师</A> </DD>
+<DD><A href="../../szdw/zj.htm" title="助教">助教</A> </DD>
+<DD><A href="../../szdw/zzgtjs.htm" title="专职公体教师">专职公体教师</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../djgz.htm" title="党建工作">党建工作</A> 
+<DL class="menu">
+<DD><A href="../../djgz/zzjg.htm" title="组织机构">组织机构</A> </DD>
+<DD><A href="../../djgz/gzdt.htm" title="工作动态">工作动态</A> </DD>
+<DD><A href="../../djgz/ztxx.htm" title="专题学习">专题学习</A> </DD>
+<DD><A href="../../djgz/ghgz.htm" title="工会工作">工会工作</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyjlb.htm" title="体育俱乐部">体育俱乐部</A> 
+<DL class="menu">
+<DD><A href="../../tyjlb/jlbjx.htm" title="俱乐部教学">俱乐部教学</A> </DD>
+<DD><A href="../../tyjlb/yjsjx.htm" title="研究生教学">研究生教学</A> </DD>
+<DD><A href="../../tyjlb/wskc.htm" title="网上课程">网上课程</A> </DD>
+<DD><A href="http://jpkc.xidian.edu.cn/dxty/" title="精品课程">精品课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../zspy.htm" title="招生培养">招生培养</A> 
+<DL class="menu">
+<DD><A href="../../zspy/sszs.htm" title="硕士招生">硕士招生</A> </DD>
+<DD><A href="../../zspy/sspy1.htm" title="硕士培养">硕士培养</A> </DD>
+<DD><A href="../../zspy/yddzsh.htm" title="运动队招生">运动队招生</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyky.htm" title="体育科研">体育科研</A> 
+<DL class="menu">
+<DD><A href="../../tyky/ktlx.htm" title="课题立项">课题立项</A> </DD>
+<DD><A href="../../tyky/xscg.htm" title="学术成果">学术成果</A> </DD>
+<DD><A href="../../tyky/kyhj.htm" title="科研获奖">科研获奖</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../ydjs.htm" title="运动竞赛">运动竞赛</A> 
+<DL class="menu">
+<DD><A href="../../ydjs/gspydd.htm" title="高水平运动队">高水平运动队</A> </DD>
+<DD><A href="../../ydjs/ptsydd.htm" title="普通生运动队">普通生运动队</A> </DD>
+<DD><A href="../../ydjs/xnjs.htm" title="校内竞赛">校内竞赛</A> </DD>
+<DD><A href="../../ydjs/syxw.htm" title="首页新闻">首页新闻</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../rydt.htm" title="荣誉殿堂">荣誉殿堂</A> 
+<DL class="menu">
+<DD><A href="../../rydt/xdqgry.htm" title="西电全国荣誉">西电全国荣誉</A> </DD>
+<DD><A href="../../rydt/xdsnry.htm" title="西电省内荣誉">西电省内荣誉</A> </DD>
+<DD><A href="../../rydt/xdxnry.htm" title="西电校内荣誉">西电校内荣誉</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../gzzd.htm" title="规章制度">规章制度</A> 
+</LI>
+<LI><A href="../../rczp.htm" title="人才招聘">人才招聘</A> 
+</LI>
+<LI><A href="#" title="下载专区">下载专区</A> 
+<DL class="menu">
+<DD><A href="../../xzzq1/xzzq.htm" title="下载专区">下载专区</A> </DD>
+<DD><A href="../../xzzq1/jxkyyb.htm" title="教学科研用表">教学科研用表</A> </DD>
+<DD><A href="../../xzzq1/rsfwxx.htm" title="人事服务信息">人事服务信息</A> </DD>
+<DD><A href="../../xzzq1/wskc.htm" title="网上课程">网上课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../cggl.htm" title="场馆管理">场馆管理</A> 
+<DL class="menu">
+<DD><A href="../../cggl/cgjs.htm" title="场馆介绍">场馆介绍</A> </DD>
+<DD><A href="../../cggl/glgd.htm" title="管理规定">管理规定</A> </DD>
+<DD><A href="../../cggl/cgsq.htm" title="场馆申请">场馆申请</A> </DD>
+</DL>
+</LI>
+</UL></DIV></DIV><!-- end nav --></DIV></DIV><!-- end header --><!-- ej_banner start -->
+<DIV id="ej_banner" class="w100">
+<DIV class="ej_banner_con">    <IMG alt="" src="../../images/ej_banner.jpg"> </DIV>
+<DIV class="ej_banner_bd">
+<DIV class="lmmc"><!-- header start -->
+首页新闻</DIV></DIV></DIV><!-- end ej_banner --><!-- main start -->
+<DIV id="main" class="w100">
+<DIV class="container">
+<DIV class="main_con clearfix">
+<DIV class="main_con_l fl">
+<DIV class="sidebar"><UL>
+<LI><A href="../../ydjs/gspydd.htm" title="高水平运动队">高水平运动队</A></LI>
+
+<LI><A href="../../ydjs/ptsydd.htm" title="普通生运动队">普通生运动队</A></LI>
+
+<LI><A href="../../ydjs/xnjs.htm" title="校内竞赛">校内竞赛</A></LI>
+
+<LI class="active"><A href="../../ydjs/syxw.htm" title="首页新闻">首页新闻</A></LI>
+
+</UL>
+</DIV></DIV>
+<DIV class="main_con_r fr">
+<DIV class="main_hd">
+<DIV class="dqwz"><div>
+    位置: 
+                        <a href="../../index.htm">首页</a>
+                >
+                <a href="../../ydjs.htm">运动竞赛</a>
+                >
+                <a href="../../ydjs/syxw.htm">首页新闻</a>
+                >
+                正文
+</div>
+
+</DIV><SPAN class="line"></SPAN></DIV>
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="nr">
+	<div class="main_bd">
+	         <div class="con_title">
+   <h2 class="title">雄关如铁从头越 西电女篮进八强</h2>
+   <p class="info">来源：<span class="xxly">
+    </span>时间：<span class="time1">2026-01-16</span>点击数：<i class="djs"><script>_showDynClicks("wbnews", 1641759486, 6902)</script></i></p>
+                 </div>
+
+
+
+    <div id="vsb_content_2" class="content"><div class="v_news_content">
+<p class="vsbcontent_start" style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">（通讯员：<span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px; text-indent: 40px;">张一 李明智</span>）第28届CUBAL中国大学生篮球联赛陕西赛区二级女子预选赛于2026年1月8日圆满落幕。本次比赛共32支高校队伍参与，我校女子篮球队在领队体育部副部长高鹏飞、教练员李明智带领下，最终获得第七名成绩。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">本次15名参赛队员中，有8名队员首次参赛，经验丰富的老队员悉数毕业。没有老队员坐镇压阵，没有过往战绩的光环加持，年轻队员们有的只是对篮球的一腔热爱，以及并肩作战的坚定信念。从训练时的磨合适应，到赛场上的默契渐生，这群年轻队员们把 “从零开始” 的压力，转化成了步步向前的动力。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/A/C5/E1/A9A274EE899F3776B06ACE0B31E_F70601BC_1F046.jpeg" vsbhref="vurl" vurl="/_vsl/AC5E1A9A274EE899F3776B06ACE0B31E/F70601BC/1F046" vheight=" 308pt" vwidth=" 415.25pt" orisrc="/__local/0/56/39/1548B8E0ECE9B5A230FA2401289_E6E9E226_730B2.jpeg" class="img_vsb_content" style="width: 415.25pt;height: 308pt"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">从小组赛起步，年轻队员们就展现出不俗的精神面貌和竞技状态，分别战胜陕西警察学院和延安大学创新学院篮球队。在面对最终夺冠的西北农林科技大学，队员们用汗水奋力拼搏，虽败犹荣，获得小组第二晋级16强。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/A/8C/54/F9862B26B5942131079FA7BE50C_2C303CD0_20EEA.jpeg" vsbhref="vurl" vurl="/_vsl/A8C54F9862B26B5942131079FA7BE50C/2C303CD0/20EEA" vheight=" 313.35pt" vwidth=" 415.25pt" orisrc="/__local/7/25/04/C50A614EE439563EE03E8769BBF_E43282DC_7C5E0.jpeg" class="img_vsb_content" style="width: 415.25pt;height: 313.35pt"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">12月28日，年轻队员们迎来了真正的考验——对阵H组第一名西北大学的八强争夺战。在西北大学主场优势下，西电女篮通过防守端的积极轮转和贴身紧逼，有效限制了对方核心球员，在进攻端，则打得耐心且果断，通过扎实的掩护和传导寻找最佳出手机会。毫不犹豫的倒地拼抢，一次次的三分出手，西电女篮没有包袱，只有拼劲；没有退缩，只有向前。最终，她们以42:36力克西北大学，挺进八强！</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/7/2F/65/7BA59EBFD5C124C8364E235DFD8_865AE3D7_233CF.jpeg" vsbhref="vurl" vurl="/_vsl/72F657BA59EBFD5C124C8364E235DFD8/865AE3D7/233CF" vheight=" 553.6pt" vwidth=" 415.2pt" orisrc="/__local/0/AB/E1/9A0A87CE53F45FD357540FF6826_681074B7_561A9.jpeg" class="img_vsb_content" style="width: 415.2pt;height: 553.6pt"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">1月5日，晋级四强赛，队员们面对的是更为强劲的西北政法大学。在开局发挥欠佳的状态下，她们没有被对方的气势压制，反而凭借拼抢一度实现比分反超，让赛场瞬间沸腾。但最终以44：49惜败，遗憾止步四强。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">但止步四强并非终点，在随后的排位赛中，队员们迅速调整状态，带着不服输的劲头全力应战，最终斩获cubal基层赛第七名。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/0/C7/40/4B48C6F3FA3DCD0DF4EF8632011_32D0DAD1_2E17B.jpeg" vsbhref="vurl" vurl="/_vsl/0C7404B48C6F3FA3DCD0DF4EF8632011/32D0DAD1/2E17B" vheight=" 552.95pt" vwidth=" 415.05pt" orisrc="/__local/6/B5/24/7BE760B89F090D654E6E1FE4D6C_0DAFEF21_2BBE7.jpeg" class="img_vsb_content" style="width: 415.05pt;height: 552.95pt"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">在每一场比赛中，年轻队员们用顽强诠释篮球精神，虽技术略显青涩，但仍奋力拼搏。每一次拼抢都全力以赴，每一次倒地都迅速爬起，不畏惧任何对抗，不吝惜任何汗水。身体上的每一处淤青，都是她们顽强意志的体现；争下的每一个篮板，都凝聚着全队不屈的信念。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/9/34/18/503A2ED426A8D3F781F7CB77824_99F1F90C_2BFAD.jpeg" vsbhref="vurl" vurl="/_vsl/93418503A2ED426A8D3F781F7CB77824/99F1F90C/2BFAD" vheight=" 310.8pt" vwidth=" 414.55pt" orisrc="/__local/A/31/3B/F8B4966ADEA3B6BC1958C83C97C_CA07632D_29DC4.jpeg" class="img_vsb_content" style="width: 414.55pt;height: 310.8pt"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">第七名，或许不是最耀眼的名次，但对这支年轻队伍而言，是用拼搏与汗水浇铸的最珍贵勋章。它见证了一支年轻球队的坚韧与顽强，更见证了西电女篮精神在新一代球员身上的延续与传承，相信这份年轻力量，必将引领西电女篮攀上更高的山峰，走向更远的征程。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/2/8A/6B/E674A79138B7FD85FC95761E326_926649AC_21487.jpeg" vsbhref="vurl" vurl="/_vsl/28A6BE674A79138B7FD85FC95761E326/926649AC/21487" vheight=" 276.8pt" vwidth=" 415.2pt" orisrc="/__local/E/D4/01/DAE4E50E4F161B053BAE3C38AA8_2DE59B0B_1F64D.jpeg" class="img_vsb_content" style="width: 415.2pt;height: 276.8pt"></p>
+</div></div><div id="div_vote_id"></div>
+    
+<div class="page">
+  <p><span>上一条：</span><a href="6892.htm">西电学子王子铭勇夺中国游泳公开赛亚军！</a></p>
+  <p><span>下一条：</span><a href="6912.htm">夺冠x2！见证历史 西电男篮夺得陕西省一级二级联赛双冠军</a></p>
+</div>
+
+
+</div></div>
+</form>
+</DIV></DIV></DIV></DIV><!-- end main --><!-- footer start -->
+<DIV id="footer" class="w100">
+<DIV class="container">
+<DIV class="foot_con clearfix">
+<DIV class="foot_top">
+<DIV class="address fl"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>北校区地址:西安市太白南路2号 邮编：710071</p> 
+<p>南校区地址:西安市西沣路兴隆段266号 邮编：710126</p> 
+<p>电话：（029）81891207 办公邮箱：tiyubu1294@126.com</p> 
+<p>意见投诉信箱：tyb@xidian.edu.cn</p> 
+<p>师德师风监督电话：（029）81891207</p></DIV>
+<DIV class="ft_ewm fr">    
+
+<IMG alt="" src="../../images/erweima.jpg"> 
+<P class="title">官方微信</P>
+</DIV></DIV>
+<DIV class="copyright"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright&nbsp;© 2007-2021 西安电子科技大学体育部 版权所有 技术支持： <a href="https://xxzx.xidian.edu.cn/" style="text-decoration: none; color: white">信息网络技术中心 </a>&nbsp;&nbsp;西安聚力</p></DIV></DIV></DIV></DIV><!-- end footer --><!-- back start -->
+<DIV id="back"></DIV><!-- end back -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

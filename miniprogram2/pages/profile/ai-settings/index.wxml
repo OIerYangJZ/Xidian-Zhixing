@@ -1,0 +1,15 @@
+<view class="{{pageMotion}} settings-page {{themeClass}}">
+  <settings-header title="{{c.ai}}" theme-class="{{themeClass}}" english="{{currentLanguage === 'en'}}" />
+  <view class="settings-section ai-status">
+    <view class="ui-icon icon-ai ai-service-icon"></view>
+    <view class="settings-empty-title">{{loading ? c.loading : (errorMessage ? c.loadFailed : (configured ? c.active : c.unavailable))}}</view>
+    <view wx:if="{{checked}}" class="settings-status {{configured ? 'settings-success' : ''}}"><view class="settings-status-mark"></view>{{configured ? c.currentModel : c.aiManaged}}</view>
+    <view wx:if="{{configured}}" class="ai-model">{{model}}</view>
+    <button class="settings-text-button" disabled="{{loading}}" bindtap="refresh">{{errorMessage ? c.retry : c.refresh}}</button>
+  </view>
+  <view wx:if="{{checked && models.length}}" class="settings-section">
+    <view class="settings-section-title">{{c.availableModels}}</view>
+    <view wx:for="{{models}}" wx:key="*this" class="settings-row"><view class="settings-row-body settings-title">{{item}}</view><view wx:if="{{item === model}}" class="settings-status">{{c.currentModel}}</view></view>
+  </view>
+  <view wx:if="{{configured}}" class="settings-note">{{c.aiManaged}}</view>
+</view>

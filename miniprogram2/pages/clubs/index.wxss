@@ -1,0 +1,14 @@
+.club-page { padding: 24rpx 32rpx; background: var(--app-background); }
+.apply-btn { height: 76rpx; border-radius: 18rpx; background: var(--app-primary); color: var(--app-on-primary); font-size: 14px; line-height: 76rpx; }
+.club-row { margin-top: 20rpx; padding: 24rpx; border: 1rpx solid var(--app-divider); border-radius: 22rpx; background: var(--app-surface); }
+.club-name { color: var(--app-text-primary); font-size: 15.5px; font-weight: 700; }
+.club-desc { margin-top: 8rpx; color: var(--app-text-secondary); font-size: 12.5px; line-height: 1.45; }
+
+/* Approved reference layout. */
+.club-page { padding:24rpx 36rpx; }
+.apply-btn { min-height:44px; border-radius:26px; }
+.club-row { padding:28rpx 0; margin:0; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; }
+.club-name { font-size:17px; }
+.club-desc { font-size:15px; line-height:1.6; }
+.apply-btn { display:flex; align-items:center; justify-content:center; width:100% !important; margin:0 0 12px !important; height:44px; line-height:1.4; }
+.club-name, .club-desc { overflow-wrap:anywhere; }

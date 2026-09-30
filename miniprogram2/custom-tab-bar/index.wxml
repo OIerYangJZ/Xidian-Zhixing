@@ -1,0 +1,9 @@
+<view wx:if="{{!drawerHidden && !modalHidden}}" class="social-tabs {{themeClass}}" role="navigation" aria-label="{{english ? 'Main navigation' : '主导航'}}">
+  <view class="tab-track">
+    <view wx:if="{{activeIndex >= 0}}" class="tab-selection {{animating ? 'moving' : ''}}" style="transform:translateX({{activeIndex * 100}}%); --selection-from:{{motionFrom * 100}}%; --selection-to:{{activeIndex * 100}}%;" aria-hidden="true"><view class="selection-surface"></view></view>
+    <button wx:for="{{items}}" wx:key="pagePath" class="tab {{selected === item.pagePath ? 'selected' : ''}} {{animating && selected === item.pagePath ? 'arriving' : ''}}" data-path="{{item.pagePath}}" bindtap="navigate" aria-label="{{english ? item.en : item.text}}" aria-current="{{selected === item.pagePath ? 'page' : 'false'}}" hover-class="pressed" hover-start-time="0" hover-stay-time="80">
+      <view class="tab-symbol"><view class="tab-motion tab-motion-{{item.icon}}"><view class="tab-glyph tab-outline tab-icon-{{item.icon}}" aria-hidden="true"></view><view class="tab-glyph tab-active tab-icon-{{item.icon}}-active" aria-hidden="true"></view></view></view>
+      <text class="tab-label">{{english ? item.en : item.text}}</text>
+    </button>
+  </view>
+</view>

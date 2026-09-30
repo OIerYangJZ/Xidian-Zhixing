@@ -1,0 +1,3122 @@
+{
+  "startedAt": "2026-09-27T08:51:57.845048+00:00",
+  "requested": 405,
+  "published": [
+    {
+      "id": "doc-0c436b6438a3d7857c83f877",
+      "url": "https://jwc.xidian.edu.cn/info/1017/13053.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1017/13053.htm",
+      "title": "关于做好2023年秋季学期学生评教工作的通知-西安电子科技大学 教务处",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-79771e7bfbe0bd51d4edbd75",
+      "url": "https://jwc.xidian.edu.cn/info/1013/18823.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1013/18823.htm",
+      "title": "关于做好2024～2025学年第二学期期末考试工作的通知-西安电子科技大学 教务处",
+      "chunks": 49,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-bc185edad698f2127bde89bd",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22913.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22913.htm",
+      "title": "关于2024级本科生转专业拟录取学生名单的公示-西安电子科技大学 教务处",
+      "chunks": 1,
+      "publishedAt": "2026-07-10"
+    },
+    {
+      "id": "doc-94756520e8497f76c78bc9d7",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22863.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22863.htm",
+      "title": "关于做好2024级学生科研创新课堂选课的通知-西安电子科技大学 教务处",
+      "chunks": 10,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-0ba417bf233c48a2d521061d",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22883.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22883.htm",
+      "title": "关于开展2024级本科生转专业工作的通知-西安电子科技大学 教务处",
+      "chunks": 12,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-e883b92daeccbc30d7c19482",
+      "url": "https://bksy.xidian.edu.cn/info/1020/4366.htm",
+      "resolvedUrl": "https://bksy.xidian.edu.cn/info/1020/4366.htm",
+      "title": "书院风采-本科生院 西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": "2016-08-24"
+    },
+    {
+      "id": "doc-c179cbea4b4adbaddb2acdb5",
+      "url": "https://zsb.xidian.edu.cn/info/1034/6333.htm",
+      "resolvedUrl": "https://zsb.xidian.edu.cn/info/1034/6333.htm",
+      "title": "西安电子科技大学2026年新年贺词-西安电子科技大学本科招生信息网",
+      "chunks": 21,
+      "publishedAt": "2025-12-31"
+    },
+    {
+      "id": "doc-bfa60b9f623e34a52f21ac8f",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/xwycfwfw.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/xwycfwfw.htm",
+      "title": "校外远程访问服务-信息网络技术中心-西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-ef922203654f69bf01a86287",
+      "url": "https://zsb.xidian.edu.cn/dcxd2/zzxd.htm",
+      "resolvedUrl": "https://zsb.xidian.edu.cn/dcxd2/zzxd.htm",
+      "title": "住宿在西电-西安电子科技大学本科招生信息网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-0567ce15f6f10489dde5919f",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/xyykt.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/xyykt.htm",
+      "title": "校园一卡通-信息网络技术中心-西安电子科技大学",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-658bde635fdc7e3148e0d5cf",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/gszysqfwlc.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/gszysqfwlc.htm",
+      "title": "高算资源申请服务流程-信息网络技术中心-西安电子科技大学",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-11ffb3f4d791f38ea1761e91",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/yx_lxfw.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/yx_lxfw.htm",
+      "title": "迎新-离校服务-信息网络技术中心-西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-5f6d051dd9a7e3dc0199bcd3",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/ywtbsxsxfw.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/ywtbsxsxfw.htm",
+      "title": "一网通办事项上线服务-信息网络技术中心-西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-cf797e1392abb2000f96ef8c",
+      "url": "https://xxzx.xidian.edu.cn/f_w/cyfw/xyykt.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/xyykt.htm",
+      "title": "校园一卡通-信息网络技术中心-西安电子科技大学",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-f8db9b5d393a7e31ec3a01e8",
+      "url": "https://xxzx.xidian.edu.cn/f_w/fwzn.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/fwzn.htm",
+      "title": "服务指南-信息网络技术中心-西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-dedc3f6e6f390e50e169733b",
+      "url": "https://xxzx.xidian.edu.cn/f_w/cjwt.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/cjwt.htm",
+      "title": "常见问题-信息网络技术中心-西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-c67274c0755e1eab9e665612",
+      "url": "https://xxzx.xidian.edu.cn/info/1245/4553.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/info/1245/4553.htm",
+      "title": "北京信息科技大学来校调研智慧校园建设-信息网络技术中心-西安电子科技大学",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-54843009498179af4913f716",
+      "url": "https://xxzx.xidian.edu.cn/info/1245/4563.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/info/1245/4563.htm",
+      "title": "关于办理毕业生离校一卡通余额清退及校园网账号注销的通知-信息网络技术中心-西安电子科技大学",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-1bf8d10fe9e19c759f5cddfa",
+      "url": "https://news.xidian.edu.cn/info/2106/296166.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/296166.htm",
+      "title": "【学在西电】比亚迪杯西安电子科技大学第46届运动会落幕-西安电子科技大学新闻网",
+      "chunks": 7,
+      "publishedAt": "2026-04-30"
+    },
+    {
+      "id": "doc-0c1aba20de67040c1fea6716",
+      "url": "https://tyb.xidian.edu.cn/info/1021/5752.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1021/5752.htm",
+      "title": "体育部党总支赴安吴青年训练班纪念馆开展主题党日活动-西安电子科技大学体育部",
+      "chunks": 4,
+      "publishedAt": "2025-04-15"
+    },
+    {
+      "id": "doc-578c922ae4a3bbc60fd7e19b",
+      "url": "https://tyb.xidian.edu.cn/info/1021/4721.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1021/4721.htm",
+      "title": "首届全国高校体育课程思政教学比赛在西电成功举办-西安电子科技大学体育部",
+      "chunks": 4,
+      "publishedAt": "2024-06-03"
+    },
+    {
+      "id": "doc-4d103be408020ed9e7793fb5",
+      "url": "https://tyb.xidian.edu.cn/info/1021/5152.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1021/5152.htm",
+      "title": "“浪潮杯”2024年西安电子科技大学第九届研究生趣味运动会成功举办-西安电子科技大学体育部",
+      "chunks": 5,
+      "publishedAt": "2024-10-21"
+    },
+    {
+      "id": "doc-883bbf8f63882c7b6da8684e",
+      "url": "https://tyb.xidian.edu.cn/info/1021/7372.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1021/7372.htm",
+      "title": "跃动身心，赋能前行  ——“运动是良医”教职工运动技能公益培训，绘就“幸福西电”新画卷-西安电子科技大学体育部",
+      "chunks": 8,
+      "publishedAt": "2026-07-18"
+    },
+    {
+      "id": "doc-d0afa6fb964a00d1ca301e30",
+      "url": "https://tyb.xidian.edu.cn/info/1273/6882.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1273/6882.htm",
+      "title": "3金5银1铜，游泳队于全国大赛载誉而归！-西安电子科技大学体育部",
+      "chunks": 2,
+      "publishedAt": "2026-04-08"
+    },
+    {
+      "id": "doc-26ed0d94eba0674e5deda897",
+      "url": "https://tyb.xidian.edu.cn/info/1021/7322.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1021/7322.htm",
+      "title": "6金3银！校田径队在省运会创佳绩-西安电子科技大学体育部",
+      "chunks": 5,
+      "publishedAt": "2026-07-07"
+    },
+    {
+      "id": "doc-3144babc88a93fcfffecc251",
+      "url": "https://tyb.xidian.edu.cn/info/1022/7182.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1022/7182.htm",
+      "title": "关于举办西安电子科技大学第一届跑步文化节的通知-西安电子科技大学体育部",
+      "chunks": 4,
+      "publishedAt": "2026-06-01"
+    },
+    {
+      "id": "doc-2cf9ea2feb4f243e0da68bcf",
+      "url": "https://tyb.xidian.edu.cn/info/1021/7332.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1021/7332.htm",
+      "title": "我校学子在陕西省第十七届大学生网球锦标赛暨“校长杯”比赛中斩获佳绩-西安电子科技大学体育部",
+      "chunks": 4,
+      "publishedAt": "2026-07-09"
+    },
+    {
+      "id": "doc-09102796e504f08603fe30bf",
+      "url": "https://tyb.xidian.edu.cn/info/1022/7292.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1022/7292.htm",
+      "title": "2026年“运动是良医”教职工运动技能  游泳培训班开课通知-西安电子科技大学体育部",
+      "chunks": 3,
+      "publishedAt": "2026-06-30"
+    },
+    {
+      "id": "doc-f3fd447fd7b180153c923b3e",
+      "url": "https://tyb.xidian.edu.cn/info/1021/7362.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1021/7362.htm",
+      "title": "CUBAL | 载誉收官！西电男篮斩获CUBAL二级联赛全国第六-西安电子科技大学体育部",
+      "chunks": 10,
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "id": "doc-f489af2eae24bd007eee1813",
+      "url": "https://tyb.xidian.edu.cn/info/1273/6892.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1273/6892.htm",
+      "title": "西电学子王子铭勇夺中国游泳公开赛亚军！-西安电子科技大学体育部",
+      "chunks": 3,
+      "publishedAt": "2026-03-23"
+    },
+    {
+      "id": "doc-ff62c46556ac7b350f007dfa",
+      "url": "https://tyb.xidian.edu.cn/info/1052/6922.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1052/6922.htm",
+      "title": "清明祭英烈 赓续红色魂 —— 体育部学生赴杨虎城将军烈士陵园开展清明祭扫活动-西安电子科技大学体育部",
+      "chunks": 6,
+      "publishedAt": "2026-04-03"
+    },
+    {
+      "id": "doc-87144dbd81ccc9f07b62dc90",
+      "url": "https://tyb.xidian.edu.cn/info/1022/7352.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1022/7352.htm",
+      "title": "2025-2026学年第二学期、2026-2027学年第一学期教材选用情况公示-西安电子科技大学体育部",
+      "chunks": 1,
+      "publishedAt": "2026-07-10"
+    },
+    {
+      "id": "doc-a21891078bc0fb37d4b4ed07",
+      "url": "https://tyb.xidian.edu.cn/info/1273/6902.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1273/6902.htm",
+      "title": "雄关如铁从头越 西电女篮进八强-西安电子科技大学体育部",
+      "chunks": 5,
+      "publishedAt": "2026-01-16"
+    },
+    {
+      "id": "doc-80e7e7914f2df2b77ef63515",
+      "url": "https://tyb.xidian.edu.cn/info/1273/6912.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1273/6912.htm",
+      "title": "夺冠x2！见证历史 西电男篮夺得陕西省一级二级联赛双冠军-西安电子科技大学体育部",
+      "chunks": 18,
+      "publishedAt": "2026-01-11"
+    },
+    {
+      "id": "doc-6c9e07efbb701d5ebdd84b3e",
+      "url": "https://tyb.xidian.edu.cn/info/1052/6942.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1052/6942.htm",
+      "title": "体育部党总支赴西安版本馆开展主题党日活动-西安电子科技大学体育部",
+      "chunks": 4,
+      "publishedAt": "2025-11-05"
+    },
+    {
+      "id": "doc-673bc5c665f04762a423ad33",
+      "url": "https://tyb.xidian.edu.cn/info/1052/6952.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1052/6952.htm",
+      "title": "体育部各支部组织教师赴渭华起义纪念馆参观学习-西安电子科技大学体育部",
+      "chunks": 3,
+      "publishedAt": "2025-09-18"
+    },
+    {
+      "id": "doc-bf0acd35f4377fa5bf75f160",
+      "url": "https://tyb.xidian.edu.cn/info/1052/6932.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1052/6932.htm",
+      "title": "体育部学生党支部组织开展“探寻历史脉络，汲取奋进力量”主题党日活动-西安电子科技大学体育部",
+      "chunks": 3,
+      "publishedAt": "2025-12-16"
+    },
+    {
+      "id": "doc-32c97ebbb404c9539a322a6a",
+      "url": "https://tyb.xidian.edu.cn/info/1052/4746.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1052/4746.htm",
+      "title": "体育部学生党支部前往葛牌镇开展红色主题党日活动-西安电子科技大学体育部",
+      "chunks": 5,
+      "publishedAt": "2024-06-13"
+    },
+    {
+      "id": "doc-f6bad60cf51e90b998b870c2",
+      "url": "https://tyb.xidian.edu.cn/info/1021/7342.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1021/7342.htm",
+      "title": "夯实专项技能 锤炼育人本领∣体育部开展2026年教师游泳专项技能考核-西安电子科技大学体育部",
+      "chunks": 3,
+      "publishedAt": "2026-07-08"
+    },
+    {
+      "id": "doc-ae01048bb836db07c4abd4c3",
+      "url": "https://tyb.xidian.edu.cn/info/1052/6962.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1052/6962.htm",
+      "title": "体育部党总支赴安吴青年训练班纪念馆开展主题党日活动-西安电子科技大学体育部",
+      "chunks": 4,
+      "publishedAt": "2025-04-15"
+    },
+    {
+      "id": "doc-ef016e59ae66be6b9a2824b9",
+      "url": "https://tyb.xidian.edu.cn/info/1030/6972.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1030/6972.htm",
+      "title": "体育部师生热议2026全国两会-西安电子科技大学体育部",
+      "chunks": 17,
+      "publishedAt": "2026-03-07"
+    },
+    {
+      "id": "doc-5a21da2a156757ae07cd8939",
+      "url": "https://tyb.xidian.edu.cn/info/1030/6982.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1030/6982.htm",
+      "title": "武韵风华——西电学子在陕西省第六届大学生武术（套路）锦标赛中获佳绩-西安电子科技大学体育部",
+      "chunks": 2,
+      "publishedAt": "2026-01-01"
+    },
+    {
+      "id": "doc-ece5dc510114fad1447c73f6",
+      "url": "https://tyb.xidian.edu.cn/info/1030/6992.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1030/6992.htm",
+      "title": "挥拍展风采，拼搏铸青春  ——2025年西安电子科技大学“西军电杯”学生羽毛球混合团体赛圆满落幕-西安电子科技大学体育部",
+      "chunks": 7,
+      "publishedAt": "2025-12-24"
+    },
+    {
+      "id": "doc-308eef4544980d1c920f10c4",
+      "url": "https://tyb.xidian.edu.cn/info/1022/7202.htm",
+      "resolvedUrl": "https://tyb.xidian.edu.cn/info/1022/7202.htm",
+      "title": "体育部外聘教师招聘公告-西安电子科技大学体育部",
+      "chunks": 3,
+      "publishedAt": "2026-06-05"
+    },
+    {
+      "id": "doc-fcc8e38f1e0138c653ba0e53",
+      "url": "https://news.xidian.edu.cn/info/2106/307386.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/307386.htm",
+      "title": "【人民日报】我国空间太阳能电站建设迈出关键一步 “逐日”蹄疾，电从太空来（深度观察）-西安电子科技大学新闻网",
+      "chunks": 18,
+      "publishedAt": "2026-07-20"
+    },
+    {
+      "id": "doc-9405a9d7e5819585236f6eb1",
+      "url": "https://news.xidian.edu.cn/info/1371/307066.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/307066.htm",
+      "title": "【学在西电】方班示范班第158期学术研讨厅现场课在西安电子科技大学成功举办-西安电子科技大学新闻网",
+      "chunks": 3,
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "id": "doc-db7bada2a988585a7d9df9c0",
+      "url": "https://news.xidian.edu.cn/info/1371/307056.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/307056.htm",
+      "title": "陕西师范大学副校长王云博一行来校交流调研-西安电子科技大学新闻网",
+      "chunks": 2,
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "id": "doc-842b138e23ae75673b65f40f",
+      "url": "https://news.xidian.edu.cn/info/2106/307356.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/307356.htm",
+      "title": "西电举办茅于宽教授天线基金启动仪式暨座谈会-西安电子科技大学新闻网",
+      "chunks": 6,
+      "publishedAt": "2026-07-18"
+    },
+    {
+      "id": "doc-189a339fc7912d438b9f3edb",
+      "url": "https://news.xidian.edu.cn/info/2106/307286.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/307286.htm",
+      "title": "聚焦丨习近平在2026世界人工智能大会暨人工智能全球治理高级别会议开幕式上的主旨讲话（全文）-西安电子科技大学新闻网",
+      "chunks": 13,
+      "publishedAt": "2026-07-17"
+    },
+    {
+      "id": "doc-a853ffcff8253404da683549",
+      "url": "https://news.xidian.edu.cn/info/1399/307076.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1399/307076.htm",
+      "title": "网络安全与密码学部举办专项工程硕博士赴企实践行前教育暨导师培训会-西安电子科技大学新闻网",
+      "chunks": 4,
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "id": "doc-a9f2d6de4d5d6f5b69620c91",
+      "url": "https://news.xidian.edu.cn/info/1373/307296.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1373/307296.htm",
+      "title": "萧山区政协主席叶建宏带队调研西电杭州研究院入园企业-西安电子科技大学新闻网",
+      "chunks": 3,
+      "publishedAt": "2026-07-17"
+    },
+    {
+      "id": "doc-27484bfbfd1f0af3fe9a33da",
+      "url": "https://news.xidian.edu.cn/info/1399/307346.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1399/307346.htm",
+      "title": "空间学院钱学森班举办新生科创实践与国际化培养专题交流会-西安电子科技大学新闻网",
+      "chunks": 4,
+      "publishedAt": "2026-07-18"
+    },
+    {
+      "id": "doc-536e688779c0b99519b2af66",
+      "url": "https://news.xidian.edu.cn/info/1399/307036.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1399/307036.htm",
+      "title": "材料学院应用化学系党支部开展“学四渡精神 育时代新人”主题党日活动-西安电子科技大学新闻网",
+      "chunks": 3,
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "id": "doc-36264ceb5588beabf328e942",
+      "url": "https://news.xidian.edu.cn/info/1399/306976.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1399/306976.htm",
+      "title": "以赛赋能创新，智感引领未来——2026年“明石杯”微纳传感技术与智能应用赛陕西省赛在西电成功举办-西安电子科技大学新闻网",
+      "chunks": 4,
+      "publishedAt": "2026-07-15"
+    },
+    {
+      "id": "doc-8a3596d501dd76dc6034cc69",
+      "url": "https://news.xidian.edu.cn/info/1371/307026.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/307026.htm",
+      "title": "【数字西电】“慕课西部行计划2.0”新疆试点工作推进会在北京举行-西安电子科技大学新闻网",
+      "chunks": 4,
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "id": "doc-69d6758ec4f6a873df6df609",
+      "url": "https://news.xidian.edu.cn/info/1399/307006.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1399/307006.htm",
+      "title": "经管院开展“追寻红色足迹 践行实干初心”乡村振兴主题党日活动-西安电子科技大学新闻网",
+      "chunks": 4,
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "id": "doc-7ae717c277ed177407c501ad",
+      "url": "https://news.xidian.edu.cn/info/1373/307366.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1373/307366.htm",
+      "title": "西安市科学技术局来校交流座谈-西安电子科技大学新闻网",
+      "chunks": 3,
+      "publishedAt": "2026-07-20"
+    },
+    {
+      "id": "doc-89c45c1f97772f1e2a5726e7",
+      "url": "https://news.xidian.edu.cn/info/1403/307376.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1403/307376.htm",
+      "title": "网安万里行-科技创新丨网络安全与密码学部赴中电信量子开展生产实习及社会实践-西安电子科技大学新闻网",
+      "chunks": 6,
+      "publishedAt": "2026-07-20"
+    },
+    {
+      "id": "doc-fda8ba0611b5b30e2f747fdd",
+      "url": "https://news.xidian.edu.cn/info/2106/228033.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/228033.htm",
+      "title": "【学在西电】宫懿伦：要做“斜杠青年”-西安电子科技大学新闻网",
+      "chunks": 15,
+      "publishedAt": "2024-03-25"
+    },
+    {
+      "id": "doc-dc0807aa6209b4e0ebb407ad",
+      "url": "https://news.xidian.edu.cn/info/1404/307306.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1404/307306.htm",
+      "title": "学校举办基层党务工作者素质能力提升训练营两期交流学习-西安电子科技大学新闻网",
+      "chunks": 5,
+      "publishedAt": "2026-07-17"
+    },
+    {
+      "id": "doc-79e5b567caccb4d1fc37f8f6",
+      "url": "https://news.xidian.edu.cn/info/1399/307046.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1399/307046.htm",
+      "title": "机电工程学院师生党员赴红色场馆开展主题研学活动-西安电子科技大学新闻网",
+      "chunks": 5,
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "id": "doc-b5582d49d9232297dec8a981",
+      "url": "https://news.xidian.edu.cn/info/2106/227551.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/227551.htm",
+      "title": "【创新西电】西电获批3个陕西省高等学校重点实验室-西安电子科技大学新闻网",
+      "chunks": 4,
+      "publishedAt": "2024-01-19"
+    },
+    {
+      "id": "doc-40d70fc9e8de1d484be6486b",
+      "url": "https://news.xidian.edu.cn/info/2106/225495.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/225495.htm",
+      "title": "【学在西电】陕西高校唯一 西电获全国优秀研支团高校项目办-西安电子科技大学新闻网",
+      "chunks": 2,
+      "publishedAt": "2023-08-11"
+    },
+    {
+      "id": "doc-05cc73788a7177ff365397e9",
+      "url": "https://news.xidian.edu.cn/info/2106/227263.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/227263.htm",
+      "title": "【名师西电】谢晖：是老师，亦是一名“学生”-西安电子科技大学新闻网",
+      "chunks": 14,
+      "publishedAt": "2023-12-19"
+    },
+    {
+      "id": "doc-87b2ce2fd7f733c6de2af763",
+      "url": "https://news.xidian.edu.cn/info/2106/227406.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/227406.htm",
+      "title": "西安电子科技大学2024年新年贺词-西安电子科技大学新闻网",
+      "chunks": 13,
+      "publishedAt": "2023-12-31"
+    },
+    {
+      "id": "doc-9756d0bbc92c896ec279d35c",
+      "url": "https://news.xidian.edu.cn/info/2106/226045.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/226045.htm",
+      "title": "【学在西电】西电学子荣获中国机器人及人工智能大赛全国一等奖-西安电子科技大学新闻网",
+      "chunks": 7,
+      "publishedAt": "2023-10-09"
+    },
+    {
+      "id": "doc-61e3c2fe96f45e71502f57a9",
+      "url": "https://news.xidian.edu.cn/info/2106/226129.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/226129.htm",
+      "title": "【幸福西电】“小蛮驴”来了 正式开启校园快递配送新模式-西安电子科技大学新闻网",
+      "chunks": 6,
+      "publishedAt": "2023-10-14"
+    },
+    {
+      "id": "doc-ea45ff163ea468547440423e",
+      "url": "https://news.xidian.edu.cn/info/1033/32515.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1033/32515.htm",
+      "title": "关于本站-西安电子科技大学新闻网",
+      "chunks": 2,
+      "publishedAt": "2016-08-26"
+    },
+    {
+      "id": "doc-d58125e55b538222491cf48c",
+      "url": "https://news.xidian.edu.cn/info/2106/283906.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/283906.htm",
+      "title": "【特色西电】学部制建设迎来3.0版本 西电“电子信息+”赋能学科融合发展-西安电子科技大学新闻网",
+      "chunks": 8,
+      "publishedAt": "2025-12-31"
+    },
+    {
+      "id": "doc-22d0ec6987e4d6f62439130d",
+      "url": "https://news.xidian.edu.cn/info/1033/32521.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1033/32521.htm",
+      "title": "联系方式-西安电子科技大学新闻网",
+      "chunks": 1,
+      "publishedAt": "2009-08-28"
+    },
+    {
+      "id": "doc-5fd579057cd74a6fe0162e36",
+      "url": "https://news.xidian.edu.cn/info/2106/307016.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/307016.htm",
+      "title": "【学在西电】历史最佳！西电男篮斩获CUBAL二级联赛全国第六-西安电子科技大学新闻网",
+      "chunks": 17,
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "id": "doc-1d5f58025a7d8971d8d8965e",
+      "url": "https://news.xidian.edu.cn/info/1371/306926.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/306926.htm",
+      "title": "“西电-华为”难题与需求研讨交流会在西电举行-西安电子科技大学新闻网",
+      "chunks": 8,
+      "publishedAt": "2026-07-15"
+    },
+    {
+      "id": "doc-11711ebaa422ffb388ab8a81",
+      "url": "https://news.xidian.edu.cn/info/1371/306896.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/306896.htm",
+      "title": "西电参加中国国际大学生创新大赛（2026）陕西赛区省级复赛暨“青年红色筑梦之旅”活动启动仪式-西安电子科技大学新闻网",
+      "chunks": 7,
+      "publishedAt": "2026-07-15"
+    },
+    {
+      "id": "doc-bbab5b260b75f280430959d5",
+      "url": "https://news.xidian.edu.cn/info/1371/306836.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/306836.htm",
+      "title": "副校长张进成赴国卓院督导树立和践行正确政绩观学习教育开展情况-西安电子科技大学新闻网",
+      "chunks": 5,
+      "publishedAt": "2026-07-14"
+    },
+    {
+      "id": "doc-fa71c4f8fea65aa453430908",
+      "url": "https://news.xidian.edu.cn/info/2106/306826.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/306826.htm",
+      "title": "【名师西电】物理学院教师武振华荣获全国高校物理基础课程青年教师讲课比赛西北赛区复赛特等奖-西安电子科技大学新闻网",
+      "chunks": 4,
+      "publishedAt": "2026-07-14"
+    },
+    {
+      "id": "doc-5b4397319d1ed23be0421e5b",
+      "url": "https://news.xidian.edu.cn/info/1371/306886.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/306886.htm",
+      "title": "学校举办2026年机关党员干部、党外知识分子专题培训班-西安电子科技大学新闻网",
+      "chunks": 6,
+      "publishedAt": "2026-07-15"
+    },
+    {
+      "id": "doc-52c2e25957b0df063f46fdfb",
+      "url": "https://news.xidian.edu.cn/info/1371/306846.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/306846.htm",
+      "title": "校党委巡察材料学院党委意见反馈会召开-西安电子科技大学新闻网",
+      "chunks": 4,
+      "publishedAt": "2026-07-14"
+    },
+    {
+      "id": "doc-d01193168aa7e4daaf4528bd",
+      "url": "https://news.xidian.edu.cn/info/1371/306716.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/306716.htm",
+      "title": "【名师西电】西电举办2026年导师能力提升“红专计划”专题培训-西安电子科技大学新闻网",
+      "chunks": 15,
+      "publishedAt": "2026-07-13"
+    },
+    {
+      "id": "doc-113646144dc4e3ef3642002e",
+      "url": "https://news.xidian.edu.cn/info/1371/306686.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/306686.htm",
+      "title": "【幸福西电】西电民主管理经验在中华全国总工会《厂务公开信息》刊发-西安电子科技大学新闻网",
+      "chunks": 4,
+      "publishedAt": "2026-07-13"
+    },
+    {
+      "id": "doc-07202fe69192310e6b459811",
+      "url": "https://news.xidian.edu.cn/info/2106/306566.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/306566.htm",
+      "title": "学校召开2026年留学生教育管理工作领导小组第二次会议-西安电子科技大学新闻网",
+      "chunks": 5,
+      "publishedAt": "2026-07-13"
+    },
+    {
+      "id": "doc-c8aee604a9093599d04b98db",
+      "url": "https://news.xidian.edu.cn/info/1371/306636.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/306636.htm",
+      "title": "2026年学校党委第一轮巡察第四巡察组召开巡察基础教育党总支意见反馈会-西安电子科技大学新闻网",
+      "chunks": 5,
+      "publishedAt": "2026-07-11"
+    },
+    {
+      "id": "doc-dc6089c0b555cbff274b9f11",
+      "url": "https://news.xidian.edu.cn/info/2106/306186.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/306186.htm",
+      "title": "【学在西电】6金3银！西电田径队在省运会创佳绩-西安电子科技大学新闻网",
+      "chunks": 2,
+      "publishedAt": "2026-07-10"
+    },
+    {
+      "id": "doc-95c469cbdba10008c392d2f5",
+      "url": "https://news.xidian.edu.cn/info/2106/306476.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/306476.htm",
+      "title": "西电召开党的建设和全面从严治党工作领导小组（扩大）会议-西安电子科技大学新闻网",
+      "chunks": 6,
+      "publishedAt": "2026-07-10"
+    },
+    {
+      "id": "doc-863dced8ad6bd43ecc60937c",
+      "url": "https://news.xidian.edu.cn/info/1371/306546.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/306546.htm",
+      "title": "西电赴西影集团调研并达成AI+影视多领域合作意向-西安电子科技大学新闻网",
+      "chunks": 4,
+      "publishedAt": "2026-07-11"
+    },
+    {
+      "id": "doc-b94c2b27615133f905c48541",
+      "url": "https://news.xidian.edu.cn/info/2106/306996.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/306996.htm",
+      "title": "聚焦丨习近平在上海考察-西安电子科技大学新闻网",
+      "chunks": 6,
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "id": "doc-b2e492311448a36424faa238",
+      "url": "https://news.xidian.edu.cn/info/1527/222478.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1527/222478.htm",
+      "title": "习近平在中共中央政治局第一次集体学习时强调 全面学习把握落实党的二十大精神 奋力夺取全面建设社会主义现代化国家新胜利-西安电子科技大学新闻网",
+      "chunks": 19,
+      "publishedAt": "2022-10-26"
+    },
+    {
+      "id": "doc-8c73402051f135b8b5a79d8d",
+      "url": "https://news.xidian.edu.cn/info/1527/222491.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1527/222491.htm",
+      "title": "中国共产党章程-西安电子科技大学新闻网",
+      "chunks": 115,
+      "publishedAt": "2022-10-27"
+    },
+    {
+      "id": "doc-ace80a03a620ea521c46d870",
+      "url": "https://news.xidian.edu.cn/info/1527/222477.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1527/222477.htm",
+      "title": "习近平：高举中国特色社会主义伟大旗帜 为全面建设社会主义现代化国家而团结奋斗——在中国共产党第二十次全国代表大会上的报告-西安电子科技大学新闻网",
+      "chunks": 198,
+      "publishedAt": "2022-10-26"
+    },
+    {
+      "id": "doc-d542de0573c47a77c9946e10",
+      "url": "https://news.xidian.edu.cn/info/2106/221616.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/221616.htm",
+      "title": "聚焦｜习近平：高举中国特色社会主义伟大旗帜 奋力谱写全面建设社会主义现代化国家崭新篇章-西安电子科技大学新闻网",
+      "chunks": 26,
+      "publishedAt": "2022-07-28"
+    },
+    {
+      "id": "doc-2f1f83d83d0db948925e10e4",
+      "url": "https://news.xidian.edu.cn/info/1527/209240.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1527/209240.htm",
+      "title": "习近平参加内蒙古代表团审议-西安电子科技大学新闻网",
+      "chunks": 13,
+      "publishedAt": "2020-06-03"
+    },
+    {
+      "id": "doc-30ae72341e2755b8ebbe0e34",
+      "url": "https://news.xidian.edu.cn/info/2106/221284.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/221284.htm",
+      "title": "聚焦｜习近平：更好把握和运用党的百年奋斗历史经验-西安电子科技大学新闻网",
+      "chunks": 83,
+      "publishedAt": "2022-07-01"
+    },
+    {
+      "id": "doc-0d6612ee4d715cc720aad315",
+      "url": "https://news.xidian.edu.cn/info/1024/294376.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1024/294376.htm",
+      "title": "许珊琳：守好学校的“钱袋子”，更暖了师生的心窝子-西安电子科技大学新闻网",
+      "chunks": 11,
+      "publishedAt": "2026-04-19"
+    },
+    {
+      "id": "doc-3897498e00cb513235aabf73",
+      "url": "https://news.xidian.edu.cn/info/1024/292726.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1024/292726.htm",
+      "title": "王楠楠：从会算到看见：线性代数课背后的育人智慧-西安电子科技大学新闻网",
+      "chunks": 9,
+      "publishedAt": "2026-04-10"
+    },
+    {
+      "id": "doc-49937cf3e700db807e3f17d6",
+      "url": "https://news.xidian.edu.cn/info/1011/264996.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1011/264996.htm",
+      "title": "迷茫小白→独当一面，张艺博用“蜕变”给出成长路径-西安电子科技大学新闻网",
+      "chunks": 10,
+      "publishedAt": "2025-06-26"
+    },
+    {
+      "id": "doc-99e7388c413047104fdd9b4e",
+      "url": "https://news.xidian.edu.cn/info/1011/264896.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1011/264896.htm",
+      "title": "陈彦竹：跨界全能，她的青春没有“短板”-西安电子科技大学新闻网",
+      "chunks": 15,
+      "publishedAt": "2025-06-24"
+    },
+    {
+      "id": "doc-98b568480b16b84da3c54ff9",
+      "url": "https://news.xidian.edu.cn/info/1011/264956.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1011/264956.htm",
+      "title": "在西电，和赵迪解锁“光电+青春”的N种打开方式-西安电子科技大学新闻网",
+      "chunks": 12,
+      "publishedAt": "2025-06-26"
+    },
+    {
+      "id": "doc-363d2277d06c8234be38b9e0",
+      "url": "https://news.xidian.edu.cn/info/1024/286796.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1024/286796.htm",
+      "title": "西电数学与统计实训中心：当梦想之翼掠过数学之峰-西安电子科技大学新闻网",
+      "chunks": 22,
+      "publishedAt": "2026-02-10"
+    },
+    {
+      "id": "doc-f165881a1ba0ace4f8ffd4f8",
+      "url": "https://news.xidian.edu.cn/info/1027/288676.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1027/288676.htm",
+      "title": "冯必先：扎根泥土 向光生长-西安电子科技大学新闻网",
+      "chunks": 10,
+      "publishedAt": "2026-03-11"
+    },
+    {
+      "id": "doc-11b68b3f9b978e36ab392fa1",
+      "url": "https://news.xidian.edu.cn/info/1027/241276.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1027/241276.htm",
+      "title": "​尚江峰：西电培养了我踏实与坚韧的品性-西安电子科技大学新闻网",
+      "chunks": 9,
+      "publishedAt": "2024-11-22"
+    },
+    {
+      "id": "doc-dde6aa5b8ea0b9edd768a248",
+      "url": "https://news.xidian.edu.cn/info/1027/239716.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1027/239716.htm",
+      "title": "赵星梅：逐梦科技星云，星火传承在心中-西安电子科技大学新闻网",
+      "chunks": 10,
+      "publishedAt": "2024-11-08"
+    },
+    {
+      "id": "doc-db31f39404a88b5d6eb670c9",
+      "url": "https://news.xidian.edu.cn/info/1028/226529.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1028/226529.htm",
+      "title": "张海林：好学不倦 精益求精-西安电子科技大学新闻网",
+      "chunks": 19,
+      "publishedAt": "2023-11-06"
+    },
+    {
+      "id": "doc-d3813144d9d890ca387a355f",
+      "url": "https://news.xidian.edu.cn/info/1028/226039.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1028/226039.htm",
+      "title": "刘增基：坚守初心 矢志不渝-西安电子科技大学新闻网",
+      "chunks": 21,
+      "publishedAt": "2023-10-09"
+    },
+    {
+      "id": "doc-e6c560571f2d72125b0b456b",
+      "url": "https://news.xidian.edu.cn/info/1028/226431.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1028/226431.htm",
+      "title": "李建东：刻苦钻研 砥砺前行-西安电子科技大学新闻网",
+      "chunks": 19,
+      "publishedAt": "2023-10-31"
+    },
+    {
+      "id": "doc-5fd31016d716e769fcab7bbc",
+      "url": "https://gr.xidian.edu.cn/pygl/bslc.htm",
+      "resolvedUrl": "https://gr.xidian.edu.cn/pygl/bslc.htm",
+      "title": "办事流程-研究生院-西安电子科技大学",
+      "chunks": 6,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-282dde1d6f52185f1d944c82",
+      "url": "https://gr.xidian.edu.cn/pygl/xjgl.htm",
+      "resolvedUrl": "https://gr.xidian.edu.cn/pygl/xjgl.htm",
+      "title": "学籍管理-研究生院-西安电子科技大学",
+      "chunks": 6,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-7978d358c89651172bebfec6",
+      "url": "https://ncee.xidian.edu.cn/info/1101/4011.htm",
+      "resolvedUrl": "https://ncee.xidian.edu.cn/info/1101/4011.htm",
+      "title": "卓越工程师培养改革再深化， 西电实现实践成果申请学位硕博全覆盖-西安电子科技大学国家卓越工程师学院",
+      "chunks": 13,
+      "publishedAt": "2026-06-04"
+    },
+    {
+      "id": "doc-f521cbcb06c6a52eb3ff7b6a",
+      "url": "https://gr.xidian.edu.cn/info/1037/17154.htm",
+      "resolvedUrl": "https://gr.xidian.edu.cn/info/1037/17154.htm",
+      "title": "2025年秋季学期研究生课表-研究生院-西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": "2025-09-16"
+    },
+    {
+      "id": "doc-ba63cfcd70dd755b27821a14",
+      "url": "https://gr.xidian.edu.cn/info/1044/20074.htm",
+      "resolvedUrl": "https://gr.xidian.edu.cn/info/1044/20074.htm",
+      "title": "关于开展2026年中国密码学会博士学位论文激励计划的通知-研究生院-西安电子科技大学",
+      "chunks": 6,
+      "publishedAt": "2026-06-24"
+    },
+    {
+      "id": "doc-6d38bc8ebb7238801beb97e6",
+      "url": "https://gr.xidian.edu.cn/info/1183/15024.htm",
+      "resolvedUrl": "https://gr.xidian.edu.cn/info/1183/15024.htm",
+      "title": "寒假期间致全体研究生导师的倡议书-研究生院-西安电子科技大学",
+      "chunks": 5,
+      "publishedAt": "2025-01-16"
+    },
+    {
+      "id": "doc-822aba85b2f019d9ae2b4765",
+      "url": "https://xdyx.xidian.edu.cn/index.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/index.htm",
+      "title": "西安电子科技大学 迎新网",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-9b4e0b46bda95b97b44fedfc",
+      "url": "https://news.xidian.edu.cn/info/2106/304516.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/304516.htm",
+      "title": "【学在西电】西电男篮荣获CUBAL二级联赛西北赛区冠军-西安电子科技大学新闻网",
+      "chunks": 8,
+      "publishedAt": "2026-06-25"
+    },
+    {
+      "id": "doc-3db487cdc15304216355090c",
+      "url": "https://news.xidian.edu.cn/info/2106/306126.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/306126.htm",
+      "title": "【创新西电】西安电子科技大学7项成果获批2025年度国家科学技术奖-西安电子科技大学新闻网",
+      "chunks": 6,
+      "publishedAt": "2026-07-08"
+    },
+    {
+      "id": "doc-826944d70bd90eb30c0adfbc",
+      "url": "https://news.xidian.edu.cn/info/2106/305056.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/305056.htm",
+      "title": "【红色西电】红色电台薪火传承 党建联建铸魂育人 新华社陕西分社与西安电子科技大学开展党建联建活动-西安电子科技大学新闻网",
+      "chunks": 13,
+      "publishedAt": "2026-06-30"
+    },
+    {
+      "id": "doc-d3459d1291a4a9bb3f1a6853",
+      "url": "https://news.xidian.edu.cn/info/2106/305476.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/2106/305476.htm",
+      "title": "西电师生热议庆祝中国共产党成立105周年大会-西安电子科技大学新闻网",
+      "chunks": 35,
+      "publishedAt": "2026-07-02"
+    },
+    {
+      "id": "doc-44449f983a35d212807b219f",
+      "url": "https://www.xidian.edu.cn/info/2127/79375.htm",
+      "resolvedUrl": "https://www.xidian.edu.cn/info/2127/79375.htm",
+      "title": "基于微通道流动沸腾的高热流冷却:机制、建模、增强与挑战-西安电子科技大学",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-2be998dc9b13e56c3c505563",
+      "url": "https://www.xidian.edu.cn/info/2127/78895.htm",
+      "resolvedUrl": "https://www.xidian.edu.cn/info/2127/78895.htm",
+      "title": "Long read sequencing for transcriptome characterization --- (how) can we quantify transcripts accurately with long reads-西安电子科技大学",
+      "chunks": 10,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-bc7934569f3e87caa3e9c7d9",
+      "url": "https://www.xidian.edu.cn/info/2127/78495.htm",
+      "resolvedUrl": "https://www.xidian.edu.cn/info/2127/78495.htm",
+      "title": "智慧教育交叉论坛之——解码“心”世界-西安电子科技大学",
+      "chunks": 18,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-32cd72dd91459a61d36f3f58",
+      "url": "https://www.xidian.edu.cn/info/2127/78215.htm",
+      "resolvedUrl": "https://www.xidian.edu.cn/info/2127/78215.htm",
+      "title": "Multi-Objective Backdoor Attack via Evolutionary Algorithm-西安电子科技大学",
+      "chunks": 10,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-6f251489c05250fb00cd9c36",
+      "url": "https://www.xidian.edu.cn/info/2127/78225.htm",
+      "resolvedUrl": "https://www.xidian.edu.cn/info/2127/78225.htm",
+      "title": "Use of Neuroprotective Drugs and Ultrasound Modulation for Combined Intervention of Parkinson's Disease-西安电子科技大学",
+      "chunks": 9,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-32f2424682c6e57b3a06f3c6",
+      "url": "https://www.xidian.edu.cn/info/2127/78195.htm",
+      "resolvedUrl": "https://www.xidian.edu.cn/info/2127/78195.htm",
+      "title": "Simple groups, symmetrc graphs, and geometries-西安电子科技大学",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-c2a1a0b1da8dbcd41e5401b9",
+      "url": "https://xsw.xidian.edu.cn/info/1002/43311.htm",
+      "resolvedUrl": "https://xsw.xidian.edu.cn/info/1002/43311.htm",
+      "title": "人工智能赋能密码分析取得突破性进展——密码学院与ISN全国重点实验室成果被EUROCRYPT 2026接收-西安电子科技大学学术网",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-b2f251df655a4af072534fad",
+      "url": "https://xsw.xidian.edu.cn/info/1002/46181.htm",
+      "resolvedUrl": "https://xsw.xidian.edu.cn/info/1002/46181.htm",
+      "title": "西电材料院彭彪林教授团队在固态电卡制冷领域取得重要进展-西安电子科技大学学术网",
+      "chunks": 9,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-65fd387bd4f3e2dd2d717df8",
+      "url": "https://news.xidian.edu.cn/info/1371/305296.htm",
+      "resolvedUrl": "https://news.xidian.edu.cn/info/1371/305296.htm",
+      "title": "【学在西电】西电学子在第九届全国大学生5分钟科研创新英语演讲比赛复赛中斩获佳绩-西安电子科技大学新闻网",
+      "chunks": 3,
+      "publishedAt": "2026-07-01"
+    },
+    {
+      "id": "doc-215dee53e2cc0ba2c62c613f",
+      "url": "https://xsw.xidian.edu.cn/info/1002/45901.htm",
+      "resolvedUrl": "https://xsw.xidian.edu.cn/info/1002/45901.htm",
+      "title": "西电人工智能交叉研究院陈雪利团队在“Nature Communications”上发表最新研究成果-西安电子科技大学学术网",
+      "chunks": 13,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-d26fb37c7a970c35ab8de795",
+      "url": "https://xsw.xidian.edu.cn/info/1002/46511.htm",
+      "resolvedUrl": "https://xsw.xidian.edu.cn/info/1002/46511.htm",
+      "title": "空间学院在仿生非接触感知研究方面取得进展-西安电子科技大学学术网",
+      "chunks": 13,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-c38d8667f2419d817547a39b",
+      "url": "https://xsw.xidian.edu.cn/info/1002/41111.htm",
+      "resolvedUrl": "https://xsw.xidian.edu.cn/info/1002/41111.htm",
+      "title": "为水系锌电池注入“长寿基因”：机电学院SCA团队通过数据驱动电解质设计实现万次稳定循环-西安电子科技大学学术网",
+      "chunks": 10,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-e1e7989faf86c8cd3d787409",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22853.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22853.htm",
+      "title": "西安电子科技大学计算机科学拔尖学生培养计划2.0基地——2026年“成长伙伴”国际暑期学校学员招募-西安电子科技大学 教务处",
+      "chunks": 8,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-d92b9c86a864a0470025d25e",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22843.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22843.htm",
+      "title": "关于提前做好2026～2027学年第一学期补考工作的通知-西安电子科技大学 教务处",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-463c2e23da38117499a006fd",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22833.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22833.htm",
+      "title": "关于2025-2026学年第二学期国际创新周部分通识选修课停开的通知-西安电子科技大学 教务处",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-e71eeef7f0b24427f8638873",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22803.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22803.htm",
+      "title": "关于2026年（2022级）本科优秀毕业设计（论文）评选结果​的公示-西安电子科技大学 教务处",
+      "chunks": 2,
+      "publishedAt": "2026-06-22"
+    },
+    {
+      "id": "doc-ec637bbe5675c9513e5caf78",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22793.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22793.htm",
+      "title": "关于2025~2026学年国际创新实践周本科生选课的通知-西安电子科技大学 教务处",
+      "chunks": 10,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-cb663511c4a0ddf5e1608669",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22743.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22743.htm",
+      "title": "关于开展2026年国际创新实践周“实验实践能力达标测试”补测的通知-西安电子科技大学 教务处",
+      "chunks": 6,
+      "publishedAt": "2026-06-29"
+    },
+    {
+      "id": "doc-e15f00f639ff4f5cdc8608d5",
+      "url": "https://jwc.xidian.edu.cn/info/1013/16673.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1013/16673.htm",
+      "title": "关于提前做好2024～2025学年第二学期补考工作的通知-西安电子科技大学 教务处",
+      "chunks": 6,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-ef3c4987a54a32ecadedd86e",
+      "url": "https://jwc.xidian.edu.cn/info/1015/12873.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1015/12873.htm",
+      "title": "关于开展2023年度陕西高等教育教学改革研究项目（本科）申报工作的通知-西安电子科技大学 教务处",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-b348f437a9322c2a1d044d11",
+      "url": "https://jwc.xidian.edu.cn/info/1015/12995.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1015/12995.htm",
+      "title": "西安电子科技大学关于组织申报2023年校级教改项目的通知-西安电子科技大学 教务处",
+      "chunks": 12,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-bcefc6a3b6171482f78b63cf",
+      "url": "https://jwc.xidian.edu.cn/info/1013/16503.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1013/16503.htm",
+      "title": "关于做好2024～2025学年第一学期期末考试工作的通知-西安电子科技大学 教务处",
+      "chunks": 41,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-920e5028e9bf52d5df5bf296",
+      "url": "https://jwc.xidian.edu.cn/info/1013/16553.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1013/16553.htm",
+      "title": "2024年12月14日全国大学英语四六级考试考生须知-西安电子科技大学 教务处",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-55a252a18097cc00fd051fbd",
+      "url": "https://jwc.xidian.edu.cn/info/1013/17073.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1013/17073.htm",
+      "title": "关于2025年上半年全国大学外语四、六级考试报名的通知-西安电子科技大学 教务处",
+      "chunks": 10,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-0c8cd7d9ed816ea4ed983c3c",
+      "url": "https://jwc.xidian.edu.cn/info/1013/17863.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1013/17863.htm",
+      "title": "关于2025年（2021级）本科生毕业设计（论文）盲审工作安排的通知-西安电子科技大学 教务处",
+      "chunks": 8,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-6e609c45a6b60b18e7e49182",
+      "url": "https://jwc.xidian.edu.cn/info/1013/16803.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1013/16803.htm",
+      "title": "关于开放2024~2025学年第二学期补（缓）考预约的通知-西安电子科技大学 教务处",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-31ad3169d375295fde2b9fae",
+      "url": "https://jwc.xidian.edu.cn/info/1015/12563.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1015/12563.htm",
+      "title": "西安电子科技大学关于公布“2021年高等教育教学改革研究项目”结题验收结果的通知-西安电子科技大学 教务处",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-834013d7739a884fc3373804",
+      "url": "https://jwc.xidian.edu.cn/info/1015/12824.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1015/12824.htm",
+      "title": "关于开展2023年校级教学成果奖（本科）​​​​​​申报评选工作的通知​-西安电子科技大学 教务处",
+      "chunks": 10,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-bd10e6dabcf51d27930d0c99",
+      "url": "https://jwc.xidian.edu.cn/info/1015/12803.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1015/12803.htm",
+      "title": "关于人才培养方案及课程大纲管理系统上线使用及相关工作进度安排的通知-西安电子科技大学 教务处",
+      "chunks": 7,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-69bdd21bc737ca7ffb26fb43",
+      "url": "https://jwc.xidian.edu.cn/info/1025/13237.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1025/13237.htm",
+      "title": "关于西安电子科技大学学生体质测试补测的通知-西安电子科技大学 教务处",
+      "chunks": 7,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-3eabfd9a23d87c19c178c974",
+      "url": "https://jwc.xidian.edu.cn/info/1025/13257.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1025/13257.htm",
+      "title": "关于2020级、2021级本科生基础层（C2级）实验实践能力达标测试补测的通知-西安电子科技大学 教务处",
+      "chunks": 8,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-822df071b7afd148b5f9dd2b",
+      "url": "https://jwc.xidian.edu.cn/info/1025/13256.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1025/13256.htm",
+      "title": "关于2024年（2020级）本科生毕业设计（论文）盲审工作安排的通知-西安电子科技大学 教务处",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-381b0413bdb8ceced7e088d0",
+      "url": "https://jwc.xidian.edu.cn/info/1025/11425.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1025/11425.htm",
+      "title": "关于2019级、2018级本科生基础层（C2级）实验实践能力达标测试补测的通知-西安电子科技大学 教务处",
+      "chunks": 6,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-81e2b8bddd4ace4abaef1a41",
+      "url": "https://jwc.xidian.edu.cn/info/1025/11524.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1025/11524.htm",
+      "title": "关于2022年（2018级）本科生毕业设计（论文）盲审工作安排的通知-西安电子科技大学 教务处",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-36865e3fb9c952996a84b55a",
+      "url": "https://jwc.xidian.edu.cn/info/1025/11653.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1025/11653.htm",
+      "title": "关于开展2022年国际双创实践周“实验实践能力达标测试”补测的通知-西安电子科技大学 教务处",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-802b78e768b93278bd74b92a",
+      "url": "https://jwc.xidian.edu.cn/info/1025/10182.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1025/10182.htm",
+      "title": "关于推荐2021年（2017级）本科优秀毕业设计（论文）的通知-西安电子科技大学 教务处",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-f5a8364ad1afdfe539b945a2",
+      "url": "https://jwc.xidian.edu.cn/info/1025/11423.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1025/11423.htm",
+      "title": "关于2022年春季综合层（A级）实验实践能力达标测试的通知-西安电子科技大学 教务处",
+      "chunks": 7,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-1bf796db2aa3b05e46715d88",
+      "url": "https://jwc.xidian.edu.cn/info/1025/11353.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1025/11353.htm",
+      "title": "关于2022年春季计算机应用“实验实践能力达标测试（C1-1）”的通知-西安电子科技大学 教务处",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-fc5ad5a7d2ade91bcfa25fb9",
+      "url": "https://jwc.xidian.edu.cn/info/1083/13435.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/13435.htm",
+      "title": "2024年国际创新实践周——企业/创新课堂课程介绍-西安电子科技大学 教务处",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-9926811f4ad3c52fd0a3d86e",
+      "url": "https://jwc.xidian.edu.cn/info/1083/13337.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/13337.htm",
+      "title": "2024年国际双创实践周——海外专家课程介绍-西安电子科技大学 教务处",
+      "chunks": 29,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-d5d8ad3f60edbb8166155dc8",
+      "url": "https://jwc.xidian.edu.cn/info/1083/19123.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/19123.htm",
+      "title": "2025年国际创新实践周——企业/创新课堂课程介绍-西安电子科技大学 教务处",
+      "chunks": 103,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-1d77403afda03c74e80a8b21",
+      "url": "https://jwc.xidian.edu.cn/info/1083/18353.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/18353.htm",
+      "title": "2025年国际创新实践周海外课程项目-西安电子科技大学 教务处",
+      "chunks": 45,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-1e839441ef8316b4bd658f2e",
+      "url": "https://jwc.xidian.edu.cn/info/1015/13113.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1015/13113.htm",
+      "title": "2023年西安电子科技大学校级教改项目拟立项公示-西安电子科技大学 教务处",
+      "chunks": 48,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-3d4eb8f6d29736092efd7480",
+      "url": "https://jwc.xidian.edu.cn/info/1025/12797.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1025/12797.htm",
+      "title": "2023年网络安全竞赛实训基地国际双创实践周集训通知-西安电子科技大学 教务处",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-b04e30cc65ece8f58ebfc351",
+      "url": "https://jwc.xidian.edu.cn/info/1083/22693.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/22693.htm",
+      "title": "2026年国际创新实践周海外课程简介-西安电子科技大学 教务处",
+      "chunks": 40,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-0ea25b0e7ff92447cff68f35",
+      "url": "https://jwc.xidian.edu.cn/info/1015/13013.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1015/13013.htm",
+      "title": "2023年校级高等教育教学成果奖评审结果公示-西安电子科技大学 教务处",
+      "chunks": 18,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-8d75ec78da999e7cbb51bfe6",
+      "url": "https://jwc.xidian.edu.cn/info/1083/12490.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/12490.htm",
+      "title": "西安电子科技大学2023年国际双创实践周本科生学分课程聘请海外专家及企业专家授课项目申报工作的通知-西安电子科技大学 教务处",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-65636039ca0a79849793c889",
+      "url": "https://jwc.xidian.edu.cn/info/1083/8592.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/8592.htm",
+      "title": "关于做好国际双创实践周教育教学安排的通知-西安电子科技大学 教务处",
+      "chunks": 10,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-8ffa8b023f03dceb9421b13f",
+      "url": "https://jwc.xidian.edu.cn/info/1083/12696.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/12696.htm",
+      "title": "2023年国际双创实践周——企业课程介绍-西安电子科技大学 教务处",
+      "chunks": 80,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-33f776a35dd829bd3f05cdbd",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22393.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22393.htm",
+      "title": "关于2025级大类专业分流有关工作安排的通知-西安电子科技大学 教务处",
+      "chunks": 13,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-b561649986bbef8e99364c97",
+      "url": "https://jwc.xidian.edu.cn/info/1023/21313.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1023/21313.htm",
+      "title": "西电教师在第七届全国高校混合式教学创新设计大赛中获佳绩-西安电子科技大学 教务处",
+      "chunks": 9,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-447d245921434f82154ba421",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22613.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22613.htm",
+      "title": "关于我校教师跨校参与湖北省2026年高等教育（本科）国家教学成果奖遴选推荐成果的公示-西安电子科技大学 教务处",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-212dae308f742e4f297d3d2b",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22373.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22373.htm",
+      "title": "2026年6月13日全国大学英语四六级考试考生须知-西安电子科技大学 教务处",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-4b7cf97a1ef4b656cca63c86",
+      "url": "https://jwc.xidian.edu.cn/info/1023/21213.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1023/21213.htm",
+      "title": "以郑和故事为钥——大学英语公开课解锁文化传播新课堂-西安电子科技大学 教务处",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-5e584870e2dcfa9ed2a0f7de",
+      "url": "https://jwc.xidian.edu.cn/info/1023/21393.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1023/21393.htm",
+      "title": "广州研究院举办“通信信号处理教学”示范活动-西安电子科技大学 教务处",
+      "chunks": 6,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-f38e5c0b46342e7e875201a5",
+      "url": "https://jwc.xidian.edu.cn/info/1083/12603.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/12603.htm",
+      "title": "2023年国际双创实践周——海外专家课程介绍-西安电子科技大学 教务处",
+      "chunks": 59,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-1218aeabf92edc580f3738e0",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22313.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22313.htm",
+      "title": "关于做好2025~2026学年第二学期期末考试工作的通知-西安电子科技大学 教务处",
+      "chunks": 44,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-8c16652a4c54fc6beb9a4e80",
+      "url": "https://jwc.xidian.edu.cn/info/1083/10268.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/10268.htm",
+      "title": "2021年国际双创实践周——课程介绍-西安电子科技大学 教务处",
+      "chunks": 61,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-aa09332dc18b18d62fd64aeb",
+      "url": "https://jsfz.xidian.edu.cn/info/1021/11982.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1021/11982.htm",
+      "title": "我校开展“教学名师西部行”活动，扎实推进“慕课西部行计划2.0”-西安电子科技大学教师发展中心",
+      "chunks": 6,
+      "publishedAt": "2026-06-09"
+    },
+    {
+      "id": "doc-0fc2eb5e47ef799d9fd1b3ea",
+      "url": "https://jwc.xidian.edu.cn/info/1083/11822.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1083/11822.htm",
+      "title": "2022年国际双创实践周——课程介绍-西安电子科技大学 教务处",
+      "chunks": 68,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-52f9f1e044a2e0465cb23f5b",
+      "url": "https://jsfz.xidian.edu.cn/info/1021/11572.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1021/11572.htm",
+      "title": "计科院召开程序设计基础课程组教学改革研讨会-西安电子科技大学教师发展中心",
+      "chunks": 4,
+      "publishedAt": "2026-03-27"
+    },
+    {
+      "id": "doc-1699079d81331517aa67eea8",
+      "url": "https://jsfz.xidian.edu.cn/info/1022/12172.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1022/12172.htm",
+      "title": "关于对2026～2027学年第一学期西安电子科技大学优质示范课观摩班暨教育部教师司中西部高校青年教师融合式教学进修项目遴选结果进行公示的通知-西安电子科技大学教师发展中心",
+      "chunks": 2,
+      "publishedAt": "2026-07-08"
+    },
+    {
+      "id": "doc-7cf2143651c6b31831d01979",
+      "url": "https://jsfz.xidian.edu.cn/info/1021/10872.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1021/10872.htm",
+      "title": "喜报｜我校获评全国高校教师教学发展工作典型优秀案例-西安电子科技大学教师发展中心",
+      "chunks": 5,
+      "publishedAt": "2025-11-10"
+    },
+    {
+      "id": "doc-e86c0f7641bf6d71a5eecaf9",
+      "url": "https://jsfz.xidian.edu.cn/info/1022/12162.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1022/12162.htm",
+      "title": "【教学示范】AI赋能专业核心课“造型基础”-西安电子科技大学教师发展中心",
+      "chunks": 2,
+      "publishedAt": "2026-06-23"
+    },
+    {
+      "id": "doc-dd286750bcce96834bbb4149",
+      "url": "https://jsfz.xidian.edu.cn/info/1022/12102.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1022/12102.htm",
+      "title": "【专项培训】2026年度思想政治理论实践课专题培训-西安电子科技大学教师发展中心",
+      "chunks": 2,
+      "publishedAt": "2026-06-17"
+    },
+    {
+      "id": "doc-8c999ac21c3d1ccee4587968",
+      "url": "https://jsfz.xidian.edu.cn/info/1022/12112.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1022/12112.htm",
+      "title": "【教学示范】大学生心理健康教育-西安电子科技大学教师发展中心",
+      "chunks": 3,
+      "publishedAt": "2026-06-17"
+    },
+    {
+      "id": "doc-86e226724cf7d3e03483af1a",
+      "url": "https://jsfz.xidian.edu.cn/info/1022/12152.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1022/12152.htm",
+      "title": "【教学示范】操作系统-西安电子科技大学教师发展中心",
+      "chunks": 2,
+      "publishedAt": "2026-06-23"
+    },
+    {
+      "id": "doc-1730599fee3091997a0e0db9",
+      "url": "https://jsfz.xidian.edu.cn/info/1022/12092.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1022/12092.htm",
+      "title": "【教学示范】信号与系统-西安电子科技大学教师发展中心",
+      "chunks": 1,
+      "publishedAt": "2026-06-17"
+    },
+    {
+      "id": "doc-ce60d920c0a07ebef3a97f46",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/2580.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/2580.htm",
+      "title": "梁昌洪-西安电子科技大学教师发展中心",
+      "chunks": 6,
+      "publishedAt": "2022-10-31"
+    },
+    {
+      "id": "doc-cf04c22a81c628ff68ea1d54",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/4384.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/4384.htm",
+      "title": "李晖-西安电子科技大学教师发展中心",
+      "chunks": 7,
+      "publishedAt": "2022-10-31"
+    },
+    {
+      "id": "doc-592c72fcd086d7ba7bbe9bda",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/2581.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/2581.htm",
+      "title": "孙肖子-西安电子科技大学教师发展中心",
+      "chunks": 5,
+      "publishedAt": "2022-10-31"
+    },
+    {
+      "id": "doc-dead67153406e319fcf05b7e",
+      "url": "https://jsfz.xidian.edu.cn/info/1021/11582.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1021/11582.htm",
+      "title": "经管院举办决策咨询类信息撰写能力提升讲座-西安电子科技大学教师发展中心",
+      "chunks": 5,
+      "publishedAt": "2026-03-27"
+    },
+    {
+      "id": "doc-ef1fd3162b69b17bde243c6f",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/2582.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/2582.htm",
+      "title": "刘三阳-西安电子科技大学教师发展中心",
+      "chunks": 8,
+      "publishedAt": "2022-10-31"
+    },
+    {
+      "id": "doc-ed6d9d42e52d8f9dc805e820",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/2713.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/2713.htm",
+      "title": "李团结-西安电子科技大学教师发展中心",
+      "chunks": 1,
+      "publishedAt": "2021-03-25"
+    },
+    {
+      "id": "doc-9cc3f6a96a2b41d918ad8f60",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/4182.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/4182.htm",
+      "title": "周益春-西安电子科技大学教师发展中心",
+      "chunks": 7,
+      "publishedAt": "2022-10-31"
+    },
+    {
+      "id": "doc-f41182e707200d76cc67b8ed",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/2583.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/2583.htm",
+      "title": "傅丰林-西安电子科技大学教师发展中心",
+      "chunks": 5,
+      "publishedAt": "2022-10-31"
+    },
+    {
+      "id": "doc-501dc36cdadce3a038db094f",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/2711.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/2711.htm",
+      "title": "夏永林-西安电子科技大学教师发展中心",
+      "chunks": 1,
+      "publishedAt": "2021-03-25"
+    },
+    {
+      "id": "doc-67c287cd3ace5f48fc800c8d",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/4587.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/4587.htm",
+      "title": "邓成-西安电子科技大学教师发展中心",
+      "chunks": 1,
+      "publishedAt": "2021-02-28"
+    },
+    {
+      "id": "doc-051d065f88ddce9a85c8aa28",
+      "url": "https://jsfz.xidian.edu.cn/info/1021/11502.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1021/11502.htm",
+      "title": "机电工程学院举办“机器人技术”智慧课程建设培训会-西安电子科技大学教师发展中心",
+      "chunks": 6,
+      "publishedAt": "2026-03-20"
+    },
+    {
+      "id": "doc-776a91555a8e4ce48750ffe5",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/4586.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/4586.htm",
+      "title": "顾华玺-西安电子科技大学教师发展中心",
+      "chunks": 1,
+      "publishedAt": "2021-02-28"
+    },
+    {
+      "id": "doc-1e5a590216b765308918857c",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/4584.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/4584.htm",
+      "title": "苗启广-西安电子科技大学教师发展中心",
+      "chunks": 2,
+      "publishedAt": "2021-02-28"
+    },
+    {
+      "id": "doc-70e41cad143b6ef6ff45b1ec",
+      "url": "https://jsfz.xidian.edu.cn/info/1071/3782.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1071/3782.htm",
+      "title": "大中小学劳动教育指导纲要（试行）-西安电子科技大学教师发展中心",
+      "chunks": 62,
+      "publishedAt": "2022-01-17"
+    },
+    {
+      "id": "doc-b1a5ada4eeed9cec1e026f0b",
+      "url": "https://jsfz.xidian.edu.cn/info/1024/4585.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1024/4585.htm",
+      "title": "于少勇-西安电子科技大学教师发展中心",
+      "chunks": 2,
+      "publishedAt": "2021-02-28"
+    },
+    {
+      "id": "doc-e981272eb682f9b669addcce",
+      "url": "https://jsfz.xidian.edu.cn/info/1071/3781.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1071/3781.htm",
+      "title": "中共中央 国务院关于全面加强新时代大中小学劳动教育的意见-西安电子科技大学教师发展中心",
+      "chunks": 30,
+      "publishedAt": "2022-01-14"
+    },
+    {
+      "id": "doc-f94e0b959248652102415bed",
+      "url": "https://jsfz.xidian.edu.cn/info/1071/2913.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1071/2913.htm",
+      "title": "国家秘密的密点-西安电子科技大学教师发展中心",
+      "chunks": 9,
+      "publishedAt": "2021-05-28"
+    },
+    {
+      "id": "doc-0fbdae35b4e8ae5fdd3cee80",
+      "url": "https://jsfz.xidian.edu.cn/info/1071/2902.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1071/2902.htm",
+      "title": "中华人民共和国保守国家秘密法-西安电子科技大学教师发展中心",
+      "chunks": 30,
+      "publishedAt": "2021-05-27"
+    },
+    {
+      "id": "doc-64b2beb23671593cc8ee183a",
+      "url": "https://jsfz.xidian.edu.cn/info/1071/2802.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1071/2802.htm",
+      "title": "教育部关于一流本科课程建设的实施意见-西安电子科技大学教师发展中心",
+      "chunks": 32,
+      "publishedAt": "2021-04-29"
+    },
+    {
+      "id": "doc-7958b00f7dd83c8245b89d0d",
+      "url": "https://jsfz.xidian.edu.cn/info/1072/3785.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1072/3785.htm",
+      "title": "厦门大学实施“八大行动”构建立体式劳动教育体系-西安电子科技大学教师发展中心",
+      "chunks": 9,
+      "publishedAt": "2022-01-17"
+    },
+    {
+      "id": "doc-709bb9a4c6e809f8b3f1dba1",
+      "url": "https://jsfz.xidian.edu.cn/info/1072/2892.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1072/2892.htm",
+      "title": "完美教案编写指南-西安电子科技大学教师发展中心",
+      "chunks": 20,
+      "publishedAt": "2021-05-26"
+    },
+    {
+      "id": "doc-14a1d8d7abad5e104200835f",
+      "url": "https://jsfz.xidian.edu.cn/info/1072/2931.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1072/2931.htm",
+      "title": "教学方法|“学情分析”你还在用千篇一律的“课前测验”法吗？-西安电子科技大学教师发展中心",
+      "chunks": 19,
+      "publishedAt": "2021-06-03"
+    },
+    {
+      "id": "doc-639ebf8a45301924c4462cc2",
+      "url": "https://jsfz.xidian.edu.cn/info/1072/3783.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1072/3783.htm",
+      "title": "浙江大学积极探索构建特色劳动教育体系-西安电子科技大学教师发展中心",
+      "chunks": 7,
+      "publishedAt": "2022-01-17"
+    },
+    {
+      "id": "doc-c718119bab2144f83bcaed18",
+      "url": "https://jsfz.xidian.edu.cn/info/1072/2744.htm",
+      "resolvedUrl": "https://jsfz.xidian.edu.cn/info/1072/2744.htm",
+      "title": "教学方法丨高校教学改革中有哪些有效的教学策略-西安电子科技大学教师发展中心",
+      "chunks": 8,
+      "publishedAt": "2021-04-13"
+    },
+    {
+      "id": "doc-1cc1b115b5fd1ebe937e0b61",
+      "url": "https://jwc.xidian.edu.cn/info/1013/21883_1.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1013/21883_1.htm",
+      "title": "关于认真做好2025～2026学年第二学期期中考试工作的通知-西安电子科技大学 教务处",
+      "chunks": 10,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-6a0412a74ad1a83a23c64b0e",
+      "url": "https://jwc.xidian.edu.cn/info/1017/12951.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1017/12951.htm",
+      "title": "关于开展2023年学校本科教育质量监测数据填报和质量报告编制工作的通知-西安电子科技大学 教务处",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-c33799a6865a720e0e6391b5",
+      "url": "https://jwc.xidian.edu.cn/info/1017/12685.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1017/12685.htm",
+      "title": "关于做好2023年春季学期学生评教工作的通知-西安电子科技大学 教务处",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-cdd791c7e2d2ac653f7a0dad",
+      "url": "https://jwc.xidian.edu.cn/info/1017/12352.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1017/12352.htm",
+      "title": "西安电子科技大学本科教学督导工作条例（修订）-西安电子科技大学 教务处",
+      "chunks": 12,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-eec85aa8fa2836ce40015a7b",
+      "url": "https://jwc.xidian.edu.cn/info/1017/12412.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1017/12412.htm",
+      "title": "西安电子科技大学2021-2022学年本科教学质量报告-西安电子科技大学 教务处",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-a15b7316dc5dd2e58aa750c7",
+      "url": "https://jwc.xidian.edu.cn/info/1017/12192.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1017/12192.htm",
+      "title": "关于开展2022年学校教育质量监测数据填报工作的通知-西安电子科技大学 教务处",
+      "chunks": 13,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-a5868ce98cb65589d7553071",
+      "url": "https://jwc.xidian.edu.cn/info/1017/12328.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1017/12328.htm",
+      "title": "西安电子科技大学领导干部听课规定（修订）-西安电子科技大学 教务处",
+      "chunks": 8,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-d75826d51185d5cf8619c64a",
+      "url": "https://jwc.xidian.edu.cn/info/1017/12223.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1017/12223.htm",
+      "title": "关于认真做好2022~2023学年第一学期本科教育教学检查工作的通知-西安电子科技大学 教务处",
+      "chunks": 6,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-8b5f6d5da31fe520efe32cec",
+      "url": "https://jwc.xidian.edu.cn/info/1017/10832.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1017/10832.htm",
+      "title": "关于开展学校2021年教育质量监测数据填报和质量报告编制工作的通知-西安电子科技大学 教务处",
+      "chunks": 16,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-d881f435c2091bf6080d596b",
+      "url": "https://jwc.xidian.edu.cn/info/1017/12335.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1017/12335.htm",
+      "title": "关于做好2022年秋季学期学生评教工作的通知-西安电子科技大学 教务处",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-faab9c5d6db2c7ce40cfe9be",
+      "url": "https://jwc.xidian.edu.cn/info/1024/2663.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1024/2663.htm",
+      "title": "关于下发《西安电子科技大学院级本科教学工作考核指标体系实施办法》（修订）的通知-西安电子科技大学 教务处",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-4bd9ef09a4e09ee2047bed37",
+      "url": "https://jwc.xidian.edu.cn/info/1024/2667.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1024/2667.htm",
+      "title": "CET成绩证明补办通知-西安电子科技大学 教务处",
+      "chunks": 6,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-930851af26a2bc623e6baf20",
+      "url": "https://jwc.xidian.edu.cn/info/1024/3849.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1024/3849.htm",
+      "title": "本科教育质量提升计划项目管理办法（试行)-西安电子科技大学 教务处",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-2b11e701491701a957e94059",
+      "url": "https://jwc.xidian.edu.cn/info/1024/12457.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1024/12457.htm",
+      "title": "西安电子科技大学学籍身份信息修改或变更管理办法-西安电子科技大学 教务处",
+      "chunks": 12,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-dfebb5aaf6606f85d9298b15",
+      "url": "https://jwc.xidian.edu.cn/info/1024/7722.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1024/7722.htm",
+      "title": "西安电子科技大学学籍管理规定（2019版）-西安电子科技大学 教务处",
+      "chunks": 43,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-e69a1a5354acb212a3294b69",
+      "url": "https://jwc.xidian.edu.cn/info/1024/2665.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1024/2665.htm",
+      "title": "西安电子科技大学本科生毕业设计（论文）工作条例-西安电子科技大学 教务处",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-cc6caa2e51df665893e08f7d",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22873.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1012/22873.htm",
+      "title": "关于我校教师跨校参与重庆市2026年高等教育（本科）国家教学成果奖遴选推荐成果的公示-西安电子科技大学 教务处",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-4c521c1279eac3e87f47edee",
+      "url": "https://jwc.xidian.edu.cn/info/1024/2666.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1024/2666.htm",
+      "title": "关于办理中英文成绩、学历、学位证明材料有关事项的通知-西安电子科技大学 教务处",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-8279e447ef96d81938bd022b",
+      "url": "https://jwc.xidian.edu.cn/info/1024/2664.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1024/2664.htm",
+      "title": "普通高等学校新生学籍电子注册暂行办法-西安电子科技大学 教务处",
+      "chunks": 9,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-9140bdb8727b23b6a9bef804",
+      "url": "https://jwc.xidian.edu.cn/info/1022/12353.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1022/12353.htm",
+      "title": "督导线上听课操作指南-西安电子科技大学 教务处",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-22ef440b868eb921b8daa1e2",
+      "url": "https://jwc.xidian.edu.cn/info/1022/12903.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1022/12903.htm",
+      "title": "调停课申请表(4种)-西安电子科技大学 教务处",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-ef0b0a5951ecd1b04a907291",
+      "url": "https://jwc.xidian.edu.cn/info/1022/11402.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1022/11402.htm",
+      "title": "西安电子科技大学学科竞赛一览表及各竞赛基地联系方式-西安电子科技大学 教务处",
+      "chunks": 8,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-b36af737d5e8ca8e0a51e095",
+      "url": "https://jwc.xidian.edu.cn/info/1022/12517.htm",
+      "resolvedUrl": "https://jwc.xidian.edu.cn/info/1022/12517.htm",
+      "title": "西安电子科技大学学生成绩复查审批表-西安电子科技大学 教务处",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-b55dd132dc4dafc3829538d5",
+      "url": "https://bksy.xidian.edu.cn/bszn.htm",
+      "resolvedUrl": "https://bksy.xidian.edu.cn/bszn.htm",
+      "title": "办事指南-本科生院 西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-846dde9dc414e3092b2923b4",
+      "url": "https://bksy.xidian.edu.cn/info/1020/7622.htm",
+      "resolvedUrl": "https://bksy.xidian.edu.cn/info/1020/7622.htm",
+      "title": "书院风采-本科生院 西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": "2016-08-24"
+    },
+    {
+      "id": "doc-1a4982aadc7794af8ab436c7",
+      "url": "https://bksy.xidian.edu.cn/info/1052/6531.htm",
+      "resolvedUrl": "https://bksy.xidian.edu.cn/info/1052/6531.htm",
+      "title": "2019年各省各批次录取查询一览及西电2019年录取时间表-本科生院 西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": "2019-07-09"
+    },
+    {
+      "id": "doc-235488e14d0af0b67038cb31",
+      "url": "https://bksy.xidian.edu.cn/info/1052/6431.htm",
+      "resolvedUrl": "https://bksy.xidian.edu.cn/info/1052/6431.htm",
+      "title": "西安电子科技大学关于本科招生录取规则的重要声明-本科生院 西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": "2019-06-29"
+    },
+    {
+      "id": "doc-a8b5d092438d469f805e325a",
+      "url": "https://bksy.xidian.edu.cn/info/1053/17683.htm",
+      "resolvedUrl": "https://bksy.xidian.edu.cn/info/1053/17683.htm",
+      "title": "关于推荐校内专家申报陕西省职业教育教学指导委员会委员的通知-本科生院 西安电子科技大学",
+      "chunks": 8,
+      "publishedAt": "2023-11-02"
+    },
+    {
+      "id": "doc-9806340ef32e3311f8162bd0",
+      "url": "https://bksy.xidian.edu.cn/info/1071/9386.htm",
+      "resolvedUrl": "https://bksy.xidian.edu.cn/info/1071/9386.htm",
+      "title": "关于开展第二届课堂教学创新大赛的通知-本科生院 西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": "2020-06-22"
+    },
+    {
+      "id": "doc-2bf68df50334008642329324",
+      "url": "https://bksy.xidian.edu.cn/info/1071/9507.htm",
+      "resolvedUrl": "https://bksy.xidian.edu.cn/info/1071/9507.htm",
+      "title": "关于遴选优秀教师参加2020年陕西学校思政课教师\"大练兵\"主题活动的通知-本科生院 西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": "2020-07-02"
+    },
+    {
+      "id": "doc-5089ae15410831799e384169",
+      "url": "https://bksy.xidian.edu.cn/info/1060/16473.htm",
+      "resolvedUrl": "https://bksy.xidian.edu.cn/info/1060/16473.htm",
+      "title": "西安电子科技大学2023年国际双创实践周本科生学分课程聘请海外专家及企业专家授课项目申报工作的通知-本科生院 西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": "2023-03-24"
+    },
+    {
+      "id": "doc-f07b281bb0f73a2e1de573c4",
+      "url": "https://xgc.xidian.edu.cn/info/1035/13904.htm",
+      "resolvedUrl": "https://xgc.xidian.edu.cn/info/1035/13904.htm",
+      "title": "2026年生源地信用助学贷款操作指南- 西安电子科技大学-党委学生工作部/学生工作处",
+      "chunks": 1,
+      "publishedAt": "2026-05-08"
+    },
+    {
+      "id": "doc-6fddc8584908023aa20fed66",
+      "url": "https://xgc.xidian.edu.cn/info/1035/12674.htm",
+      "resolvedUrl": "https://xgc.xidian.edu.cn/info/1035/12674.htm",
+      "title": "防范非法金融活动背景知识- 西安电子科技大学-党委学生工作部/学生工作处",
+      "chunks": 1,
+      "publishedAt": "2025-06-02"
+    },
+    {
+      "id": "doc-b49edf915f92f2c1cb9a2a37",
+      "url": "https://xgc.xidian.edu.cn/info/1035/12614.htm",
+      "resolvedUrl": "https://xgc.xidian.edu.cn/info/1035/12614.htm",
+      "title": "本科生大类专业分流学业评价综合素质测评系统学生/辅导员使用手册（2023版）- 西安电子科技大学-党委学生工作部/学生工作处",
+      "chunks": 2,
+      "publishedAt": "2025-05-27"
+    },
+    {
+      "id": "doc-39633314e9be7506178b0a23",
+      "url": "https://xgc.xidian.edu.cn/info/1035/11594.htm",
+      "resolvedUrl": "https://xgc.xidian.edu.cn/info/1035/11594.htm",
+      "title": "2023-2024总评相关表格（含国家奖学金、国家励志奖学金）- 西安电子科技大学-党委学生工作部/学生工作处",
+      "chunks": 3,
+      "publishedAt": "2024-09-12"
+    },
+    {
+      "id": "doc-92c9b1a0653faaf2999ffc7b",
+      "url": "https://xgc.xidian.edu.cn/info/1035/11483.htm",
+      "resolvedUrl": "https://xgc.xidian.edu.cn/info/1035/11483.htm",
+      "title": "2024年生源地信用助学贷款申请指南、手册- 西安电子科技大学-党委学生工作部/学生工作处",
+      "chunks": 3,
+      "publishedAt": "2024-07-03"
+    },
+    {
+      "id": "doc-799385f9284e238cd81862aa",
+      "url": "https://www.xidian.edu.cn/xyfw/bgzn.htm",
+      "resolvedUrl": "https://www.xidian.edu.cn/xyfw/bgzn.htm",
+      "title": "办公指南-西安电子科技大学",
+      "chunks": 20,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-c8a8874b9cd6276a34896736",
+      "url": "https://zsb.xidian.edu.cn/xxgk1/bkzn.htm",
+      "resolvedUrl": "https://zsb.xidian.edu.cn/xxgk1/bkzn.htm",
+      "title": "报考指南-西安电子科技大学本科招生信息网",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-155c91f0770d2e7d9810d99b",
+      "url": "https://oice.xidian.edu.cn/ygcg_j/cfzn.htm",
+      "resolvedUrl": "https://oice.xidian.edu.cn/ygcg_j/cfzn.htm",
+      "title": "出访指南-西安电子科技大学-国际合作交流处港澳台事务办公室",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-1df23dc8b530794d1eed466d",
+      "url": "https://info.xidian.edu.cn/cycx/bccx.htm",
+      "resolvedUrl": "https://info.xidian.edu.cn/cycx/bccx.htm",
+      "title": "班车查询-西安电子科技大学  综合信息网",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-b75d81c23c8da63a06c958b9",
+      "url": "https://xyy.xidian.edu.cn/yygk/ksjs1/lcks.htm",
+      "resolvedUrl": "https://xyy.xidian.edu.cn/yygk/ksjs1/lcks.htm",
+      "title": "临床科室-西安电子科技大学-校医院",
+      "chunks": 7,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-3c1697be3bd42e4b0155bc38",
+      "url": "https://xxgk.xidian.edu.cn/xxgkzn.htm",
+      "resolvedUrl": "https://xxgk.xidian.edu.cn/xxgkzn.htm",
+      "title": "信息公开指南-西安电子科技大学 信息公开网",
+      "chunks": 12,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-68bae9bda0558a64d4a2b258",
+      "url": "https://info.xidian.edu.cn/info/1013/102350.htm",
+      "resolvedUrl": "https://info.xidian.edu.cn/info/1013/102350.htm",
+      "title": "【学在西电】别样结业考：西电研究生的硬核答卷-西安电子科技大学  综合信息网",
+      "chunks": 1,
+      "publishedAt": "2026-05-11"
+    },
+    {
+      "id": "doc-4edb7d26588067719db69a11",
+      "url": "https://info.xidian.edu.cn/info/1013/102360.htm",
+      "resolvedUrl": "https://info.xidian.edu.cn/info/1013/102360.htm",
+      "title": "国家卓越工程师学院党委赴中国兵器工业第二〇六研究所开展“赓续红色电波 共铸强国利器”主题党日活动-西安电子科技大学  综合信息网",
+      "chunks": 2,
+      "publishedAt": "2026-05-15"
+    },
+    {
+      "id": "doc-a308400a8e174c1654923c9c",
+      "url": "https://xdyx.xidian.edu.cn/bdxz.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/bdxz.htm",
+      "title": "报到须知-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-b9047c49d93a0bcdfda3d23c",
+      "url": "https://xdyx.xidian.edu.cn/bdxz/bksbdxz.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/bdxz/bksbdxz.htm",
+      "title": "本科生报到须知-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-98eaa8ed89e8aceb3164e622",
+      "url": "https://xdyx.xidian.edu.cn/bdxz/yjsbdxz.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/bdxz/yjsbdxz.htm",
+      "title": "研究生报到须知-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-d85e2df70a45e87ba97adba2",
+      "url": "https://xdyx.xidian.edu.cn/zczd/xsnlcs.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/zczd/xsnlcs.htm",
+      "title": "能力测试和试点班选拔-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-2059a895fb8cdda838fa392b",
+      "url": "https://xdyx.xidian.edu.cn/zczd.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/zczd.htm",
+      "title": "学习攻略-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-1a489238408c636a5f8690ad",
+      "url": "https://xdyx.xidian.edu.cn/zczd/dxsaqbmjy.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/zczd/dxsaqbmjy.htm",
+      "title": "大学生安全保密教育-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-85a8686d12aae4467b0667eb",
+      "url": "https://xdyx.xidian.edu.cn/xszz/bkszz.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/xszz/bkszz.htm",
+      "title": "本科生资助-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-c2ad3839539e178a3173fd69",
+      "url": "https://xdyx.xidian.edu.cn/szxy.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/szxy.htm",
+      "title": "数字校园-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-b6a64e4d0d5066aac3dedd38",
+      "url": "https://xdyx.xidian.edu.cn/xszz.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/xszz.htm",
+      "title": "学生资助-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-3bf0df49d21db7ef4ea0c3fa",
+      "url": "https://xdyx.xidian.edu.cn/xszz/yjszz.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/xszz/yjszz.htm",
+      "title": "研究生资助-西安电子科技大学 迎新网",
+      "chunks": 5,
+      "publishedAt": "2021-08-07"
+    },
+    {
+      "id": "doc-53c19796ed36f34bcf2fd882",
+      "url": "https://xdyx.xidian.edu.cn/szxy/rjzbh.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/szxy/rjzbh.htm",
+      "title": "软件正版化-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-df8c147a64035447596b72e8",
+      "url": "https://xdyx.xidian.edu.cn/szxy/wlsyrzsyzn1.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/szxy/wlsyrzsyzn1.htm",
+      "title": "学生邮件认证申请指南-西安电子科技大学 迎新网",
+      "chunks": 1,
+      "publishedAt": "2025-07-09"
+    },
+    {
+      "id": "doc-3ff19b6c2002c00231127372",
+      "url": "https://xdyx.xidian.edu.cn/zfqc.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/zfqc.htm",
+      "title": "绽放青春-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-79ca8ed12b09178849049a03",
+      "url": "https://xdyx.xidian.edu.cn/zfqc/xshzc3.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/zfqc/xshzc3.htm",
+      "title": "校团委-西安电子科技大学 迎新网",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-451cb4a65153e6425874e58b",
+      "url": "https://xdyx.xidian.edu.cn/szxy/wlsyrzsyzn.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/szxy/wlsyrzsyzn.htm",
+      "title": "网络使用认证使用指南-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": "2025-07-08"
+    },
+    {
+      "id": "doc-6a7ed54726fd7c06ebead699",
+      "url": "https://xdyx.xidian.edu.cn/szxy/wlsyrzsyzn2.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/szxy/wlsyrzsyzn2.htm",
+      "title": "一卡通使用流程及指南-西安电子科技大学 迎新网",
+      "chunks": 3,
+      "publishedAt": "2025-07-09"
+    },
+    {
+      "id": "doc-d40a1269ca2ab44f80dc7682",
+      "url": "https://xdyx.xidian.edu.cn/zfqc/hlst.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/zfqc/hlst.htm",
+      "title": "活力社团-西安电子科技大学 迎新网",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-c99595f0a7364dc965ba8226",
+      "url": "https://xdyx.xidian.edu.cn/gzzd.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/gzzd.htm",
+      "title": "规章制度-西安电子科技大学 迎新网",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-9bba068e27de5bb95b6ec3ee",
+      "url": "https://xdyx.xidian.edu.cn/bksyxgg.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/bksyxgg.htm",
+      "title": "本科生迎新公告-西安电子科技大学 迎新网",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-1082cc76d88bc7a682dda44d",
+      "url": "https://xdyx.xidian.edu.cn/yjsyxgg.htm",
+      "resolvedUrl": "https://xdyx.xidian.edu.cn/yjsyxgg.htm",
+      "title": "研究生迎新公告-西安电子科技大学 迎新网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-b25d162cc1ae66a1066ae489",
+      "url": "https://xsw.xidian.edu.cn/info/1005/21721.htm",
+      "resolvedUrl": "https://xsw.xidian.edu.cn/info/1005/21721.htm",
+      "title": "西电联合主办第三届“电磁大数据非凡挑战赛”-西安电子科技大学学术网",
+      "chunks": 7,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-dd33d4a68504426e2ef9fe64",
+      "url": "https://xsw.xidian.edu.cn/info/1005/20011.htm",
+      "resolvedUrl": "https://xsw.xidian.edu.cn/info/1005/20011.htm",
+      "title": "生科院成功举办国家自然科学基金委重点项目启动会-西安电子科技大学学术网",
+      "chunks": 6,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-5bab5247638f26573e46fbe0",
+      "url": "https://zsb.xidian.edu.cn/dcxd2/czxd.htm",
+      "resolvedUrl": "https://zsb.xidian.edu.cn/dcxd2/czxd.htm",
+      "title": "饮食在西电-西安电子科技大学本科招生信息网",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-fcc206a34cfd321622be9869",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/znkf.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/znkf.htm",
+      "title": "智能客服-信息网络技术中心-西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-4e93d31adbe89834ddca8e96",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/jszy.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/jszy.htm",
+      "title": "教师主页-信息网络技术中心-西安电子科技大学",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-7205e6663ac9b12a990efd33",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/yx.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/yx.htm",
+      "title": "邮箱-信息网络技术中心-西安电子科技大学",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-6bcda4bb030cb16e939eb38a",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/ejym.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/ejym.htm",
+      "title": "二级域名-信息网络技术中心-西安电子科技大学",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-2651109f639d11db484a5cfd",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/rlxxcj.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/rlxxcj.htm",
+      "title": "人脸信息采集-信息网络技术中心-西安电子科技大学",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-f8669c626473a56b9b9f5c5b",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/zbrjsq.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/zbrjsq.htm",
+      "title": "正版软件申请-信息网络技术中心-西安电子科技大学",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-6980c0b4f2425da59f9a908c",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/zzdy.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/zzdy.htm",
+      "title": "自助打印-信息网络技术中心-西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-85f7fe58b10c68292e6a37eb",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/fwqsq.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/fwqsq.htm",
+      "title": "服务器申请-信息网络技术中心-西安电子科技大学",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-1d028b3e132111a1f0aede94",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/hyzx.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/hyzx.htm",
+      "title": "会议中心-信息网络技术中心-西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-e09cc95010c04850dc3aa17c",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/tysfrz.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/tysfrz.htm",
+      "title": "统一身份认证-信息网络技术中心-西安电子科技大学",
+      "chunks": 6,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-ff0a4395fa8342e98620eb72",
+      "url": "https://xxzx.xidian.edu.cn/f_w/ssfw/jsywfw.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/jsywfw.htm",
+      "title": "教室运维服务-信息网络技术中心-西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-68ad476a119d8a46dc794eed",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/wzqfw.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/wzqfw.htm",
+      "title": "网站群服务-信息网络技术中心-西安电子科技大学",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-ace0e89f3da5c4b41e4865fd",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/xtsjdj.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/xtsjdj.htm",
+      "title": "系统数据对接-信息网络技术中心-西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-297a041dbd778f2130a1528a",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/wbxtdjfw.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/wbxtdjfw.htm",
+      "title": "外部系统对接服务-信息网络技术中心-西安电子科技大学",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-479c45a50b2c74f1fa41aede",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/tytxptdj_xxfbsq.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/tytxptdj_xxfbsq.htm",
+      "title": "统一通讯平台对接-消息发布申请-信息网络技术中心-西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-89ec98adedbe70b4b548c5d1",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/yhsjdj.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/yhsjdj.htm",
+      "title": "用户数据对接-信息网络技术中心-西安电子科技大学",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-32cf02cd0ccc6b7190a6d14c",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/tysfrzdj.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/tysfrzdj.htm",
+      "title": "统一身份认证对接-信息网络技术中心-西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-d63d11b8cf5586fd733eea52",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/ghywbl.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/ghywbl.htm",
+      "title": "固话业务办理-信息网络技术中心-西安电子科技大学",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-c97d3b9dab705c87f082c197",
+      "url": "https://xxzx.xidian.edu.cn/f_w/bmfw/ydmhyyfw.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/bmfw/ydmhyyfw.htm",
+      "title": "移动门户应用服务-信息网络技术中心-西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-2c0e1fa32ef20f900902f766",
+      "url": "https://xxzx.xidian.edu.cn/f_w/cyfw/yx.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/yx.htm",
+      "title": "邮箱-信息网络技术中心-西安电子科技大学",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-2f0a91bdb37c3dc882680cf5",
+      "url": "https://xxzx.xidian.edu.cn/f_w/cyfw/wzqfw.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/wzqfw.htm",
+      "title": "网站群服务-信息网络技术中心-西安电子科技大学",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-c8f499168453c508fc309d54",
+      "url": "https://xxzx.xidian.edu.cn/f_w/cyfw/znkf.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/znkf.htm",
+      "title": "智能客服-信息网络技术中心-西安电子科技大学",
+      "chunks": 2,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-64d53fed53a40b4ba709570b",
+      "url": "https://xxzx.xidian.edu.cn/f_w/cyfw/rlxxcj.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/rlxxcj.htm",
+      "title": "人脸信息采集-信息网络技术中心-西安电子科技大学",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-97c30ba7a2582c10ed6b67a7",
+      "url": "https://xxzx.xidian.edu.cn/f_w/cyfw/ejym.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/ejym.htm",
+      "title": "二级域名-信息网络技术中心-西安电子科技大学",
+      "chunks": 5,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-60c55f7de5de932632b8f5f7",
+      "url": "https://xxzx.xidian.edu.cn/f_w/cyfw/tysfrz.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/tysfrz.htm",
+      "title": "统一身份认证-信息网络技术中心-西安电子科技大学",
+      "chunks": 6,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-27be456bd090e8b62953459a",
+      "url": "https://xxzx.xidian.edu.cn/f_w/cyfw/fwqsq.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/fwqsq.htm",
+      "title": "服务器申请-信息网络技术中心-西安电子科技大学",
+      "chunks": 3,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-2a5dd2712e0fd176c67f02cc",
+      "url": "https://xxzx.xidian.edu.cn/f_w/cyfw/tytxptdj_xxfbsq.htm",
+      "resolvedUrl": "https://xxzx.xidian.edu.cn/f_w/cyfw/tytxptdj_xxfbsq.htm",
+      "title": "统一通讯平台对接-消息发布申请-信息网络技术中心-西安电子科技大学",
+      "chunks": 1,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-bd795d3c0cf19b90b9ffa625",
+      "url": "https://gr.xidian.edu.cn/zyxw.htm",
+      "resolvedUrl": "https://gr.xidian.edu.cn/zyxw.htm",
+      "title": "专业学位-研究生院-西安电子科技大学",
+      "chunks": 8,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-c1873029d880fcfea000364f",
+      "url": "https://gr.xidian.edu.cn/xwsy.htm",
+      "resolvedUrl": "https://gr.xidian.edu.cn/xwsy.htm",
+      "title": "学位授予-研究生院-西安电子科技大学",
+      "chunks": 8,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-5103403e73c85072ae05eac8",
+      "url": "https://xgc.xidian.edu.cn/bszn1.htm",
+      "resolvedUrl": "https://xgc.xidian.edu.cn/bszn1.htm",
+      "title": "下载专区- 西安电子科技大学-党委学生工作部/学生工作处",
+      "chunks": 4,
+      "publishedAt": null
+    },
+    {
+      "id": "doc-feb5e1812bd7cf1b389eae55",
+      "url": "https://zsb.xidian.edu.cn/lxwm/lxzb.htm",
+      "resolvedUrl": "https://zsb.xidian.edu.cn/lxwm/lxzb.htm",
+      "title": "联系招办-西安电子科技大学本科招生信息网",
+      "chunks": 1,
+      "publishedAt": null
+    }
+  ],
+  "failed": [
+    {
+      "id": "doc-6acee29a5282a59a2e58cd0a",
+      "url": "https://jwc.xidian.edu.cn/info/1015/16893.htm",
+      "title": "关于批准2024年度西安电子科技大学示范性课程认定及课程改革项目的通知-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-5342cabba66ecaae50c0d147",
+      "url": "https://jwc.xidian.edu.cn/info/1017/14273.htm",
+      "title": "关于开展2024年学校本科教育质量监测数据更新采集工作的通知-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-3b588525044afab9c7d01cf4",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22933.htm",
+      "title": "关于2026年优秀课程思政教学案例评审结果的公示-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-1c70657155aea6e63bbc12e2",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22953.htm",
+      "title": "西安电子科技大学关于2026年度本科专业设置申报情况的公示-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-16ecaf863c64c8483fdcf5d8",
+      "url": "https://xxzx.xidian.edu.cn/info/1225/4333.htm",
+      "title": "西安电子科技大学远程访问系统aTrust 使用手册-信息网络技术中心-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-d17bc18ce49a93a0c6fc5f17",
+      "url": "https://xxzx.xidian.edu.cn/info/1245/4613.htm",
+      "title": "2026年信息网络技术中心暑假值班表-信息网络技术中心-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-ea7895e0d063808c15ffbf3e",
+      "url": "https://tyb.xidian.edu.cn/info/1022/6012.htm",
+      "title": "西安电子科技大学体育部2025年教师招聘公告-西安电子科技大学体育部",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-fc13a4cd5ea2799066a5a286",
+      "url": "https://tyb.xidian.edu.cn/info/1079/1900.htm",
+      "title": "北校区室外体育场地-西安电子科技大学体育部",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-bd2c9cd7705ff6563be8fbb4",
+      "url": "https://tyb.xidian.edu.cn/info/1079/1899.htm",
+      "title": "北校区体育运动中心-西安电子科技大学体育部",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-42898b4faa8ffb83e70a0406",
+      "url": "https://tyb.xidian.edu.cn/info/1079/3732.htm",
+      "title": "十四运与十一届残运会羽毛球竞委会工作掠影-西安电子科技大学体育部",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-54ad00cb06728a0d93351aaf",
+      "url": "https://tyb.xidian.edu.cn/info/1079/1902.htm",
+      "title": "南校区远望谷体育馆场地-西安电子科技大学体育部",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-97e1894b882d069b6cae7911",
+      "url": "https://tyb.xidian.edu.cn/info/1079/1901.htm",
+      "title": "南校区室外场地-西安电子科技大学体育部",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-1f2fdad73d08c5ca808011b6",
+      "url": "https://news.xidian.edu.cn/info/2106/226894.htm",
+      "title": "【新闻直播间】科技推动力 陕西打造空间太阳能电站 记者走进“逐日工程”-西安电子科技大学新闻网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-39b5bc6e6b823119a21b5f8e",
+      "url": "https://news.xidian.edu.cn/info/1033/32516.htm",
+      "title": "版权声明-西安电子科技大学新闻网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-93a1e95b64dacfe1a198154e",
+      "url": "https://news.xidian.edu.cn/info/2204/291196.htm",
+      "title": "西电老校区的石凳，记着每一段年少时光-西安电子科技大学新闻网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-c128fae747377a6e033f83e6",
+      "url": "https://news.xidian.edu.cn/info/2204/289806.htm",
+      "title": "西电主楼开口说话：下一位主角，就是你！-西安电子科技大学新闻网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-aa3a927d82b1aeee805c2910",
+      "url": "https://news.xidian.edu.cn/info/2204/282626.htm",
+      "title": "新二十四节气AI冬至|岁寒又冬至，团圆正当时-西安电子科技大学新闻网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-705cae39d240811cbea24a34",
+      "url": "https://news.xidian.edu.cn/info/2204/273716.htm",
+      "title": "新二十四节气AI霜降|天上繁霜降，人间秋色深-西安电子科技大学新闻网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-f48bf79557a3ac2e03b3f308",
+      "url": "https://image.xidian.edu.cn/info/1043/5440.htm",
+      "title": "西安电子科技大学七届三次教职工代表大会暨工会会员代表大会开幕-西安电子科技大学“影像西电网”---欢迎您",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-afc7e3c2fee0652485973678",
+      "url": "https://image.xidian.edu.cn/info/1043/5370.htm",
+      "title": "九四归鸿叙芳华，共赴三秦铸华章 西电举行2025年校友返校日-西安电子科技大学“影像西电网”---欢迎您",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-4de8d9e72982b4e9316607a4",
+      "url": "https://image.xidian.edu.cn/info/1043/5450.htm",
+      "title": "西安电子科技大学召开“双代会”闭幕会暨2026年工作会议-西安电子科技大学“影像西电网”---欢迎您",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-15b757840f4092d2f967c2e9",
+      "url": "https://image.xidian.edu.cn/info/1043/5430.htm",
+      "title": "学部制建设迎来3.0版本 西电“电子信息+”赋能学科融合发展-西安电子科技大学“影像西电网”---欢迎您",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-99a8eb4caaf3f0cf0a2d4e69",
+      "url": "https://gr.xidian.edu.cn/info/1073/19904.htm",
+      "title": "2026年高等教育（研究生）国家教学成果奖拟推荐名单公示-研究生院-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-43624ba7dc210f10e6ee7c9e",
+      "url": "https://gr.xidian.edu.cn/info/1073/19914.htm",
+      "title": "关于组织开展科学出版社“十五五”普通高等教育规划教材申报的通知-研究生院-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-7629fbc754a320158c3af4c2",
+      "url": "https://yjsxk.xidian.edu.cn/yjsxkapp/sys/xsxkapp/index.html",
+      "title": "研究生选课",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-637a9d1a3991bbb99873a740",
+      "url": "https://www.xidian.edu.cn/info/2127/78885.htm",
+      "title": "Arc-weighted acyclic orientation anddegree-truncated choice number of graphs-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-b2e0f5914da4c85d95e1d295",
+      "url": "https://www.xidian.edu.cn/info/2127/78595.htm",
+      "title": "学习贯彻党的思政工作条例，提升做好辅导员工作能力素质-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-f0dee1b9932e193ee4fd6f0b",
+      "url": "https://www.xidian.edu.cn/info/2127/78745.htm",
+      "title": "中-俄概率论及其应用研讨会-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-2965926e5f548cf035b0a39c",
+      "url": "https://www.xidian.edu.cn/info/2127/78515.htm",
+      "title": "智能的边界：从人脑到大模型——人工智能如何改变我们对知识、学习与思维的理解-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-93546dbe4fdfc759ab355804",
+      "url": "https://www.xidian.edu.cn/info/2127/78565.htm",
+      "title": "华山领航计划：国家级人才计划答辩经验分享-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-13f492d247b8b20d983edef7",
+      "url": "https://www.xidian.edu.cn/info/2127/78045.htm",
+      "title": "面向数字人文研究的人工智能基础-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-09687ff0453e6a191c365e98",
+      "url": "https://www.xidian.edu.cn/info/2127/77905.htm",
+      "title": "从文化融合的三种可能模式看“来自中国的哲学”的可能性-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-c8a72ba2c427e4e0488babcc",
+      "url": "https://www.xidian.edu.cn/info/2127/77945.htm",
+      "title": "漫谈研究生导师的育人之道-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-889f7bd545a2ab2ea43deab4",
+      "url": "https://www.xidian.edu.cn/info/2127/77855.htm",
+      "title": "中国共产党通信史研究的若干问题-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-d4b563f6fcadafc7ce12d371",
+      "url": "https://www.xidian.edu.cn/info/2127/78185.htm",
+      "title": "大师总师进校园：航天青年人才的技艺成长与匠心铸就-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-f96b37c391c939eb09488f9a",
+      "url": "https://www.xidian.edu.cn/info/2127/77835.htm",
+      "title": "同心讲堂2026年第四讲：决策咨询信息的选题与写作-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-61a6e7e68a8bea5c1337af59",
+      "url": "https://www.xidian.edu.cn/info/2127/77825.htm",
+      "title": "大师总师进校园：超构表面光场调控：从界面相位到平面光学-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-3558ac6adf7980eddf36f8f8",
+      "url": "https://bwc.xidian.edu.cn/info/1171/3958.htm",
+      "title": "2026年5月校内车辆部分交通违规行为通报-西安电子科技大学党委安全保卫部/保卫处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-b2383a81d5d3c96cd73aea5c",
+      "url": "https://bwc.xidian.edu.cn/info/1171/3868.htm",
+      "title": "2026年4月校内车辆部分交通违规行为通报-西安电子科技大学党委安全保卫部/保卫处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-036c75913aeaad1c44fee2ae",
+      "url": "https://bwc.xidian.edu.cn/info/1171/3818.htm",
+      "title": "2026年3月校内车辆部分交通违规行为通报-西安电子科技大学党委安全保卫部/保卫处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-ceb6d8d6454412f08e23fc9c",
+      "url": "https://bwc.xidian.edu.cn/info/1171/3718.htm",
+      "title": "2026年1月校内车辆部分交通违规行为通报-西安电子科技大学党委安全保卫部/保卫处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-62f191bb4bc3892216c7b49a",
+      "url": "https://bwc.xidian.edu.cn/info/1171/3728.htm",
+      "title": "2026年2月校内车辆部分交通违规行为通报-西安电子科技大学党委安全保卫部/保卫处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-b8f47a4281cc62bd26ea92e1",
+      "url": "https://bwc.xidian.edu.cn/info/1171/3668.htm",
+      "title": "2025年11月校内车辆部分交通违规行为通报-西安电子科技大学党委安全保卫部/保卫处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-4276a0afa72b12b001ada252",
+      "url": "https://bwc.xidian.edu.cn/info/1171/3648.htm",
+      "title": "2025年10月校内车辆部分交通违规行为通报-西安电子科技大学党委安全保卫部/保卫处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-e4421ed91533e30813e036b8",
+      "url": "https://bwc.xidian.edu.cn/info/1171/3688.htm",
+      "title": "2025年12月校内车辆部分交通违规行为通报-西安电子科技大学党委安全保卫部/保卫处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-256ad557a9cd7fc85dd3fbd8",
+      "url": "https://jwc.xidian.edu.cn/info/1012/22543.htm",
+      "title": "西安电子科技大学关于开展第二十一届优秀教材评选工作的通知-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-3d14c7183bb046825eec41ce",
+      "url": "https://jwc.xidian.edu.cn/info/1013/18123.htm",
+      "title": "关于2025年（2021级）本科生毕业设计（论文）盲审名单的通知-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-2416c2f8a4d9c97064dc3546",
+      "url": "https://jwc.xidian.edu.cn/info/1083/11992.htm",
+      "title": "2022年双创周海外专家讲座-English Academic Writing：Expressing Action-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-5db5a702d0351934684df4e2",
+      "url": "https://jwc.xidian.edu.cn/info/1083/10002.htm",
+      "title": "关于西安电子科技大学2021年国际双创实践周本科生学分课程聘请海外专家和企业专家授课项目申报工作的通知-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-b8aa1308ff3837c7bab7b96e",
+      "url": "https://jsfz.xidian.edu.cn/info/1022/8392.htm",
+      "title": "【西电课程介绍】2025年春季学期中西部高校青年教师融合式教学进修项目-西安电子科技大学教师发展中心",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-73d2be24b629e0cf1db9a93a",
+      "url": "https://jwc.xidian.edu.cn/info/1017/11522.htm",
+      "title": "西安电子科技大学2020-2021学年本科教学质量报告-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-65e93ef72e85191d84bc7b9a",
+      "url": "https://jwc.xidian.edu.cn/info/1024/10929.htm",
+      "title": "关于印发《西安电子科技大学大类招生学生分流转专业实施办法（试行）》的通知-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-3221b7b5bbb58458df47a032",
+      "url": "https://jwc.xidian.edu.cn/info/1024/12226.htm",
+      "title": "关于印发《西安电子科技大学本科生平均绩点（GPA）计算方法》的通知 -西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-44709347a541c9af04bf2594",
+      "url": "https://jwc.xidian.edu.cn/info/1024/3132.htm",
+      "title": "关于印发《西安电子科技大学学籍管理规定（2014版）》的通知-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-0d62595615ab9558be4e8002",
+      "url": "https://jwc.xidian.edu.cn/info/1024/10930.htm",
+      "title": "关于印发《西安电子科技大学推荐优秀应届本科毕业生免试攻读硕士学位研究生工作实施办法（修订）》的通知-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-393cd48aa61174e75f62b0ac",
+      "url": "https://jwc.xidian.edu.cn/info/1024/7482.htm",
+      "title": "西安电子科技大学推荐优秀应届本科毕业生免试攻读硕士学位研究生工作实施办法（修订）-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-edad98d28ac175be53dfbc00",
+      "url": "https://jwc.xidian.edu.cn/info/1022/22083.htm",
+      "title": "毕业证明书/学位证明书补办要求-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-2c48d7de18bf8ac8962c8428",
+      "url": "https://jwc.xidian.edu.cn/info/1022/11722.htm",
+      "title": "优秀毕业设计（论文）模板-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-a8a1638768c0acdb4d0bf282",
+      "url": "https://jwc.xidian.edu.cn/info/1022/12943.htm",
+      "title": "毕业设计表格—全套(2025版)-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-9e675932f94d6850021794a7",
+      "url": "https://jwc.xidian.edu.cn/info/1022/5915.htm",
+      "title": "西安电子科技大学本科试题命题审批表-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-d45d501bb15c14e3df5d5a3d",
+      "url": "https://jwc.xidian.edu.cn/info/1022/20733.htm",
+      "title": "西安电子科技大学试题模板-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-cb95a825d83466dd9d8b9c21",
+      "url": "https://jwc.xidian.edu.cn/info/1022/21723.htm",
+      "title": "西安电子科技大学学生补选课申请表-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-ac5d4a0dd448581fea876056",
+      "url": "https://jwc.xidian.edu.cn/info/1022/5885.htm",
+      "title": "西安电子科技大学国际交流项目申请人学习计划-西安电子科技大学 教务处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-922c65cb8bdbf62da98fff6f",
+      "url": "https://bksy.xidian.edu.cn/info/1004/14581.htm",
+      "title": "一张图读懂《西安电子科技大学人才培养“十四五”专项规划》-本科生院 西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-e5ff5cfe6975f6deb39808f7",
+      "url": "https://bksy.xidian.edu.cn/info/1003/34982.htm",
+      "title": "西安电子科技大学关于2026年度本科专业设置申报情况的公示-本科生院 西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-6a1ea108192baa75be6fe996",
+      "url": "https://bksy.xidian.edu.cn/info/1054/24342.htm",
+      "title": "关于批准2024年度西安电子科技大学示范性课程认定及课程改革项目的通知-本科生院 西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-32a5f1311a0b64136ff56985",
+      "url": "https://bksy.xidian.edu.cn/info/1055/34792.htm",
+      "title": "关于公布2026年本科毕业生基层就业学费补偿和国家助学贷款代偿学校初审通过名单（第一批）的通知-本科生院 西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-475cd95fdb6367052441753c",
+      "url": "https://bksy.xidian.edu.cn/info/1058/4415.htm",
+      "title": "泛雅3.0A上线通知-本科生院 西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-7b7612cbd104dac850d6b06e",
+      "url": "https://bksy.xidian.edu.cn/info/1059/34572.htm",
+      "title": "关于我校学生跨校参加第十五届“挑战杯”中国大学生创业计划竞赛的情况公示-本科生院 西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-22f1354768cc4abbce219792",
+      "url": "https://bksy.xidian.edu.cn/info/1059/34552.htm",
+      "title": "关于我校学生加入外校队伍参与第十五届“挑战杯”中国大学生创业计划竞赛的公示-本科生院 西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-75e3495e39f6b5c3ad0f7c7d",
+      "url": "https://bksy.xidian.edu.cn/info/1059/34602.htm",
+      "title": "西安电子科技大学第十五届“挑战杯”中国大学生创业计划竞赛申报作品公示-本科生院 西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-7347b93f8a7cdbbb7fdc9041",
+      "url": "https://xgc.xidian.edu.cn/info/1033/14164.htm",
+      "title": "关于对2025级学生大类分流学业评价综合测评最终结果进行公示的通知- 西安电子科技大学-党委学生工作部/学生工作处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-2acab5fc08e05c1a17dd7533",
+      "url": "https://xgc.xidian.edu.cn/info/1033/14214.htm",
+      "title": "关于公布2026年本科毕业生基层就业学费补偿和国家助学贷款代偿学校初审通过名单（第一批）的通知- 西安电子科技大学-党委学生工作部/学生工作处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-bf57505469a5a4aaac2974f7",
+      "url": "https://gr.xidian.edu.cn/info/1073/20364.htm",
+      "title": "研究生院研工部2026年暑期值班表-研究生院-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-eb713049a624ef16ade33829",
+      "url": "https://www.xidian.edu.cn/index/jfxt.htm",
+      "title": "缴费系统-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-c63320acff23deda8eea8763",
+      "url": "https://en.xidian.edu.cn/info/1003/2049.htm",
+      "title": "School of Networking and Continuing Education-XIDIAN UNIVERSITY",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-bef88c3a972684b5f511ddac",
+      "url": "https://ncee.xidian.edu.cn/info/1101/3821.htm",
+      "title": "一图读懂・西电卓越工程师培养质量提升行动-西安电子科技大学国家卓越工程师学院",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-594300520a476f5ca9ce88da",
+      "url": "https://info.xidian.edu.cn/info/1012/112160.htm",
+      "title": "西安电子科技大学关于2026年度本科专业设置申报情况的公示-西安电子科技大学 综合信息网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-2f6de4019ebf90358d4c6bf9",
+      "url": "https://info.xidian.edu.cn/info/1015/104640.htm",
+      "title": "国际合作与交流部2026年端午节假期值班安排-西安电子科技大学 综合信息网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-74514b32280b5d092b38e6a7",
+      "url": "https://tyb.xidian.edu.cn/info/1022/7382.htm",
+      "title": "2026暑期体育部值班安排-西安电子科技大学体育部",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-898f0b3420024f008424a047",
+      "url": "https://www.xidian.edu.cn/info/2127/79945.htm",
+      "title": "智汇交叉·前沿讲堂（第1期）-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-767aabb80425803c2aea21e3",
+      "url": "https://www.xidian.edu.cn/info/2127/79795.htm",
+      "title": "大师总师进校园|Lorentz-Type Dispersive Metamaterial-based Single-mode Dual-band Metantenna-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-b736592bb537004ca18b1593",
+      "url": "https://www.xidian.edu.cn/info/2127/79815.htm",
+      "title": "Low-cost ultra-thin Gap Waveguide Technology - Multi-LayerCoaxial Gap Waveguide (MLW) and its applications-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-7ed5107c381426042c450997",
+      "url": "https://www.xidian.edu.cn/info/2127/79525.htm",
+      "title": "感知·驭器·智控——未来航天跨学科 青年博士论坛-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-e9b5b1c3d06ec420df23de3c",
+      "url": "https://www.xidian.edu.cn/info/2127/79905.htm",
+      "title": "Combinatorial Nullstellensatz and its Applications-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-459ff563c90ee4c7f4c1953c",
+      "url": "https://www.xidian.edu.cn/info/2127/79505.htm",
+      "title": "The finite k-set homogeneous graphs-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-6a2318bc92691b8bc4b19740",
+      "url": "https://www.xidian.edu.cn/info/2127/79515.htm",
+      "title": "A Sharp Product Bound for r-Cross-Intersecting Families-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-06dc7142e443a8f44a5dc628",
+      "url": "https://www.xidian.edu.cn/info/2127/79935.htm",
+      "title": "大师总师进校园：动力系统与组合数论-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-64fba146e927d6d2900289de",
+      "url": "https://www.xidian.edu.cn/info/2127/79625.htm",
+      "title": "几乎完全非线性函数(APN函数)研究进展-西安电子科技大学",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-aacc9abdc811b0ce72f207f3",
+      "url": "https://bwc.xidian.edu.cn/info/1171/3968.htm",
+      "title": "2026年6月校内车辆部分交通违规行为通报-西安电子科技大学党委安全保卫部/保卫处",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-7832136bf8c20a0e74c3cae1",
+      "url": "https://xdyx.xidian.edu.cn/zfqc/yjsh.htm",
+      "title": "研究生会-西安电子科技大学 迎新网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-94317cffc0a6737cdca3129c",
+      "url": "https://xdyx.xidian.edu.cn/zfqc/xshzc.htm",
+      "title": "学生会-西安电子科技大学 迎新网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-d6519c74810e2f8b065f0d22",
+      "url": "https://xdyx.xidian.edu.cn/info/1034/2014.htm",
+      "title": "“学在西电”APP下载-西安电子科技大学 迎新网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-0424a1f001faca60336b7052",
+      "url": "https://xdyx.xidian.edu.cn/info/1034/2001.htm",
+      "title": "2026级新生公寓床上用品选购说明-西安电子科技大学 迎新网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-29f6d955766394cedab84e78",
+      "url": "https://xdyx.xidian.edu.cn/info/1004/1803.htm",
+      "title": "邀你续写“永不消逝的电波”—2026级本科新生开学典礼发言人选拔-西安电子科技大学 迎新网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-6566d681d3b1e5c27b3d7715",
+      "url": "https://xdyx.xidian.edu.cn/info/1004/1821.htm",
+      "title": "西安电子科技大学2026级本科《新生网上前置教育》课程学习通知书-西安电子科技大学 迎新网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-863a7effe08cd6e443a65845",
+      "url": "https://xdyx.xidian.edu.cn/info/1005/2864.htm",
+      "title": "2026级研究生新生须知-西安电子科技大学 迎新网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-46f7f9b64703965d1494567e",
+      "url": "https://xsw.xidian.edu.cn/info/1091/47651.htm",
+      "title": "大师总师进校园：动力系统与组合数论-西安电子科技大学学术网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-36424b0408b6672d6a579a7d",
+      "url": "https://xsw.xidian.edu.cn/info/1091/47661.htm",
+      "title": "智汇交叉·前沿讲堂（第1期）-西安电子科技大学学术网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-c27dd5502e0ec3cf8520b857",
+      "url": "https://xsw.xidian.edu.cn/info/1091/47601.htm",
+      "title": "Combinatorial Nullstellensatz and its Applications-西安电子科技大学学术网",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    },
+    {
+      "id": "doc-e6aba089d0b1416c548931c4",
+      "url": "https://hqbzb.xidian.edu.cn/fwzn/tq.htm",
+      "title": "通勤-西电后勤党委/后勤保障部",
+      "error": "原报告未保存单篇错误映射；请查看 failureErrorCounts 汇总"
+    }
+  ],
+  "completedAt": "2026-09-27T08:56:12.315596+00:00",
+  "failureErrorCounts": [
+    {
+      "error": "DLL load failed while importing onnxruntime_pybind11_state: 动态链接库(DLL)初始化例程失败。",
+      "count": 50
+    },
+    {
+      "error": "正文不足，需检查图片、附件或访问权限",
+      "count": 35
+    },
+    {
+      "error": "404 Client Error: Not Found for url: https://jwc.xidian.edu.cn/info/1012/22933.htm",
+      "count": 1
+    },
+    {
+      "error": "404 Client Error: Not Found for url: https://jwc.xidian.edu.cn/info/1012/22953.htm",
+      "count": 1
+    },
+    {
+      "error": "HTTPSConnectionPool(host='bwc.xidian.edu.cn', port=443): Max retries exceeded with url: /info/1171/3958.htm (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1002)')))",
+      "count": 1
+    },
+    {
+      "error": "HTTPSConnectionPool(host='bwc.xidian.edu.cn', port=443): Max retries exceeded with url: /info/1171/3868.htm (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1002)')))",
+      "count": 1
+    },
+    {
+      "error": "HTTPSConnectionPool(host='bwc.xidian.edu.cn', port=443): Max retries exceeded with url: /info/1171/3818.htm (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1002)')))",
+      "count": 1
+    },
+    {
+      "error": "HTTPSConnectionPool(host='bwc.xidian.edu.cn', port=443): Max retries exceeded with url: /info/1171/3718.htm (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1002)')))",
+      "count": 1
+    },
+    {
+      "error": "HTTPSConnectionPool(host='bwc.xidian.edu.cn', port=443): Max retries exceeded with url: /info/1171/3728.htm (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1002)')))",
+      "count": 1
+    },
+    {
+      "error": "HTTPSConnectionPool(host='bwc.xidian.edu.cn', port=443): Max retries exceeded with url: /info/1171/3668.htm (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1002)')))",
+      "count": 1
+    },
+    {
+      "error": "HTTPSConnectionPool(host='bwc.xidian.edu.cn', port=443): Max retries exceeded with url: /info/1171/3648.htm (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1002)')))",
+      "count": 1
+    },
+    {
+      "error": "404 Client Error: Not Found for url: https://jwc.xidian.edu.cn/info/1012/22543.htm",
+      "count": 1
+    },
+    {
+      "error": "HTTPSConnectionPool(host='bwc.xidian.edu.cn', port=443): Max retries exceeded with url: /info/1171/3688.htm (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1002)')))",
+      "count": 1
+    },
+    {
+      "error": "404 Client Error: Not Found for url: https://bksy.xidian.edu.cn/info/1003/34982.htm",
+      "count": 1
+    },
+    {
+      "error": "404 Client Error: Not Found for url: https://gr.xidian.edu.cn/info/1073/20364.htm",
+      "count": 1
+    },
+    {
+      "error": "404 Client Error: Not Found for url: https://info.xidian.edu.cn/info/1012/112160.htm",
+      "count": 1
+    },
+    {
+      "error": "HTTPSConnectionPool(host='bwc.xidian.edu.cn', port=443): Max retries exceeded with url: /info/1171/3968.htm (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1002)')))",
+      "count": 1
+    },
+    {
+      "error": "404 Client Error: Not Found for url: https://hqbzb.xidian.edu.cn/fwzn/tq.htm",
+      "count": 1
+    }
+  ],
+  "note": "失败目标按成功 ID 的补集恢复；原报告的失败记录未保存文档 ID/URL，因此错误原因只能按整体统计，不能归到单篇。"
+}

@@ -1,0 +1,4 @@
+.status-view { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 160px; padding: 32px 24px; color: var(--app-text-secondary); font-family: var(--font-body); font-size: 14px; line-height: 1.5; text-align: center; }
+.status-error .status-text { color: var(--app-error); }
+.status-retry { display: flex; align-items: center; justify-content: center; min-width: 100px; height: 36px; margin: 20px 0 0; padding: 0 20px; border: 0; border-radius: 20px; background: var(--app-primary); color: var(--app-on-primary); font-size: 14px; font-weight: 700; }
+.status-retry::after { border: 0; }

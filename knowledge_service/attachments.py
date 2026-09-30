@@ -29,6 +29,18 @@ def ocr_images(urls):
     return pages
 
 
+def extract_pdf_pages(data):
+    from pypdf import PdfReader
+    reader=PdfReader(BytesIO(data))
+    pages=[(i+1,(page.extract_text(extraction_mode="layout") or "").strip())
+        for i,page in enumerate(reader.pages)]
+    scanned=[number-1 for number,body in pages if len(body)<80]
+    if scanned:
+        recognized=ocr_pdf(data,scanned)
+        pages=[(number,recognized.get(number-1,body)) for number,body in pages]
+    return pages
+
+
 def office_text(data, suffix):
     if suffix=='.docx':
         from docx import Document

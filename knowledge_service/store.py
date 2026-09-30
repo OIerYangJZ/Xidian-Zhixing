@@ -103,6 +103,13 @@ class KnowledgeStore:
         with self.connect() as con:
             return [json.loads(r[0]) for r in con.execute(query)]
 
+    def chunks_for_document(self, document_id: str) -> list[dict]:
+        with self.connect() as con:
+            rows = con.execute(
+                "SELECT data FROM chunks WHERE document_id=? ORDER BY ordinal", (document_id,)
+            )
+            return [json.loads(r[0]) for r in rows]
+
     def get_document(self, doc_id: str) -> dict | None:
         with self.connect() as con:
             row = con.execute("SELECT data FROM documents WHERE id=?", (doc_id,)).fetchone()

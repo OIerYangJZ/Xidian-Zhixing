@@ -1,0 +1,31 @@
+@import "../styles/tokens.wxss";
+@import "./icons.wxss";
+
+.social-tabs { position:fixed; bottom:0; left:0; right:0; height:var(--tab-height); padding:0 8px env(safe-area-inset-bottom); box-sizing:border-box; border-top:1px solid var(--app-divider); background:var(--app-translucent-surface); color:var(--app-text-secondary); z-index:100; backdrop-filter:blur(12px); }
+.tab-track { position:relative; display:flex; width:100%; height:63px; }
+.tab { position:relative; z-index:1; display:flex; flex:1 1 0%; flex-direction:column; align-items:center; justify-content:center; gap:2px; width:0 !important; min-width:0; max-width:20%; height:63px; margin:0 !important; padding:2px 0 0; border:0; border-radius:0; box-sizing:border-box; line-height:normal; background:transparent; color:inherit; -webkit-tap-highlight-color:transparent; }
+.tab::after { border:0; }
+.tab-selection { position:absolute; left:0; top:7px; display:flex; align-items:center; justify-content:center; width:20%; height:44px; pointer-events:none; }
+.selection-surface { width:42px; height:38px; border-radius:12px; background:transparent; }
+.tab-symbol { position:relative; display:flex; align-items:center; justify-content:center; width:32px; height:32px; transition:transform .18s cubic-bezier(.2,.8,.2,1); }
+.tab-label { font-size:10px; line-height:13px; color:inherit; }
+.tab-motion { position:relative; width:26px; height:26px; transform-origin:50% 55%; }
+.tab-glyph { position:absolute; inset:0; width:26px; height:26px; background-color:currentColor; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center; -webkit-mask-size:contain; mask-size:contain; transition:opacity .18s ease; }
+.tab-outline { opacity:1; color:var(--app-text-secondary); }
+.tab-active { opacity:0; color:var(--app-accent); }
+.selected .tab-outline { opacity:0; }
+.selected .tab-active { opacity:1; }
+.selected { color:var(--app-accent); }
+.pressed .tab-symbol { transform:translateY(1px) scale(.88); }
+.tab:focus-visible .tab-symbol { outline:2px solid var(--app-accent); outline-offset:1px; border-radius:10px; }
+.moving { animation:tab-slide .42s cubic-bezier(.22,.68,.24,1) both; }
+.arriving .tab-motion { animation:tab-lift .36s cubic-bezier(.2,.8,.2,1) both; }
+.arriving .tab-motion-ai { animation:tab-spark .4s cubic-bezier(.2,.8,.2,1) both; }
+.arriving .tab-motion-bell { transform-origin:50% 20%; animation:tab-ring .4s ease-out both; }
+.arriving .tab-motion-mail { animation:tab-mail .36s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes tab-slide { from { transform:translateX(var(--selection-from)); } to { transform:translateX(var(--selection-to)); } }
+@keyframes tab-lift { 0% { transform:translateY(2px) scale(.9); } 55% { transform:translateY(-2px) scale(1.04); } 100% { transform:translateY(0) scale(1); } }
+@keyframes tab-spark { 0% { transform:scale(.86) rotate(-12deg); } 55% { transform:scale(1.08) rotate(5deg); } 100% { transform:scale(1) rotate(0); } }
+@keyframes tab-ring { 0% { transform:rotate(0); } 22% { transform:rotate(13deg); } 48% { transform:rotate(-9deg); } 72% { transform:rotate(4deg); } 100% { transform:rotate(0); } }
+@keyframes tab-mail { 0% { transform:translateY(2px) scale(.92); } 55% { transform:translateY(-2px) rotate(-4deg); } 100% { transform:translateY(0) scale(1) rotate(0); } }
+@media (prefers-reduced-motion:reduce) { .tab-symbol, .tab-glyph { transition:none; } .moving, .arriving .tab-motion { animation:none; } }

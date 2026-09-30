@@ -1,0 +1,84 @@
+<view class="{{pageMotion}} page search-page {{themeClass}}">
+  <social-header fixed back brand="{{false}}">
+    <view slot="center" class="social-search"><view class="ui-icon icon-search"></view><input value="{{keyword}}" placeholder="{{currentLanguage === 'en' ? 'Search' : '搜索知行'}}" aria-label="搜索关键词" confirm-type="search" bindinput="onInput" bindconfirm="search" /></view>
+  </social-header>
+  <view class="type-row" style="top: {{navTop + navHeight + 8}}px;">
+    <view class="type-chip {{activeType === 'hot' ? 'active' : ''}}" data-type="hot" bindtap="onTypeTap">热榜</view>
+    <view class="type-chip {{activeType === 'posts' ? 'active' : ''}}" data-type="posts" bindtap="onTypeTap">帖子</view>
+    <view class="type-chip {{activeType === 'users' ? 'active' : ''}}" data-type="users" bindtap="onTypeTap">用户</view>
+  </view>
+
+  <scroll-view class="search-results" scroll-y show-scrollbar="{{false}}" style="top: {{navTop + navHeight + 56}}px; height: calc(100vh - {{navTop + navHeight + 56}}px);">
+  <view class="sort-row" wx:if="{{activeType === 'posts'}}">
+    <view
+      wx:for="{{sortOptions}}"
+      wx:key="value"
+      data-sort="{{item.value}}"
+      class="sort-chip {{activeSort === item.value ? 'active' : ''}}"
+      bindtap="onSortTap"
+    >{{item.label}}</view>
+  </view>
+
+  <view class="history" wx:if="{{history.length && !searched}}">
+    <view class="section-head">
+      <view class="section-title">最近搜索</view>
+      <view class="clear" bindtap="clearHistory">清空</view>
+    </view>
+    <view class="history-tags">
+      <view class="history-tag" wx:for="{{history}}" wx:key="*this" data-keyword="{{item}}" bindtap="onHistoryTap">{{item}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">搜索中...</view>
+  <view wx:elif="{{activeType !== 'hot' && errorMessage}}" class="empty" bindtap="search">{{errorMessage}} · 点击重试</view>
+  <view wx:elif="{{searched && activeType === 'posts' && !posts.length}}" class="empty">没有找到相关帖子</view>
+  <view wx:elif="{{searched && activeType === 'users' && !users.length}}" class="empty">没有找到相关用户</view>
+
+  <view wx:if="{{activeType === 'hot' && !loading}}">
+    <view wx:if="{{hotErrorMessage}}" class="empty" bindtap="loadHotTopics">{{hotErrorMessage}} · 点击重试</view>
+    <block wx:else>
+    <view class="hot-tools">
+      <view class="hot-title">正在发生</view>
+      <view class="hot-summary-btn" bindtap="summarizeHotTopics">AI 总结</view>
+    </view>
+    <view class="hot-summary-card" wx:if="{{hotSummary}}">{{hotSummary}}</view>
+    <view class="hot-row" wx:for="{{hotTopics}}" wx:key="id" data-post-id="{{item.postId}}" bindtap="goHotPost">
+      <view class="hot-rank">{{item.rank}}</view>
+      <view class="hot-body">
+        <view class="hot-name">{{item.title}}</view>
+        <view class="hot-summary">{{item.summary}}</view>
+        <view class="hot-meta">{{item.sectionName}} · 热度 {{item.hotScore}}</view>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{!hotTopics.length}}">暂无热榜内容</view>
+    </block>
+  </view>
+
+  <view wx:if="{{activeType === 'posts' && !loading && !errorMessage}}">
+    <post-row
+      wx:for="{{posts}}"
+      wx:key="id"
+      item="{{item}}"
+      index="{{index}}"
+      bind:open="goPostDetail"
+      bind:tag="goTagPosts"
+      bind:like="togglePostLike"
+      bind:favorite="togglePostFavorite"
+    />
+  </view>
+
+  <view wx:if="{{activeType === 'users' && !loading && !errorMessage}}">
+    <view class="user-card" wx:for="{{users}}" wx:key="id" data-id="{{item.id}}" bindtap="goUserDetail">
+      <view class="user-avatar {{item.avatarUrl ? 'has-image' : 'fallback'}}">
+        <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+        <text wx:else>{{item.avatarInitial}}</text>
+      </view>
+      <view class="user-main">
+        <view class="user-name">{{item.nickname || item.alias || item.name || '匿名同学'}}</view>
+        <view class="user-bio">{{item.bio}}</view>
+      </view>
+      <view class="user-action" aria-label="查看主页"><view class="ui-icon icon-chevron-right"></view></view>
+    </view>
+  </view>
+  </scroll-view>
+</view>

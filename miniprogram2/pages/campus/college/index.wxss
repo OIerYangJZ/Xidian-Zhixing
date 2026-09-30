@@ -1,0 +1,64 @@
+.college-scroll {
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid var(--app-divider);
+  background: var(--app-surface);
+  white-space: nowrap;
+}
+
+.college-row {
+  display: flex;
+  gap: 14rpx;
+  padding: 0 24rpx;
+}
+
+.college-chip {
+  flex: 0 0 auto;
+  height: 62rpx;
+  padding: 0 24rpx;
+  border-radius: 31rpx;
+  background: var(--app-control);
+  color: var(--app-text-primary);
+  font-size: 13px;
+  line-height: 62rpx;
+}
+
+.college-chip.active {
+  background: var(--app-primary);
+  color: var(--app-on-primary);
+  font-weight: 600;
+}
+
+.college-card {
+  margin-top: 0;
+  padding: 28rpx 24rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+  background: var(--app-surface);
+}
+
+.college-name {
+  color: var(--app-text-primary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.college-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.section-title {
+  margin: 0;
+  padding: 24rpx 24rpx 12rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+  background: var(--app-surface);
+  color: var(--app-text-primary);
+  font-size: 15.5px;
+  font-weight: 700;
+}
+
+/* Approved reference layout. */
+.college-card { border-radius:0; border:0; border-bottom:1px solid var(--app-divider); margin:0; padding:28rpx 36rpx; }
+.college-name { font-size:17px; }
+.college-actions { gap:16rpx; }

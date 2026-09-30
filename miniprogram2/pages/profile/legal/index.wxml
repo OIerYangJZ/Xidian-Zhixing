@@ -1,0 +1,6 @@
+<view class="{{pageMotion}} settings-page {{themeClass}}">
+  <settings-header title="{{title}}" theme-class="{{themeClass}}" english="{{currentLanguage === 'en'}}" />
+  <view wx:for="{{sections}}" wx:key="heading" class="settings-section legal-section">
+    <view class="settings-title">{{item.heading}}</view><text class="legal-body" selectable>{{item.body}}</text>
+  </view>
+</view>

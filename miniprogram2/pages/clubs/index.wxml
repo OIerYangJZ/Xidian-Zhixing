@@ -1,0 +1,10 @@
+<view class="{{pageMotion}} page club-page {{themeClass}}">
+  <button class="apply-btn" bindtap="apply">申请社团分区</button>
+  <status-view wx:if="{{loading}}" mode="loading" text="加载中..." />
+  <status-view wx:elif="{{errorMessage}}" mode="error" text="{{errorMessage}}" show-retry="true" bind:retry="retryLoad" />
+  <status-view wx:elif="{{!clubs.length}}" mode="empty" text="暂无社团" />
+  <view class="club-row" wx:for="{{clubs}}" wx:key="id" data-id="{{item.id}}" bindtap="openDetail">
+    <view class="club-name">{{item.name}}</view>
+    <view class="club-desc">{{item.description}}</view>
+  </view>
+</view>

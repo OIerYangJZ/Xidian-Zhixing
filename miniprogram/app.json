@@ -1,0 +1,7 @@
+{
+  "pages": ["pages/index/index"],
+  "window": {
+    "backgroundColor": "#ffffff",
+    "navigationBarTitleText": "西电知行"
+  }
+}

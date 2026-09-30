@@ -1,0 +1,3 @@
+@import "../../../styles/settings.wxss";
+.legal-section { padding-bottom:22px; }
+.legal-body { display:block; margin-top:10px; font-size:14px; line-height:1.9; color:var(--app-text-secondary); overflow-wrap:anywhere; }

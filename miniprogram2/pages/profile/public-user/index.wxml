@@ -1,0 +1,40 @@
+<view class="{{pageMotion}} page public-page {{themeClass}}">
+  <status-view wx:if="{{loading}}" mode="loading" text="加载中..." />
+  <status-view wx:elif="{{errorMessage}}" mode="error" text="{{errorMessage}}" show-retry="true" bind:retry="retryLoad" />
+  <status-view wx:elif="{{!profile}}" mode="empty" text="用户不存在" />
+  <view wx:else>
+    <view class="profile-head">
+      <view class="cover-wrap"><image class="cover" wx:if="{{profile.backgroundImageUrl}}" src="{{profile.backgroundImageUrl}}" mode="aspectFill"></image></view>
+      <view class="avatar {{profile.avatarUrl ? 'has-image' : 'fallback'}}">
+        <image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill"></image>
+        <text wx:else>{{profile.avatarInitial}}</text>
+      </view>
+      <view class="name">{{profile.nickname || profile.alias || '西电同学'}}</view>
+      <view wx:if="{{profile.college || profile.major}}" class="school-meta">
+        {{profile.college}}{{profile.college && profile.major ? ' · ' : ''}}{{profile.major}}
+      </view>
+      <view wx:if="{{profile.bio}}" class="bio">{{profile.bio}}</view>
+      <view class="stats">
+        <text>关注 {{profile.followingCount || 0}}</text>
+        <text>粉丝 {{profile.followerCount || 0}}</text>
+      </view>
+    </view>
+    <view class="actions">
+      <button class="primary" bindtap="toggleFollow">{{profile.isFollowing ? '已关注' : '关注'}}</button>
+      <button class="secondary" bindtap="messageUser">私信</button>
+    </view>
+    <view class="post-section">
+      <view class="section-title">TA 的发布</view>
+      <view wx:if="{{!posts.length}}" class="empty-small">暂无公开发布</view>
+      <post-row
+        wx:for="{{posts}}"
+        wx:key="id"
+        item="{{item}}"
+        index="{{index}}"
+        bind:open="openPost"
+        bind:like="togglePostLike"
+        bind:favorite="togglePostFavorite"
+      />
+    </view>
+  </view>
+</view>

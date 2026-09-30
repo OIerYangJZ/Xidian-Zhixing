@@ -1,0 +1,44 @@
+<view class="{{pageMotion}} auth-page {{themeClass}}">
+  <view class="auth-shell">
+    <view class="auth-nav" style="padding-top:{{navTop}}px; height:{{navTop + navHeight + 12}}px; padding-right:{{navRight}}px;">
+      <button wx:if="{{canGoBack}}" class="auth-back" bindtap="goBack" aria-label="返回" hover-class="auth-pressed"><view class="ui-icon icon-back"></view></button>
+    </view>
+    <view class="auth-main">
+      <view class="auth-identity">
+        <image class="auth-emblem" src="/assets/zhixing-logo.jpg" mode="aspectFit" aria-label="西电知行" />
+        <view class="auth-title">登录知行</view>
+        <view class="auth-subtitle">使用西安电子科技大学账号</view>
+      </view>
+      <view class="auth-content">
+        <view class="auth-status status-{{phase}}" role="status" aria-live="polite">
+          <view class="status-symbol">
+            <view wx:if="{{phase === 'success'}}" class="ui-icon icon-check"></view>
+            <view wx:elif="{{phase === 'error'}}" class="ui-icon icon-info"></view>
+            <view wx:elif="{{submitting}}" class="auth-spinner" aria-hidden="true"></view>
+            <view wx:else class="ui-icon icon-lock"></view>
+          </view>
+          <view class="status-copy">
+            <view class="status-title">{{stateTitle}}</view>
+            <view class="status-description">{{errorMessage || stateMessage}}</view>
+          </view>
+        </view>
+        <button class="login-button phase-{{phase}}" bindtap="handlePrimary" disabled="{{submitting}}" hover-class="login-pressed" aria-label="{{buttonLabel}}">
+          <text>{{buttonLabel}}</text>
+        </button>
+        <view class="auth-secondary">
+          <button wx:if="{{phase === 'pending'}}" class="check-result" bindtap="checkAuthenticationResult" hover-class="auth-pressed">我已完成认证，重新检查</button>
+          <button wx:elif="{{phase === 'error' && retryAction === 'check'}}" class="check-result" bindtap="restartLogin" hover-class="auth-pressed">重新发起认证</button>
+          <text wx:else class="account-note">首次登录将自动创建知行账号</text>
+        </view>
+      </view>
+    </view>
+    <view class="auth-footer">
+      <text class="agreement-label">继续即表示你同意</text>
+      <view class="agreement-links">
+        <button bindtap="goTerms" disabled="{{submitting}}" hover-class="auth-pressed">用户协议</button>
+        <text>与</text>
+        <button bindtap="goPrivacy" disabled="{{submitting}}" hover-class="auth-pressed">隐私政策</button>
+      </view>
+    </view>
+  </view>
+</view>

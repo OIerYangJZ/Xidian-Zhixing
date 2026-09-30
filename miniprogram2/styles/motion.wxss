@@ -1,0 +1,42 @@
+/* Root opacity never creates a containing block for fixed navigation. */
+.motion-enter-a.motion-enter-a { animation: page-reveal-a .28s ease-out; }
+.motion-enter-b.motion-enter-b { animation: page-reveal-b .28s ease-out; }
+.motion-enter-a .motion-content { animation: content-reveal-a .32s cubic-bezier(.2,.72,.24,1); }
+.motion-enter-b .motion-content { animation: content-reveal-b .32s cubic-bezier(.2,.72,.24,1); }
+.motion-content.motion-body-a { animation: content-reveal-a .32s cubic-bezier(.2,.72,.24,1); }
+.motion-content.motion-body-b { animation: content-reveal-b .32s cubic-bezier(.2,.72,.24,1); }
+.motion-content.motion-panel-next-a { animation: panel-next-a .36s cubic-bezier(.22,.68,.24,1); }
+.motion-content.motion-panel-next-b { animation: panel-next-b .36s cubic-bezier(.22,.68,.24,1); }
+.motion-content.motion-panel-previous-a { animation: panel-previous-a .36s cubic-bezier(.22,.68,.24,1); }
+.motion-content.motion-panel-previous-b { animation: panel-previous-b .36s cubic-bezier(.22,.68,.24,1); }
+@keyframes panel-next-a { from { opacity:.68; transform:translateX(16px); } to { opacity:1; transform:none; } }
+@keyframes panel-next-b { from { opacity:.68; transform:translateX(16px); } to { opacity:1; transform:none; } }
+@keyframes panel-previous-a { from { opacity:.68; transform:translateX(-16px); } to { opacity:1; transform:none; } }
+@keyframes panel-previous-b { from { opacity:.68; transform:translateX(-16px); } to { opacity:1; transform:none; } }
+@keyframes page-reveal-a { from { opacity:.72; } to { opacity:1; } }
+@keyframes page-reveal-b { from { opacity:.72; } to { opacity:1; } }
+@keyframes content-reveal-a { from { opacity:.6; transform:translateY(6px); } to { opacity:1; transform:none; } }
+@keyframes content-reveal-b { from { opacity:.6; transform:translateY(6px); } to { opacity:1; transform:none; } }
+.motion-mask.motion-mask { animation: layer-mask-in .24s ease-out both; }
+.motion-sheet.motion-sheet { animation: layer-sheet-in .32s cubic-bezier(.2,.72,.24,1) both; }
+.motion-sidebar.motion-sidebar { animation: layer-side-in .32s cubic-bezier(.2,.72,.24,1) both; }
+.is-leaving { pointer-events:none; }
+.is-leaving .motion-mask { animation: layer-mask-out .2s ease-in both; }
+.is-leaving .motion-sheet { animation: layer-sheet-out .2s ease-in both; }
+.is-leaving .motion-sidebar { animation: layer-side-out .2s ease-in both; }
+@keyframes layer-mask-in { from { opacity:0; } to { opacity:1; } }
+@keyframes layer-mask-out { to { opacity:0; } }
+@keyframes layer-sheet-in { from { opacity:.7; transform:translateY(32px); } to { opacity:1; transform:none; } }
+@keyframes layer-sheet-out { to { opacity:0; transform:translateY(24px); } }
+@keyframes layer-side-in { from { opacity:.7; transform:translateX(-32px); } to { opacity:1; transform:none; } }
+@keyframes layer-side-out { to { opacity:0; transform:translateX(-24px); } }
+.motion-press { opacity:.72; }
+@media (prefers-reduced-motion: reduce) {
+  .motion-enter-a.motion-enter-a, .motion-enter-b.motion-enter-b, .motion-enter-a .motion-content, .motion-enter-b .motion-content,
+  .motion-content.motion-body-a, .motion-content.motion-body-b,
+  .motion-content.motion-panel-next-a, .motion-content.motion-panel-next-b,
+  .motion-content.motion-panel-previous-a, .motion-content.motion-panel-previous-b,
+  .motion-mask.motion-mask, .motion-sheet.motion-sheet, .motion-sidebar.motion-sidebar,
+  .is-leaving .motion-mask, .is-leaving .motion-sheet, .is-leaving .motion-sidebar { animation:none; }
+  .is-leaving { opacity:0; }
+}

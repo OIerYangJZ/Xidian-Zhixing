@@ -38,3 +38,22 @@ next-env.d.ts
 
 # custom
 /public/uploads
+
+# Local development output
+/.next-speed-diagnostic/
+/.playwright-cli/
+/.codex-*.log
+/.pglite-*.log
+/.qdrant-initialized
+__pycache__/
+*.pyc
+miniprogram*/project.private.config.json
+miniprogram*/config/env.local.js
+
+# SQLite runtime files and local recovery snapshots
+/deploy/knowledge/data/*.db-shm
+/deploy/knowledge/data/*.db-wal
+/artifacts/knowledge-recovery/*.db
+/artifacts/knowledge-recovery/*.db-shm
+/artifacts/knowledge-recovery/*.db-wal
+/artifacts/knowledge-recovery/*.log

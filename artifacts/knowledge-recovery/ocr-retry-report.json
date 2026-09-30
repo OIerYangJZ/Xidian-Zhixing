@@ -1,0 +1,28 @@
+{
+  "startedAt": "2026-09-27T06:24:08.658182+00:00",
+  "requested": 5,
+  "published": [],
+  "failed": [
+    {
+      "url": "https://tyb.xidian.edu.cn/info/1079/1901.htm",
+      "error": "正文不足，需检查图片、附件或访问权限"
+    },
+    {
+      "url": "https://tyb.xidian.edu.cn/info/1079/1902.htm",
+      "error": "正文不足，需检查图片、附件或访问权限"
+    },
+    {
+      "url": "https://tyb.xidian.edu.cn/info/1079/3732.htm",
+      "error": "正文不足，需检查图片、附件或访问权限"
+    },
+    {
+      "url": "https://tyb.xidian.edu.cn/info/1079/1900.htm",
+      "error": "正文不足，需检查图片、附件或访问权限"
+    },
+    {
+      "url": "https://tyb.xidian.edu.cn/info/1079/1899.htm",
+      "error": "正文不足，需检查图片、附件或访问权限"
+    }
+  ],
+  "completedAt": "2026-09-27T06:24:13.090349+00:00"
+}

@@ -1,0 +1,4 @@
+@import "../../../styles/settings.wxss";
+.about-brand { padding-top:28px; padding-bottom:26px; }
+.about-wordmark { font-size:32px; font-weight:800; line-height:1.4; }
+.about-brand .settings-caption { margin-top:8px; }

@@ -1,0 +1,1023 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<HTML><HEAD><TITLE>王楠楠：从会算到看见：线性代数课背后的育人智慧-西安电子科技大学新闻网</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="王楠楠：从会算到看见：线性代数课背后的育人智慧">
+<META Name="keywords" Content="西安电子科技大学新闻网,专家学者,看见,线性代数,算,课,会,背后,楠楠,育人,王,智慧" />
+
+
+
+
+
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type">
+
+<LINK rel="stylesheet" type="text/css" href="../../mobile/css/index.css"><LINK rel="shortcut icon" type="image/x-icon" href="../../images/Favicon.png"><LINK rel="stylesheet" href="../../css/main.css"><LINK rel="stylesheet" href="../../css/html5.css"><LINK rel="stylesheet" href="../../css/css.css"><LINK rel="stylesheet" href="../../css/xinzeng.css">
+<script language="javascript" type="text/javascript" src="../../js/huadong.js"></script>
+<META name="Description" content="西安电子科技大学新闻网（西电新闻网）是西安电子科技大学主流媒体之一，网站整合校园资讯，凭借教育网与电信网的双线资源，独立访客数每日成千上万。作为西安电子科技大学的网络门户，西电新闻网以第一时间发布权威的西电教学科研、学生生活、招生就业等信息，吸引了一大批忠实用户，拥有强大的权威性和及时性，是读者了解西安电子科技大学的网络首选。">
+
+<META name="author" content="西电新闻网 制作&amp;维护: 西安聚力企业形象设计有限公司，宁燕 18066520918 029-88740915"><script>
+var min=12;
+var max=20;
+function increaseFontSize() {
+var p = document.getElementsByTagName('p');
+for(i=0;i<p.length;i++) {
+if(p[i].style.fontSize) {
+var s = parseInt(p[i].style.fontSize.replace("px",""));
+} else {
+var s = 16;
+}
+if(s!=max) {
+s += 2;
+}
+p[i].style.fontSize = s+"px"
+}
+}
+function decreaseFontSize() {
+var p = document.getElementsByTagName('p');
+for(i=0;i<p.length;i++) {
+if(p[i].style.fontSize) {
+var s = parseInt(p[i].style.fontSize.replace("px",""));
+} else {
+var s = 12;
+}
+if(s!=min) {
+s -= 2;
+}
+p[i].style.fontSize = s+"px"
+}
+}
+</script>
+<style>
+.mobile-pinglun{width:100%;overflow-x:auto;overflw-y:hidden;}
+.mobile-pinglun table{max-width:100%;}
+.header_xx img{display:inline!important;}
+.fix{position: fixed;top: 0;left: 50%;margin-left: -476px!important;width:582px;z-index:999;}
+</style>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../neirong.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1024,'/neirong.jsp',292726,1271716923)</script>
+</HEAD>
+<BODY>
+<!--手机预览-->
+<META name="viewport" content="width=device-width,initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+<script type="text/javascript" src="../../mobile/js/TouchSlide.js"></script>
+<script type="text/javascript" src="../../mobile/js/julitxk.js"></script>
+
+<script type="text/javascript" src="../../mobile/js/zonghe.js"></script><!---head开始--->
+<DIV class="m-head-top"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><span><a href="http://www.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 22680)">西电主页</a></span>
+<span><a href="https://en.xidian.edu.cn" title="English" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 22681)">English</a></span>
+<span><a href="http://xcb.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 22682)">宣传部</a></span>
+    <span class="m-tu"><a href="http://weibo.com/xidian"><img src="../../mobile/images/head-icon-weibo.png" /></a></span>
+<span class="m-tu"><a href="https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MjM5MTAxMTUyMA==&scene=124#wechat_redirect"><img src="../../mobile/images/head-icon-weixin.png" /></a></span>
+<span class="m-tu"><a href="http://news.xidian.edu.cn/system/resource/code/rss/rssfeed.jsp?type=list&treeid=2163&viewid=159243&mode=10&dbname=vsb&owner=1271716923&ownername=xww&contentid=0&number=30"><img src="../../mobile/images/head-icon2.png" /></a></span></DIV>
+<DIV class="m-head">
+<DIV class="m-logo fl" onmousemove="hideSEARCH(),hideNAV()"><a href="../../index.htm"><IMG class="w100" src="../../mobile/images/logo.png"></a></DIV>
+<DIV class="m-search-img fl" onmousedown="hideNAV()"><IMG class="w100" src="../../mobile/images/search-img.png"></DIV>
+<DIV class="m-nav-img fr" onmousedown="hideSEARCH()"><IMG class="w100" src="../../mobile/images/nav-img.png"></DIV>
+<DIV class="clear"></DIV>
+<DIV id="NAV" class="m-nav fl"><UL>
+<LI><a href="../../index.htm" title="">首页</a></li>
+<LI><a href="../../yw.htm" title="">西电要闻</a></li>
+<LI><a href="../../dt.htm" title="">工作动态</a></li>
+<LI><a href="../../mt.htm" title="">媒体西电</a></li>
+<LI><a href="../../lljy.htm" title="">理论教育</a></li>
+<LI><a href="../../xdxr.htm" title="">西电学人</a></li>
+<LI><a href="../../kx.htm" title="">西电学子</a></li>
+<LI><a href="../../xygs.htm" title="">校友故事</a></li>
+<LI><a href="https://xdjy.xidian.edu.cn/" target="_blank" title="">西电记忆</a></li>
+<LI><a href="http://xdkdb.ihwrm.com/" title="">西电科大报</a></li>
+<LI><a href="../../xyds.htm" title="">西电电视台</a></li>
+</UL></DIV>
+<DIV id="SEARCH" class="m-search-box fl">
+<!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu3 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+             <input  type="text" class="m-search-left fl" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+              <input type="image" class="m-search-right fr" name="submit_button"  v-on:click="onSubmit()" src="../../mobile/images/search-img.png">
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "1271716923";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "1271716923";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script> 
+<DIV class="m-search"></DIV></DIV>
+<DIV class="clear"></DIV></DIV><!---head结束---><!---聚合开始--->
+<DIV class="m-juhe-box">
+<DIV class="m-juhe"><SPAN></SPAN>
+<DIV class="m-juhe-nav"><UL>
+<LI><a href="../../xwjh/jx.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 22683)">教学</a></li>
+<LI><a href="../../xwjh/ky.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 22684)">科研</a></li>
+<LI><a href="../../xwjh/xs.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 22685)">学术</a></li>
+<LI><a href="../../xwjh/jz.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 22686)">讲座</a></li>
+<LI><a href="../../xwjh/jl.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 22687)">交流</a></li>
+<LI><a href="../../xwjh/dq.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 22688)">党群</a></li>
+<LI><a href="../../xwjh/yx.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 22689)">院系</a></li>
+<LI><a href="../../xwjh/xy.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 33940)">校园</a></li>
+<LI><a href="../../xwjh/fw.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 33941)">服务</a></li>
+<LI><a href="../../xwjh/yw.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 33942)">医卫</a></li>
+<LI><a href="../../xwjh/rw.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 33943)">人物</a></li>
+<LI><a href="../../xwjh/xz.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 33944)">学者</a></li>
+<LI><a href="../../xwjh/xs1.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 33945)">学生</a></li>
+<LI><a href="../../xwjh/xs2.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 33946)">校史</a></li>
+<LI><a href="../../xygs.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 33947)">校友</a></li>
+<LI><a href="http://job.xidian.edu.cn/index.html" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 33948)">就业</a></li>
+<div class="clear"></div>
+</UL></DIV></DIV></DIV><!---聚合结束---><!---新闻中心开始--->
+<DIV class="m-news" onmousemove="hideEWM2()">
+<DIV class="m-news-bt">
+西电学人</DIV>
+<DIV class="m-lanmu-content">
+<DIV class="m-zuoyou">表格等宽内容时，请左右滑动 &lt;&gt;</DIV>
+<DIV class="clear"></DIV>
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<script>
+window.onload = function(){
+    document.getElementById("CONTENT").innerHTML = document.getElementById("CONTENT").innerHTML.replace(/\HEIGHT/g,"").replace(/\vheight/g,"").replace(/\VHEIGHT/g,"").replace(/\height/g,"");
+}
+</script>
+
+<DIV class="m-content-bt auto">王楠楠：从会算到看见：线性代数课背后的育人智慧</DIV>
+<DIV class="m-content-bt-xia"><SPAN>时间：2026-04-10 14:13:16</SPAN><SPAN>来源：党委宣传部（融媒体中心）</SPAN><SPAN>点击：<script>_showDynClicks("wbnews", 1271716923, 292726)</script></SPAN> </DIV>
+    <DIV class="m-content-nr" id="CONTENT"><div class="v_news_content">
+<p style="text-indent: 0em; text-wrap-mode: wrap; text-align: center; line-height: 2em;">■记者 <strong>唐</strong><strong>羽琴</strong></p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">距离上课铃响还有三十分钟，走廊里的喧嚣尚未完全褪去，学校线性代数授课教师王楠楠已经站在了讲台上。陆续走进教室的学生，自然地聚拢过来，问上节课的困惑，聊课后遇到的难题，或只是随口谈谈最近的学习与生活。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">“这时候氛围最轻松，”王楠楠说，“我能知道他们卡在哪里。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">在很多人的印象里，线性代数是一门“冷硬”的课程：满黑板的行列式、抽象的向量空间……似乎和现实世界之间隔着厚厚的符号墙。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">王楠楠教这门课，第一件事就是“拆墙”。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;"><strong>从“会算”到“会看”</strong></p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">王楠楠教授的班级平均分在全校同科目里排名靠前，学生考试分高，说明“他们会算了”。但他更在意的，是学生有没有在某个瞬间真正“看见”了这门课。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">为了让学生“看见”这门课，王楠楠在讲授中加入了大量贴近生活的案例。比如“手机里的每张照片其实就是一个矩阵，图像处理就是在做矩阵运算。”每次讲案例的时候，学生的注意力都被吸引，且会有学生接着这个案例发散思考，比如“那视频呢？”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">“就是这个问题，”王楠楠后来说，“说明他开始往下想了。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">课堂案例都藏在王楠楠的日常观察里。他习惯盯着人工智能和计算机视觉领域的动态，看哪些东西能往课堂上“搬”。但把一个前沿素材变成教学案例，通常要经历两三轮迭代。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">除了追踪前沿，课前三十分钟和课后辅导也是素材来源。他会借着聊天了解学生正在做什么项目、对哪个方向感兴趣；也会在课后辅导时盯着学生的困惑点，学生在哪里卡住了，哪里就会成为下一个案例。“如果他们最近在搞图像识别，我就从图像讲；有人在做推荐系统，我就从矩阵分解讲。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这种对几何直观的执着，背后有对这门课更深的一层理解：线性代数教给学生的，从来不应该只是一套计算工具。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;"><strong>线性代数是一种“空间语言”</strong></p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">王楠楠说，线性代数是关于“空间变换”的语言。用这门语言，可以描述一个物体在空间里被旋转、拉伸、压缩的过程，可以看见高维数据背后隐藏的结构。“会算行列式，和真的学通了线性代数，差距其实很大。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">特征值和特征向量便是一个很好的例子——符号密，推导长，很多学生背下来公式，但不知道它在说什么。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">王楠楠讲这一部分的时候，会让学生想象一个正在被拉伸的空间。大多数方向的向量，被拉伸之后都会改变自己的方向；但有一些特殊的方向，拉伸之后只变长或变短，方向本身纹丝不动——这就是特征向量，而拉伸的倍数，就是特征值。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这不只是在解释一个计算方法，而是在告诉学生，空间变换是有“骨架”的，特征值和特征向量就是那个骨架。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这是线性代数的“空间思维”和“变换思维”。学生学完线性代数，最应该带走的不是一张公式表，而是这套看问题的方式。“降维为什么可以用SVD？神经网络为什么可以理解成高维空间里的线性变换加非线性激活？这些问题的答案，其实早就藏在线性代数里了。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">“之前觉得线代这门课很难，”2022级电子工程学院电子信息专业本科生张艺潇回忆道，“后来王老师把矩阵分解讲到推荐系统里，才意识到这门课其实一直藏在专业知识底下。课上，他也会引导大家互相讨论，发现了很多自己没意识到的盲区。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;"><strong>从“怎么做”到“为什么这样想”</strong></p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">当前，AI工具和优质网课触手可及，但王楠楠的课堂留住了学生。他曾思考过，自己的课堂和学生打开AI问问题，本质的差异究竟在哪里。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">他给出的答案是，AI能回答你问出来的问题，但它发现不了你不知道自己不知道的那部分。换句话来说，你学会了解这道题，但你没有意识到，对于这个知识点，你还有别的盲区。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">而这种盲区，通常需要“碰撞”才能暴露出来。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">课前辅导时，几位学生围绕同一个困惑讨论起来，信息密度最高的时刻往往就此出现。“不是我告诉他们怎么解题，而是他们自己‘撞’一块了。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这就是王楠楠所说的“认知碰撞”。他提前半小时来教室，也是为了制造这样的时刻。师生之间真正的有效互动主要发生在三个时段：课前半小时的非正式交流，帮他精准把握学情；课堂上的即时反馈，在关键推导处停下来确认学生是否跟上；课后的延伸讨论，把课堂内容和学生的专业方向、实际项目真正结合起来。这些时刻，需要有人在场。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这便是从课前到课后的闭环。你向AI提问，它给你答案。但你不知道你还应该问什么。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">在线性代数结课时，王楠楠常对学生说：“当你在课堂上听到‘图像就是矩阵’，不妨多想一步——那视频、语音、推荐算法背后是不是也隐藏着类似的数学结构？</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这份好奇比记住任何一个公式都重要。公式也许会忘，但那种透过符号看见空间、透过计算理解变换的思维方式，会一直在。</p> 
+  <p><br></p>
+</div></div>
+<div style="width:100%;height:28px;margin:10px 0">
+
+</div>
+<div id="div_vote_id"></div>
+    
+    <p align="left">
+        <div style="margin:15px 0 10px 0;">上一条：<a href="294376.htm">许珊琳：守好学校的“钱袋子”，更暖了师生的心窝子</a></div>
+        <div style="margin-bottom:15px">下一条：<a href="286796.htm">西电数学与统计实训中心：当梦想之翼掠过数学之峰</a></div>
+    </p>
+</form>
+
+
+<div class="mobile-pinglun">
+
+</div></DIV>
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV></DIV><!---新闻中心结束---><!----底部开始----->
+<DIV class="m-footer">
+<DIV class="m-foot-qiehuan"><SPAN><A href="../../index/sy.htm">电脑版</A></SPAN> </DIV>
+<DIV class="m-foot-lianjie">
+<span><a href="../1033/32515.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11184)">关于本站</a></span>-
+<span><a href="../1033/32521.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11185)">联系我们</a></span>-
+<span><a href="#/system/go.jsp?treeid=1033&amp;apptype=content&amp;urltype=news.NewsContentUrl&amp;param=wbnewsid%3D32520" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11186)">我要投稿</a></span>-
+<span><a href="../1033/32516.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11187)">版权声明</a></span>-
+<span><a href="../../tbgx.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11188)">特别感谢</a></span>
+</DIV>
+
+<DIV class="m-foot-banquan"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>Copyright undefinedcopy; 2002-2016 西安电子科技大学新闻网</p> 
+<p>QQ:1029605128 All Right Reserved. 陕ICP备08103642号&nbsp; <img src="/__local/D/02/89/DC0A46FC5B15B3363FFA78CF6C7_C267B386_4B38.png?e=.png" vsbhref="vurl" vurl="/_vsl/D0289DC0A46FC5B15B3363FFA78CF6C7/C267B386/4B38?e=.png" vheight="" vwidth="" orisrc="/__local/D/02/89/DC0A46FC5B15B3363FFA78CF6C7_C267B386_4B38.png" class="img_vsb_content">&nbsp;<a href="https://beian.mps.gov.cn/#/query/webSearch" target="_blank" style="text-decoration: none">陕公网安备61019002002681号</a></p> 
+<p>本站由西安电子科技大学党委宣传部开发维护</p></DIV></DIV><!----底部结束-----><!--手机预览-->
+
+
+<DIV class="body"><!--头部 开始-->
+<DIV class="head">
+<DIV class="logo">
+<a href="../../index.htm" title="新闻网"><img src="../../images/logo.png" border="0" /></a></DIV>
+<DIV class="sousuo">
+
+
+
+
+</DIV>    <div class="index-erwei" onMouseMove="showEWM()" onmouseover="showEWM()" onmouseout="hideEWM()">
+<img src="../../images/news-erwei.png" width="56" height="56" />
+            <div class="erwei-span" id="EWM">
+<img title="本站二维码" onMouseMove="showEWM()" onmouseover="showEWM()" onmouseout="hideEWM()" src="../../images/news-erwei.png" width="100" /></div>
+        </div>
+<script type="text/javascript">
+function showEWM(){
+    document.getElementById("EWM").style.display = 'block';
+}
+function hideEWM(){
+    document.getElementById("EWM").style.display = 'none';
+}        
+</script></DIV><!--头部 结束--><!--导航 开始-->
+<DIV class="nav"><DIV class="nav1">
+<IMG src="../../images/home.png">
+<SPAN><A href="../../index.htm" target="_blank">首页</A></SPAN>
+</DIV>
+<IMG src="../../images/shuxian.png" style="float: left"> 
+<DIV class="nav2">
+<UL>
+
+<LI><A href="../../yw.htm" target="_blank">西电要闻</A> </LI>
+
+<LI><A href="../../dt.htm" target="_blank">工作动态</A> </LI>
+
+<LI><A href="../../mt.htm" target="_blank">媒体西电</A> </LI>
+
+<LI><A href="../../lljy.htm" target="_blank">理论教育</A> </LI>
+
+<LI><A href="../../xdxr.htm" target="_blank">西电学人</A> </LI>
+
+<LI><A href="../../kx.htm" target="_blank">西电学子</A> </LI>
+
+<LI><A href="../../xygs.htm" target="_blank">校友故事</A> </LI>
+
+<LI><A href="https://xdjy.xidian.edu.cn/" target="_blank">西电记忆</A> </LI>
+
+<LI><A href="http://xdkdb.ihwrm.com/" target="_blank">西电科大报</A> </LI>
+
+<LI><A href="http://image.xidian.edu.cn/" target="_blank">西电影像</A> </LI>
+
+
+
+
+<LI class="hszy" style="display: none;"><A href="../../hswhzyk.htm" target="_blank">红色文化资源库</A> 
+<ul class="ul_2">
+<li><a href="../../hswhzyk/xjpzsjgycchswhdzyls.htm" target="_blank">习近平总书记关于传承红色文化的重要论述</a></li>
+<li><a href="../../hswhzyk/xygm__jxzxzgcl_1931_1949_.htm" target="_blank">信仰光芒——建校至新中国成立（1931-1949）</a>
+<ul class="ul_3"><li style="margin-left:106px;"><a href="https://archives.xidian.edu.cn/ybxsddb/xscq/syrj.htm" target="_blank">历史记录</a></li><li><a href="../../hswhzyk/xygm__jxzxzgcl_1931_1949_/gyjy.htm" target="_blank">光影记忆</a></li><li><a href="../../hswhzyk/xygm__jxzxzgcl_1931_1949_/xsjs.htm" target="_blank">校史讲述</a></li></ul>
+</li>
+<li><a href="../../hswhzyk/jsnh__xzgclzqxxa_1949_1958_.htm" target="_blank">金色年华——新中国成立至迁校西安（1949-1958）</a>
+<ul class="ul_3"><li style="margin-left:106px;"><a href="../../hswhzyk/jsnh__xzgclzqxxa_1949_1958_/tsls.htm" target="_blank">图说历史</a></li><li><a href="../../hswhzyk/jsnh__xzgclzqxxa_1949_1958_/ksls.htm" target="_blank">口述历史</a></li></ul>
+</li>
+<li><a href="../../hswhzyk/hszm__xqzzwdfjz_1958_1988_.htm" target="_blank">红色筑梦——西迁至转为地方建制（1958-1988）</a>
+<ul class="ul_3"><li style="margin-left:106px;"><a href="https://archives.xidian.edu.cn/ybxsddb/lycz/qtcz/5.htm" target="_blank">留影存照</a></li><li><a href="https://archives.xidian.edu.cn/ybxsddb/xscq/dxzd2.htm" target="_blank">沧桑岁月</a></li></ul>
+</li>
+<li><a href="../../hswhzyk/zlwl__zwdfjzzj_1988nzj_.htm" target="_blank">智领未来——转为地方建制至今（1988年至今）</a>
+<ul class="ul_3"><li style="margin-left:106px;"><a href="https://archives.xidian.edu.cn/ybxsddb/xscq/dxzd.htm" target="_blank">大学之道</a></li><li><a href="../../hswhzyk/zlwl__zwdfjzzj_1988nzj_/crbc.htm" target="_blank">才人辈出</a></li></ul>
+</li>
+</ul>
+</LI>
+
+</UL>
+</DIV>
+
+
+<style>
+.nav2 ul li{margin: 0 14px;}
+.nav2 ul li.hszy{ height: 45px;margin: 3px 0 0 0;line-height: 44px;padding: 0 12px;width: 112px;position:relative;}
+.nav2 ul li.hszy:hover{background:#b7252b;}
+.nav2 ul li.hszy a{color:#fff !important;}
+.nav2 ul li.hszy:hover .ul_2{display:block;}
+.nav2 ul li.hszy .ul_2{width:427px;height:436px;background-image:url(../../images/ul_2_bg.png);position:absolute;left: -154px;padding:11px 8px 9px 8px;z-index:999;display:none;}
+.nav2 ul li.hszy .ul_2>li{width:100%;min-height:55px;background:#ddefff;margin:0px;border-bottom:1px solid #ce9eaa;text-align:left;transition:0.3s;}
+.nav2 ul li.hszy .ul_2>li>a{font-size:16px;color:#333333 !important;background:url(../../images/ul_2_li_tb.png) no-repeat center left;margin-left:17px;text-indent:20px;display: block;height: 55px;line-height: 55px;}
+.nav2 ul li.hszy .ul_2>li:hover{background:#519ee5;}
+.nav2 ul li.hszy .ul_2>li:hover a{color:#fff !important;}
+.nav2 ul li.hszy .ul_2>li:hover .ul_3>li>a{color:#fff !important;}
+.nav2 ul li.hszy .ul_2>li>.ul_3>li>a{font-size:14px;display:block;text-indent:14px;background:url(../../images/ul_3_li_tb.png) no-repeat center left;color:#333333 !important;transition:0.3s;}
+.nav2 ul li.hszy .ul_2>li>.ul_3{margin-top: -13px;}
+.nav2 ul li.hszy .ul_2>li>.ul_3>li{padding-bottom: 8px;}
+.nav2 ul li.hszy .ul_2>li>.ul_3>li:hover a{color:#b7252b !important;}
+</style><IMG src="../../images/shuxian.png" style="float: left"> 
+<DIV class="nav3"><UL>
+<LI><A href="../../mt.htm" target="_blank">媒体</A></LI>
+<LI><A href="../../xyfm.htm" target="_blank">图片</A></LI>
+<LI><A href="http://image.xidian.edu.cn/" target="_blank">视频</A></LI>
+<LI><A href="../../zt.htm" target="_blank">专题</A></LI>
+</UL>
+</DIV></DIV><!--导航 结束--><!--二级导航 开始-->
+<DIV class="subNav">
+<DIV class="box">
+<DIV class="t_news"><IMG src="../../images/weizhi.png" style="margin-top: 7px;float: left;margin-right: 10px">&nbsp;<b style="color:#e6282f;">您的位置：</b>
+                        <a href="../../index.htm">主页</a>
+                >
+                <a href="../../xdxr1.htm">西电学人</a>
+
+<UL class="swap"></UL></DIV></DIV>
+<DIV class="subNav1"><UL>
+    <LI><a href="http://paper.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 37210)">西电科大报</a></li>
+    <LI><a href="https://www.toutiao.com/c/user/4124851253/#mid=4124851253" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11106)">今日头条</a></li>
+    <LI><a href="http://weibo.com/xidian" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11107)">微博</a></li>
+    <LI><a href="http://xcb.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11343)">宣传部</a></li>
+    <LI><a href="http://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11108)">学校主页</a></li>
+    <LI><a href="http://en.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11109)">English</a></li>
+</UL></DIV></DIV><!--二级导航 结束-->
+<DIV class="content" style="position: relative">
+<DIV class="list_cont">
+<DIV class="list_content">
+<DIV class="content1_left_bottom_top">
+<DIV class="yaowen">
+<DIV class="yaowen-a">
+西电学人</DIV></DIV>
+<DIV class="ul1"><UL>
+<LI><A href="../../xwjh/jx.htm" target="_blank">教学</A></LI>
+<LI><A href="../../xwjh/ky.htm" target="_blank">科研</A></LI>
+<LI><A href="../../xwjh/xs.htm" target="_blank">学术</A><BR></LI>
+<LI><A href="../../xwjh/jz.htm" target="_blank">讲座</A></LI>
+<LI><A href="../../xwjh/jl.htm" target="_blank">交流</A></LI>
+<LI><A href="../../xwjh/dq.htm" target="_blank">党群</A></LI>
+</UL></DIV>
+<DIV class="ul2"><UL>
+<LI><A href="../../xwjh/yx.htm" target="_blank">院系</A></LI>
+<LI><A href="../../xwjh/xy.htm" target="_blank">校园</A><BR></LI>
+<LI><A href="../../xwjh/fw.htm" target="_blank">服务</A></LI>
+<LI><A href="../../xwjh/yw.htm" target="_blank">医卫</A></LI>
+</UL></DIV>
+<DIV class="ul1"><UL>
+<LI><A href="../../xwjh/rw.htm" target="_blank">人物</A></LI>
+<LI><A href="../../xwjh/xz.htm" target="_blank">学者</A></LI>
+<LI><A href="../../xwjh/xs1.htm" target="_blank">学生</A><BR></LI>
+<LI><A href="../../xwjh/xs2.htm" target="_blank">校史</A></LI>
+<LI><A href="../../xygs.htm" target="_blank">校友</A></LI>
+<LI><A href="http://job.xidian.edu.cn/" target="_blank">就业</A></LI>
+</UL></DIV></DIV>
+<DIV id="c_l" class="b">
+<DIV class="neirong">
+
+<div class="neirong-bt">王楠楠：从会算到看见：线性代数课背后的育人智慧</div>
+
+<DIV id="wz_info" class="b_b">
+
+<span id="date">发布时间：2026-04-10 14:13:16</span><span id="from">来源：党委宣传部（融媒体中心）</span><span id="from">点击：<script>_showDynClicks("wbnews", 1271716923, 292726)</script></span><span style="margin-left:10px;display: none;"><a href="http://news.xidian.edu.cn/info/1024/292726.htm#A" style="color: #bd0800;font-weight:bold;font-size:14px;">我要评论:</FONT></span></a></span>
+ <SPAN style="display: none;">（<A class="zhijiedaopinglun" href="javascript:void(0)"><FONT style="font-weight: bold"></FONT></A>） </SPAN> 
+<DIV id="f_size"><A id="small" href="javascript:decreaseFontSize();">&nbsp;T&nbsp;</A>|<A id="big" href="javascript:increaseFontSize();">&nbsp;T&nbsp;</A></DIV></DIV>
+
+<form name="_newscontent_fromname">
+     <div class="neirong-xian"></div>
+    <div id="wz_zw"><div class="v_news_content">
+<p style="text-indent: 0em; text-wrap-mode: wrap; text-align: center; line-height: 2em;">■记者 <strong>唐</strong><strong>羽琴</strong></p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">距离上课铃响还有三十分钟，走廊里的喧嚣尚未完全褪去，学校线性代数授课教师王楠楠已经站在了讲台上。陆续走进教室的学生，自然地聚拢过来，问上节课的困惑，聊课后遇到的难题，或只是随口谈谈最近的学习与生活。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">“这时候氛围最轻松，”王楠楠说，“我能知道他们卡在哪里。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">在很多人的印象里，线性代数是一门“冷硬”的课程：满黑板的行列式、抽象的向量空间……似乎和现实世界之间隔着厚厚的符号墙。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">王楠楠教这门课，第一件事就是“拆墙”。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;"><strong>从“会算”到“会看”</strong></p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">王楠楠教授的班级平均分在全校同科目里排名靠前，学生考试分高，说明“他们会算了”。但他更在意的，是学生有没有在某个瞬间真正“看见”了这门课。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">为了让学生“看见”这门课，王楠楠在讲授中加入了大量贴近生活的案例。比如“手机里的每张照片其实就是一个矩阵，图像处理就是在做矩阵运算。”每次讲案例的时候，学生的注意力都被吸引，且会有学生接着这个案例发散思考，比如“那视频呢？”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">“就是这个问题，”王楠楠后来说，“说明他开始往下想了。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">课堂案例都藏在王楠楠的日常观察里。他习惯盯着人工智能和计算机视觉领域的动态，看哪些东西能往课堂上“搬”。但把一个前沿素材变成教学案例，通常要经历两三轮迭代。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">除了追踪前沿，课前三十分钟和课后辅导也是素材来源。他会借着聊天了解学生正在做什么项目、对哪个方向感兴趣；也会在课后辅导时盯着学生的困惑点，学生在哪里卡住了，哪里就会成为下一个案例。“如果他们最近在搞图像识别，我就从图像讲；有人在做推荐系统，我就从矩阵分解讲。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这种对几何直观的执着，背后有对这门课更深的一层理解：线性代数教给学生的，从来不应该只是一套计算工具。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;"><strong>线性代数是一种“空间语言”</strong></p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">王楠楠说，线性代数是关于“空间变换”的语言。用这门语言，可以描述一个物体在空间里被旋转、拉伸、压缩的过程，可以看见高维数据背后隐藏的结构。“会算行列式，和真的学通了线性代数，差距其实很大。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">特征值和特征向量便是一个很好的例子——符号密，推导长，很多学生背下来公式，但不知道它在说什么。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">王楠楠讲这一部分的时候，会让学生想象一个正在被拉伸的空间。大多数方向的向量，被拉伸之后都会改变自己的方向；但有一些特殊的方向，拉伸之后只变长或变短，方向本身纹丝不动——这就是特征向量，而拉伸的倍数，就是特征值。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这不只是在解释一个计算方法，而是在告诉学生，空间变换是有“骨架”的，特征值和特征向量就是那个骨架。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这是线性代数的“空间思维”和“变换思维”。学生学完线性代数，最应该带走的不是一张公式表，而是这套看问题的方式。“降维为什么可以用SVD？神经网络为什么可以理解成高维空间里的线性变换加非线性激活？这些问题的答案，其实早就藏在线性代数里了。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">“之前觉得线代这门课很难，”2022级电子工程学院电子信息专业本科生张艺潇回忆道，“后来王老师把矩阵分解讲到推荐系统里，才意识到这门课其实一直藏在专业知识底下。课上，他也会引导大家互相讨论，发现了很多自己没意识到的盲区。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;"><strong>从“怎么做”到“为什么这样想”</strong></p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">当前，AI工具和优质网课触手可及，但王楠楠的课堂留住了学生。他曾思考过，自己的课堂和学生打开AI问问题，本质的差异究竟在哪里。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">他给出的答案是，AI能回答你问出来的问题，但它发现不了你不知道自己不知道的那部分。换句话来说，你学会了解这道题，但你没有意识到，对于这个知识点，你还有别的盲区。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">而这种盲区，通常需要“碰撞”才能暴露出来。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">课前辅导时，几位学生围绕同一个困惑讨论起来，信息密度最高的时刻往往就此出现。“不是我告诉他们怎么解题，而是他们自己‘撞’一块了。”</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这就是王楠楠所说的“认知碰撞”。他提前半小时来教室，也是为了制造这样的时刻。师生之间真正的有效互动主要发生在三个时段：课前半小时的非正式交流，帮他精准把握学情；课堂上的即时反馈，在关键推导处停下来确认学生是否跟上；课后的延伸讨论，把课堂内容和学生的专业方向、实际项目真正结合起来。这些时刻，需要有人在场。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这便是从课前到课后的闭环。你向AI提问，它给你答案。但你不知道你还应该问什么。</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">在线性代数结课时，王楠楠常对学生说：“当你在课堂上听到‘图像就是矩阵’，不妨多想一步——那视频、语音、推荐算法背后是不是也隐藏着类似的数学结构？</p> 
+  <p style="text-wrap-mode: wrap; text-align: justify; text-indent: 2em; line-height: 2em;">这份好奇比记住任何一个公式都重要。公式也许会忘，但那种透过符号看见空间、透过计算理解变换的思维方式，会一直在。</p> 
+  <p><br></p>
+</div></div><div class="editor">责任编辑：唐羽琴</div>
+<div id="div_vote_id"></div>
+    </form>
+
+</DIV>
+<div style="width:676px;height:28px;line-height:28px">
+<!-- JiaThis Button BEGIN -->
+
+</div>
+
+<DIV id="content_bottom">
+<DIV class="b_title">相关阅读:</DIV>
+<UL>
+
+
+
+<script language="javascript" src="/system/resource/js/centerCutImg.js"></script>
+
+<ul class="list">
+
+<li>
+    <a href="../2106/296076.htm">
+        <p class="bt">聚焦丨习近平向上海合作组织绿色和可持续发展论坛致贺信</p>
+        <p class="sj">2026-04-29</p>
+    </a>
+</li>
+
+<li>
+    <a href="../1371/295876.htm">
+        <p class="bt">【学在西电】西电交响招生宣传音乐会在西交大附中奏响</p>
+        <p class="sj">2026-04-29</p>
+    </a>
+</li>
+
+<li>
+    <a href="../2106/295866.htm">
+        <p class="bt">聚焦丨习近平：着力提高防范应对自然灾害能力 切实维护人民群众生命财产安全</p>
+        <p class="sj">2026-04-29</p>
+    </a>
+</li>
+
+<li>
+    <a href="../2106/295856.htm">
+        <p class="bt">西电科普文化育人案例入选中国高教学会宣传分会创新案例</p>
+        <p class="sj">2026-04-29</p>
+    </a>
+</li>
+
+<li>
+    <a href="../2106/295786.htm">
+        <p class="bt">【陕西日报】西安电子科技大学深耕外语教学领域，培养学生国际传播能力——把中国...</p>
+        <p class="sj">2026-04-29</p>
+    </a>
+</li>
+</ul>
+
+<script>_showDynClickBatch(['dynclicks_u22_296076','dynclicks_u22_295876','dynclicks_u22_295866','dynclicks_u22_295856','dynclicks_u22_295786'],[296076,295876,295866,295856,295786],"wbnews", 1271716923)</script>
+ 
+</UL></DIV>
+<DIV id="A" name="A"></DIV></DIV></DIV>
+<DIV class="list_main" style="float: right">
+<DIV class="xd_djt">
+<DIV class="djt_title"><A href="javascript:void(0)">新闻评论</A></DIV>
+<DIV class="pinglun"> 
+
+    
+    <ul>
+        
+    
+    <li><font class="hongdian" style="color:#bd0800;font-size:18px;">·</font>&nbsp;<a target="_blank" href="https://news.xidian.edu.cn/info/2106/228033.htm">优秀！学习！</a></li>
+    
+    
+    
+    
+    <li><font class="hongdian" style="color:#bd0800;font-size:18px;">·</font>&nbsp;<a target="_blank" href="https://news.xidian.edu.cn/info/2106/227551.htm">西电威武！</a></li>
+    
+    
+    
+    
+    <li><font class="hongdian" style="color:#bd0800;font-size:18px;">·</font>&nbsp;<a target="_blank" href="https://news.xidian.edu.cn/info/2106/226045.htm">优秀！</a></li>
+    
+    
+    
+    
+    <li><font class="hongdian" style="color:#bd0800;font-size:18px;">·</font>&nbsp;<a target="_blank" href="https://news.xidian.edu.cn/info/2106/227406.htm">新年快乐！</a></li>
+    
+    
+    
+    
+    <li><font class="hongdian" style="color:#bd0800;font-size:18px;">·</font>&nbsp;<a target="_blank" href="https://news.xidian.edu.cn/info/2106/227263.htm">谢老师的课超级有意思，能学到好多与日常有...</a></li>
+    
+    
+    
+    
+    <li><font class="hongdian" style="color:#bd0800;font-size:18px;">·</font>&nbsp;<a target="_blank" href="https://news.xidian.edu.cn/info/2106/226894.htm">西电牛！</a></li>
+    
+    
+    
+    
+    <li><font class="hongdian" style="color:#bd0800;font-size:18px;">·</font>&nbsp;<a target="_blank" href="https://news.xidian.edu.cn/info/2106/226129.htm">好诶😁😁😁</a></li>
+    
+    
+    
+    
+    <li><font class="hongdian" style="color:#bd0800;font-size:18px;">·</font>&nbsp;<a target="_blank" href="https://news.xidian.edu.cn/info/2106/226045.htm">我电牛牛牛</a></li>
+    
+    
+    
+    
+    <li><font class="hongdian" style="color:#bd0800;font-size:18px;">·</font>&nbsp;<a target="_blank" href="https://news.xidian.edu.cn/info/2106/225495.htm">厉害了，我的电👍</a></li>
+    
+    
+    
+    </ul>
+<script>_showDynClickBatch(['dynclicks_u23_229888','dynclicks_u23_229878','dynclicks_u23_229868','dynclicks_u23_229858','dynclicks_u23_229848','dynclicks_u23_229838','dynclicks_u23_229828','dynclicks_u23_229818','dynclicks_u23_229808'],[229888,229878,229868,229858,229848,229838,229828,229818,229808],"wbnews", 1271716923)</script>
+   </DIV></DIV>
+<DIV class="fw" style="position: relative;height: 120px;top: -10px">
+<DIV class="fwc">
+<DIV class="fwc_1">服务</DIV><UL>
+<span><a href="http://payment.xidian.edu.cn/showPublic" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11126)">缴费</a></span>
+<span><a href="http://webmail.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11127)">邮箱</a></span>
+<span><a href="http://cwc.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11128)">工资</a></span>
+<span><a href="http://pay.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11129)">校园网流量</a></span>
+<span><a href="http://123.xidian.edu.cn/tel/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11130)">校内电话</a></span>
+</UL></DIV>
+<DIV class="rzc">
+<DIV class="rzc_1">热站</DIV><UL>
+<span><a href="http://weibo.com/xidian/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11131)">官方微博</a></span>
+<span><a href="http://rs.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11132)">睿思</a></span>
+<span><a href="http://bbs.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11133)">雁塔晨钟</a></span>
+<span><a href="http://www.lib.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11134)">图书馆</a></span>
+<span><a href="http://job.xidian.edu.cn/index.html" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11135)">就业</a></span>
+</UL></DIV>
+<DIV class="zyc">
+<DIV class="zyc_1">资源</DIV><UL>
+<span><a href="http://202.117.122.20/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11136)">读报</a></span>
+<span><a href="http://video.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11137)">高清VOD</a></span>
+<span><a href="http://xiaoli.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11138)">校历</a></span>
+<span><a href="http://meeting.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11334)">学术</a></span>
+<span><a href="../../VIS.htm" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1271716923, 11140)">西电VIS</a></span>
+</UL></DIV></DIV>
+<DIV class="clearfloat"></DIV>
+<DIV class="list_xdws">
+<DIV class="list_xdws_top"><A href="../../xdjy1.htm">西电往事</A> </DIV>
+<DIV class="list_xdws_bottom">
+
+<ul>
+<li><IMG src="../../images/liebiao.png">&nbsp;&nbsp;<a href="../1028/226529.htm" target="_blank" title="张海林：好学不倦 精益求精">张海林：好学不倦 精益求精</a></li>
+<li><IMG src="../../images/liebiao.png">&nbsp;&nbsp;<a href="../1028/226431.htm" target="_blank" title="李建东：刻苦钻研 砥砺前行">李建东：刻苦钻研 砥砺前行</a></li>
+<li><IMG src="../../images/liebiao.png">&nbsp;&nbsp;<a href="../1028/226039.htm" target="_blank" title="刘增基：坚守初心 矢志不渝">刘增基：坚守初心 矢志不渝</a></li>
+<li><IMG src="../../images/liebiao.png">&nbsp;&nbsp;<a href="../1028/286176.htm" target="_blank" title="吴泽光：鞠躬尽瘁的电波播种者">吴泽光：鞠躬尽瘁的电波播种者</a></li>
+<li><IMG src="../../images/liebiao.png">&nbsp;&nbsp;<a href="../1028/286166.htm" target="_blank" title="王诤：半部电台起家，一生为国“听风”">王诤：半部电台起家，一生为国“听风”</a></li>
+<li><IMG src="../../images/liebiao.png">&nbsp;&nbsp;<a href="../1028/286156.htm" target="_blank" title="保铮：毕生执“信号”，万里鉴风云">保铮：毕生执“信号”，万里鉴风云</a></li>
+<li><IMG src="../../images/liebiao.png">&nbsp;&nbsp;<a href="../1028/286146.htm" target="_blank" title="陈太一：于平凡处耕耘，在无声处听惊雷">陈太一：于平凡处耕耘，在无声处听惊雷</a></li>
+<li><IMG src="../../images/liebiao.png">&nbsp;&nbsp;<a href="../1028/286136.htm" target="_blank" title="罗沛霖：电波为笔，家国为卷">罗沛霖：电波为笔，家国为卷</a></li>
+<li><IMG src="../../images/liebiao.png">&nbsp;&nbsp;<a href="../1028/286126.htm" target="_blank" title="孙俊人：一生追“电波”，万里筑长城">孙俊人：一生追“电波”，万里筑长城</a></li>
+</ul><script>_showDynClickBatch(['dynclicks_u27_226529','dynclicks_u27_226431','dynclicks_u27_226039','dynclicks_u27_286176','dynclicks_u27_286166','dynclicks_u27_286156','dynclicks_u27_286146','dynclicks_u27_286136','dynclicks_u27_286126'],[226529,226431,226039,286176,286166,286156,286146,286136,286126],"wbnews", 1271716923)</script>
+</DIV></DIV>
+<DIV class="byrd" style="position: relative;margin-top: 10px;left: -19px">
+<DIV class="byrd_top">
+<DIV id="per1">本月热点</DIV></DIV>
+<DIV id="ul1" class="byrd_bottom"><UL>
+
+<div id="load_div_u28" style="width: 100%;height: 100%;text-align: center;vertical-align: middle;"><img border="0" src="/system/resource/images/loading.gif"></div>
+<table width="100%" cellspacing="0" cellpadding="0" id="hotnews_content_table_u28" style="display: none;">
+</table>
+<script type="text/javascript">
+function getHotNewsTitleu28()
+{
+    var mediaisshow = 'false';
+    var _this = this;
+    var loaddiv = jQuery("#load_div_u28");
+    var contenttable = jQuery("#hotnews_content_table_u28");
+    _this.t_body = jQuery("#hotnews_content_table_u28");
+    _this.clickshow = true;
+    _this.clickname = '点击';
+    _this.clickstyle = 'clickstyle189460';
+    _this.endimageposition = false;
+    _this.isfollowtilte = false;
+    //构造 参数
+    var param =  {owner:'1271716923',treeid:'1024',viewid:'189460',mode:'10',
+            locale:'zh_CN',
+            pageUrl:'/info/1024/292726.htm',uniqueId:'u28',
+            PAGENUM:_this.curpage,actionmethod:'getnewslist'}
+     var ajaxurl  = "/system/resource/js/news/hotdynpullnews.jsp";        
+     _this._getResult = function()
+     {
+        jQuery.post(ajaxurl,param,
+            function(data){
+                _this.dataloadComplete(data);
+            },
+            "json"
+        );
+      }
+      _this.show = function()
+      {
+        loaddiv.css("display","none");
+        contenttable.css("display","");
+      }
+      var newsidarray = new Array();
+      var newsidspanarray = new Array();
+     //数据加载
+     _this.dataloadComplete = function(data)
+     {
+             if(data&&data.length>0)
+            {
+                 var  img = '';
+                 var video = ''; 
+                 var attach = ''; 
+                 
+                 var isshowimg = false;
+                 var showimgalign =  '';
+                 var isshowvideo = false;
+                 var showvideoalign = 'left';
+                 var isshowattach = false;
+                 var showattachalign = 'left';
+                 for(var i=0;i<data.length;i++)
+                 {
+                     var notice_val = data[i];
+                     var wbishaveimg = notice_val.wbishaveimg;
+                     var wbishavevideo = notice_val.wbishavevideo;
+                     var wbhasattach = notice_val.wbhasattach;
+                     var wbpicurl = notice_val.wbpicurl;
+                     if(mediaisshow&&wbpicurl!=null&&wbpicurl!="")
+                     {
+                        var pic_tr = jQuery("<tr></tr>");
+                        var pic_td = jQuery("<td colspan='5'></td>");
+                        pic_td.html(notice_val.picdiv);
+                        _this.t_body.append(pic_tr);
+                     }
+                     var notice_tr = jQuery("<tr></tr>");
+                     //前导图
+                     var leader_td = jQuery("<td align='center' valign='middle' width=0 nowrap ></td>");
+                     var leaderspan =jQuery("<span ></span>");
+                     leaderspan.addClass("leaderfont189460");
+                     leader_td.append(leaderspan);
+                     notice_tr.append(leader_td);
+                     var title_td = jQuery("<td valign='middle' align='left' ></td>");
+                     title_td.addClass("");
+                     
+                     var columnstr = jQuery(notice_val.columnstr);
+                     title_td.append(columnstr);
+                     
+                     if(isshowimg&&showimgalign=="left"&&(wbishaveimg==1))
+                     {
+                        var imgspan = jQuery("<span >"+img+"</span>");
+                        title_td.append(imgspan);
+                     }
+                     if(isshowvideo&&showvideoalign=="left"&&(wbishavevideo==1))
+                     {
+                        var videospan = jQuery("<span >"+video+"</span>");
+                        title_td.append(videospan);
+                     }
+                     if(isshowattach&&showattachalign=="left"&&(wbhasattach==1))
+                     {
+                        var attachspan = jQuery("<span >"+attach+"</span>");
+                        title_td.append(attachspan);
+                     }
+                     
+                     var link_a = jQuery("<a class='c189460' target=_blank  title='"+notice_val.showtitle+"'>"+notice_val.title+"</a>");
+                     link_a.attr("href",notice_val.linkurl);
+                     title_td.append(link_a);
+                     if(false)
+                     {
+                        var endimgspan = jQuery("<span>"+notice_val.endimg+"</span>");
+                        title_td.append(endimgspan);
+                     }
+                     
+                     if(isshowimg&&showimgalign=="right"&&(wbishaveimg==1))
+                     {
+                        var imgspan = jQuery("<span >"+img+"</span>");
+                        title_td.append(imgspan);
+                     }
+                     if(isshowvideo&&showvideoalign=="right"&&(wbishavevideo==1))
+                     {
+                        var videospan = jQuery("<span >"+video+"</span>");
+                        title_td.append(videospan);
+                     }
+                     if(isshowattach&&showattachalign=="right"&&(wbhasattach==1))
+                     {
+                        var attachspan = jQuery("<span >"+attach+"</span>");
+                        title_td.append(attachspan);
+                     }
+                     
+                     if(_this.clickshow)
+                     {
+                        var clicktimespan = jQuery("<span></span>");
+                        clicktimespan.html("&nbsp;&nbsp;<span id='_wzdjcs_"+notice_val.newsid+"'></span>");
+                        clicktimespan.addClass(_this.clickstyle);
+                        newsidarray.push(notice_val.newsid);
+                        newsidspanarray.push("_wzdjcs_"+notice_val.newsid);
+                        title_td.append(clicktimespan);
+                     }
+                                         
+                     if(false)
+                     {
+                         var time_span = jQuery("<span width='1%' ></span>")
+                         
+                         time_span.addClass("timestyle189460");
+                         if(true)
+                         {
+                             var endimgspan = jQuery("<span>"+notice_val.endimg+"</span>");
+                             time_span.append(endimgspan);
+                         }  
+                         title_td.append(time_span); 
+                     }
+                     notice_tr.append(title_td);
+                     
+                     
+                     if(true)
+                     {
+                        var time_td = jQuery("<td valign='middle' align=right   width='1%' nowrap>");
+                        time_td.addClass("timestyle189460");
+                        
+                        if(true)
+                        {
+                            var time_span = jQuery("<span width='1%' ></span>")
+                            var endimgspan = jQuery("<span>"+notice_val.endimg+"</span>");
+                            time_span.append(endimgspan);
+                            time_td.append(time_span);
+                        }
+                        notice_tr.append(time_td);
+                     }
+                     
+                     _this.t_body.append(notice_tr);
+                     
+                     var lineimg = '';
+                     if(lineimg!=null&&lineimg!='')
+                     {
+                        var lineimgheight = 1;
+                        var line_tr = jQuery("<tr><td colspan='4' height='" + lineimgheight + "' BACKGROUND='" + lineimg + "'></td></tr>")
+                        _this.t_body.append(line_tr);
+                     }
+                 }
+                 _showDynClickBatch(newsidspanarray,newsidarray,'wbnews','1271716923');
+            }else
+            {
+                _this.t_body.append("<tr><td colspan=4 align=center style='color:#222222;font-size:12px;'>没有记录</td></tr>");
+            }      
+     }
+}
+jQuery(document).ready(function(){
+    var showcontentu28 = new getHotNewsTitleu28();
+    showcontentu28._getResult();
+    showcontentu28.show();
+});
+</script></UL></DIV></DIV>
+<DIV class="list_xddst">
+<DIV class="list_xddst_top"><A href="http://image.xidian.edu.cn/" target="_blank">西电影像</A></DIV>
+<DIV class="list_xddst_bottom">
+<DIV class="list_xddst_img"><DIV class="list_xddst_img1">
+<A href="http://image.xidian.edu.cn/info/1043/5450.htm" target="_blank" title="西安电子科技大学召开“双代会”闭幕会暨2026年工作会议"><IMG src="/__local/5/69/02/F8AA6C39F883E4789275D198D91_E21DBF24_25236.jpeg" width="165" height="119"></A> 
+<DIV class="list_xddst_red_bg"><A href="http://image.xidian.edu.cn/info/1043/5450.htm" target="_blank" title="西安电子科技大学召开“双代会”闭幕会暨2026年工作会议"><IMG src="../../images/sp.png"></A><SPAN><A href="http://image.xidian.edu.cn/info/1043/5450.htm" target="_blank" title="西安电子科技大学召开“双代会”闭幕会暨2026年工作会议">西安电子科技大学召开“双</A></SPAN></DIV></DIV>
+<DIV class="list_xddst_img2" style="margin-left: 6px">
+<A href="http://image.xidian.edu.cn/info/1043/5440.htm" target="_blank" title="西安电子科技大学七届三次教职工代表大会暨工会会员代表大会开幕"><IMG src="/__local/1/8C/49/89A00B367AB16329746C334183B_F5D99B0D_189F3.jpg" width="165" height="119"></A> 
+<DIV class="list_xddst_red_bg"><A href="http://image.xidian.edu.cn/info/1043/5440.htm" target="_blank" title="西安电子科技大学七届三次教职工代表大会暨工会会员代表大会开幕"><IMG src="../../images/sp.png"></A><SPAN><A href="http://image.xidian.edu.cn/info/1043/5440.htm" target="_blank" title="西安电子科技大学七届三次教职工代表大会暨工会会员代表大会开幕">西安电子科技大学七届三次</A></SPAN></DIV></DIV>
+<script>_showDynClickBatch(['dynclicks_u29_289236','dynclicks_u29_288826'],[289236,288826],"wbnews", 1271716923)</script>
+</DIV>
+<UL>
+
+<ul>
+<li><IMG src="../../images/bf.png">&nbsp;&nbsp;<a href="http://image.xidian.edu.cn/info/1043/5450.htm" target="_blank" title="西安电子科技大学召开“双代会”闭幕会暨2026年工作会议">西安电子科技大学召开“双代会”闭幕会暨2026年工作会议</a></li>
+<li><IMG src="../../images/bf.png">&nbsp;&nbsp;<a href="http://image.xidian.edu.cn/info/1043/5440.htm" target="_blank" title="西安电子科技大学七届三次教职工代表大会暨工会会员代表大会开幕">西安电子科技大学七届三次教职工代表大会暨工会会员代表大会开幕</a></li>
+</ul><script>_showDynClickBatch(['dynclicks_u30_289236','dynclicks_u30_288826'],[289236,288826],"wbnews", 1271716923)</script>
+</UL></DIV>
+<DIV class="clearfloat"></DIV></DIV>
+<DIV class="clearfloat"></DIV></DIV>
+<DIV class="clearfloat"></DIV></DIV>
+<DIV class="clearfloat"></DIV></DIV>
+<DIV class="clearfloat"></DIV>
+<DIV class="content_f" style="z-index: -200">
+<DIV class="content_fli">
+<DIV class="clearfloat"></DIV>
+
+</DIV>
+<DIV class="footer" style="position: relative"><p>Copyright © 2002-2016 西安电子科技大学新闻网&nbsp; QQ:1029605128 All Right Reserved.&nbsp; <a href="https://beian.miit.gov.cn/#/Integrated/index" target="_blank" style="text-decoration: none; color: #ffffff"><span style="color: #ffffff">陕ICP备05016463号</span></a>&nbsp;<img src="/__local/D/02/89/DC0A46FC5B15B3363FFA78CF6C7_C267B386_4B38.png?e=.png" /><span style="color: #ffffff">&nbsp;</span><a href="https://beian.mps.gov.cn/#/query/webSearch" target="_blank" style="text-decoration: none; color: #ffffff"><span style="color: #ffffff">陕公网安备61019002002681号</span></a> &nbsp;本站由西安电子科技大学党委宣传部维护&nbsp; 技术支持：<a target="_blank" style="text-decoration: none; color: #ffffff"><span style="color: #ffffff">西安聚力</span></a></p></DIV>
+<DIV class="clearfloat"></DIV>
+<DIV class="clearfloat"></DIV>
+<DIV></DIV></DIV><script>    
+$(function(){
+
+    $(".zhijiedaopinglun").click(function(){
+        $('html,body').animate({'scrollTop':50000},500);
+    });
+});
+</script>
+
+<script>
+window.onload=function(){
+                                    
+                                    document.getElementById("lj1").onmouseover=function(){
+                                        document.getElementById("lj1").style.color="#fff";
+                                        document.getElementById("lj1").style.background="#276fb2";
+                                        document.getElementById("lj2").style.background="none";
+                                        document.getElementById("lj3").style.background="none";
+                                        document.getElementById("lj2").style.color="#8797a6";
+                                        document.getElementById("lj3").style.color="#8797a6";
+                                        
+                                        
+                                        document.getElementById("main1").style.display="block";
+                                        document.getElementById("main2").style.display="none";
+                                        document.getElementById("main3").style.display="none";
+                                        
+                                    }
+                                    document.getElementById("lj2").onmouseover=function(){
+                                        document.getElementById("lj2").style.color="#fff";
+                                        document.getElementById("lj2").style.background="#276fb2";
+                                        document.getElementById("lj1").style.background="none";
+                                        document.getElementById("lj3").style.background="none";
+                                        document.getElementById("lj1").style.color="#8797a6";
+                                        document.getElementById("lj3").style.color="#8797a6";
+                                    
+                                        
+                                        
+                                        document.getElementById("main2").style.display="block";
+                                        document.getElementById("main1").style.display="none";
+                                        document.getElementById("main3").style.display="none";
+                                        
+                                    }
+                                    document.getElementById("lj3").onmouseover=function(){
+                                        document.getElementById("lj3").style.color="#fff";
+                                        document.getElementById("lj3").style.background="#276fb2";
+                                        document.getElementById("lj1").style.background="none";
+                                        document.getElementById("lj2").style.background="none";
+                                        document.getElementById("lj2").style.color="#8797a6";
+                                        document.getElementById("lj1").style.color="#8797a6";
+                                    
+                                        
+                                        document.getElementById("main3").style.display="block";
+                                        document.getElementById("main2").style.display="none";
+                                        document.getElementById("main1").style.display="none";
+                                        
+                                    }
+                                    document.getElementById("lj1").onmouseout=function(){
+                                        document.getElementById("lj1").style.color="#fff";
+                                        
+                                    }
+                                    document.getElementById("lj2").onmouseout=function(){
+                                        document.getElementById("lj2").style.color="#fff";
+                                        
+                                        
+                                    }
+                                    document.getElementById("lj3").onmouseout=function(){
+                                        document.getElementById("lj3").style.color="#fff";
+                                        
+                                    }
+                                    
+                                    
+                                }
+</script>
+<script>
+    $(window).scroll(function(){
+        var scrollTop = $(window).scrollTop();
+        if(scrollTop > 1000){
+            $('.header_xx').addClass("fix");
+        }
+        else{
+            $('.header_xx').removeClass("fix");
+        }
+    });
+</script>
+</BODY></HTML>

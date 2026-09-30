@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><HTML><HEAD><TITLE>研究生迎新公告-西安电子科技大学 迎新网</TITLE><meta name="pageType" content="2">
+<meta name="pageTitle" content="研究生迎新公告">
+<META Name="keywords" Content="西安电子科技大学 迎新网" />
+
+
+
+
+
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<META name="format-detection" content="telephone=no">
+<META name="format-detection" content="address=no">
+<META content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+<META name="viewport" content="width=device-width,initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"><LINK rel="stylesheet" href="css/style.css"><script type="text/javascript" src="js/bdtxk.js"></script><script type="text/javascript" src="js/bdtxw.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="list.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1005,'/list.jsp',-1,1370298689)</script>
+</HEAD>
+<BODY>
+<DIV class="logo w100">
+<DIV class="logo w1200">
+<DIV class="logo-img">
+<a href="index.htm" title="迎新网"><img src="images/logo.png" border="0"></a></DIV>
+<DIV class="toplinks">
+<UL><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script>    <LI><a href="https://xxcapp.xidian.edu.cn/site/universalForm/index?id=15" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370298689, 41766)">本科生学号查询</a></li>
+    <LI><a href="https://xxcapp.xidian.edu.cn/site/universalForm/index?id=13" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370298689, 41761)">研究生学号查询</a></li>
+ </UL></DIV>
+    
+<div class="denglu">
+           <a href="https://xgxt.xidian.edu.cn/xsfw/sys/yxapp/*default/index.do" target="_blank"> <img src="images/denglu.png" />
+            用户登录</a>
+        </div>
+</DIV></DIV><!-- 本例子代码 开始 ------------------------------------------->
+<DIV class="navBar">
+<UL class="nav clearfix">   
+   
+    <li class="m">
+                <h3><a href="index.htm">首页</a></h3>
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="bdxz.htm">报到须知</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="bdxz/bksbdxz.htm" target="">本科生报到须知</a></li>                
+                    <li><a href="bdxz/yjsbdxz.htm" target="">研究生报到须知</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="zczd.htm">学习攻略</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="zczd/xsnlcs.htm" target="">能力测试和试点班选拔</a></li>                
+                    <li><a href="zczd/dxsaqbmjy.htm" target="">大学生安全保密教育</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="xszz.htm">学生资助</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="xszz/bkszz.htm" target="">本科生资助</a></li>                
+                    <li><a href="xszz/yjszz.htm" target="">研究生资助</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="szxy.htm">数字校园</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="szxy/wlsyrzsyzn.htm" target="">网络使用认证使用指南</a></li>                
+                    <li><a href="szxy/wlsyrzsyzn1.htm" target="">学生邮件认证申请指南</a></li>                
+                    <li><a href="szxy/wlsyrzsyzn2.htm" target="">一卡通使用流程及指南</a></li>                
+                    <li><a href="szxy/rjzbh.htm" target="">软件正版化</a></li>                
+                    <li><a target="_blank" href="https://gis.xidian.edu.cn/#/live" target="target=" _blank"">西电720全景</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="zfqc.htm">绽放青春</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="zfqc/xshzc3.htm" target="">校团委</a></li>                
+                    <li><a href="zfqc/xshzc.htm" target="">学生会</a></li>                
+                    <li><a href="zfqc/yjsh.htm" target="">研究生会</a></li>                
+                    <li><a href="zfqc/hlst.htm" target="">活力社团</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+
+<LI class="block"><!-- 滑动块 --></LI></UL></DIV><script type="text/javascript">
+
+(function(){
+    var ind = 0; //初始位置
+    var nav= jQuery(".nav");
+    var init = jQuery(".nav .m").eq(ind);
+    var block = jQuery(".nav .block"); //滑块
+    block.css({"left":init.position().left-1}); //初始化滑块位置
+    nav.hover(function(){},function(){ block.animate({"left":init.position().left-1},100); }); //移出导航滑块返回
+
+    jQuery(".nav").slide({ 
+            type:"menu", //效果类型
+            titCell:".m", // 鼠标触发对象
+            targetCell:".sub", // 效果对象，必须被titCell包含
+            delayTime:300, // 效果时间
+            triggerTime:0, //鼠标延迟触发时间
+            returnDefault:true,//on返回初始位置
+            defaultIndex:ind,//初始位置
+            startFun:function(i,c,s,tit){ //控制当前滑块位置
+                block.animate({"left":tit.eq(i).position().left-1},100);
+            }
+        });
+})()
+</script><!-- 本例子代码 结束 ------------------------------------------>
+<DIV class="banner"><img src="images/banner1.png" style=" width:100%; height:234px;" /></DIV><!-- 轮播图 -->
+<DIV class="content w1200"><!--menu kaishi-->
+<DIV class="menu">
+<DIV class="menu-head">
+研究生迎新公告</DIV>
+<DIV class="menu-content">
+<DIV class="menu-content-nav">
+<UL>
+<UL>
+    <LI><A id="dangqian" href="yjsyxgg.htm" onfocus="undefined">研究生迎新公告</A> </LI>
+
+
+
+</UL></UL>
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV></DIV></DIV>
+<DIV class="clear"></DIV><!--menu jieshu--><!--main kaishi-->
+<DIV class="main">
+<DIV class="main-nav">    <span>当前位置: </span>
+        
+                <a href="index.htm">首页</a>
+               <span>></span>            
+                <a href="yjsyxgg.htm">研究生迎新公告</a>
+</DIV>
+<DIV class="detail">
+<DIV class="list_main"> 
+
+
+<script language="javascript" src="/system/resource/js/centerCutImg.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script>    <UL>
+            <li>
+        <a href="info/1005/2894.htm">·  西安电子科技大学2026级研究生新生报到方案</a><span>2026-09-02</span>            
+            
+            </li>
+        <li>
+        <a href="info/1005/2864.htm">·  2026级研究生新生须知</a><span>2026-07-20</span>            
+            
+            </li>
+        <li>
+        <a href="info/1005/2854.htm">·  关于2026级研究生校内住宿意愿摸排的通知</a><span>2026-07-20</span>            
+            
+            </li>
+    </UL>
+    
+    <link rel="stylesheet" Content-type="text/css" href="/system/resource/css/pagedown/sys.css"><div class="pb_sys_common pb_sys_normal pb_sys_style2" style="margin-top:10px;text-align:center;"><span class="p_t">共3条</span> <span class="p_pages"><span class="p_first_d p_fun_d">首页</span><span class="p_prev_d p_fun_d">上页</span><span class="p_no_d">1</span><span class="p_next_d p_fun_d">下页</span><span class="p_last_d p_fun_d">尾页</span></span> <span class="p_t">共1页</span></div>
+<script>_showDynClickBatch(['dynclicks_u8_2894','dynclicks_u8_2864','dynclicks_u8_2854'],[2894,2864,2854],"wbnews", 1370298689)</script> </DIV>
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV><!--main jieshu--></DIV>
+<DIV class="clear"></DIV>
+<DIV class="footer w100"><p>版权所有：西安电子科技大学</p><p>长安校区地址：陕西省西安市西沣路兴隆段266号 邮编710126&nbsp;&nbsp;&nbsp; 技术支持：西安聚力</p></DIV>
+
+</BODY></HTML>

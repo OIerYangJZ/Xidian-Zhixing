@@ -42,7 +42,19 @@ def knowledge_source_url(url: str, title: str = "") -> bool:
     title=str(title or "")
     if not official_url(url):
         return False
-    path=urlsplit(url).path.lower()
+    parsed=urlsplit(url)
+    path=parsed.path.lower()
+    # The official hotline page has useful service details despite its short body and generic HTML title.
+    if parsed.hostname=="1234.xidian.edu.cn" and path=="/cf-web/page/index":
+        return True
+    if parsed.hostname=='job.xidian.edu.cn':
+        # Job ads and employment notices expire quickly; add them only as
+        # individually reviewed source URLs rather than importing snapshot lists.
+        return False
+    if parsed.hostname=='zsb.xidian.edu.cn':
+        admissions_terms=("招生政策", "招生章程", "招生计划", "招生专业", "专业介绍",
+            "报考指南", "招生问答", "招生咨询", "联系招办", "保送生", "强基计划")
+        return any(term in title for term in admissions_terms)
     if "/info/" in path or path.endswith((".pdf", ".doc", ".docx", ".xls", ".xlsx")):
         return True
     query=urlsplit(url).query.casefold()
@@ -90,7 +102,7 @@ def make_document(title: str, text: str, url: str, *, published_at=None,
         "title":title, "content":text, "sourceUrl":url, "authority":authority,
         "publishedAt":published_at, "fetchedAt":fetched, "createdAt":fetched,
         "updatedAt":fetched, "contentHash":revision, "status":"published",
-        "parserVersion":"xiaodian-body-3", "effectiveFrom":None, "effectiveTo":None,
+        "parserVersion":"xiaodian-body-6", "effectiveFrom":None, "effectiveTo":None,
         "supersedesId":None, "campuses":[], "educationLevels":[],
     }
     chunks=[]
@@ -121,7 +133,6 @@ def make_document(title: str, text: str, url: str, *, published_at=None,
 
 def fetch_document(url: str, raw_dir: Path) -> tuple[dict,list[dict]]:
     from email.message import Message
-    from io import BytesIO
     import requests
 
     if not official_url(url):
@@ -140,15 +151,8 @@ def fetch_document(url: str, raw_dir: Path) -> tuple[dict,list[dict]]:
     suffix=Path(filename).suffix.lower()
     pages=None
     if "pdf" in content_type or suffix==".pdf":
-        from pypdf import PdfReader
-        from .attachments import ocr_pdf
-
-        reader=PdfReader(BytesIO(response.content))
-        pages=[(i+1,(page.extract_text(extraction_mode="layout") or "").strip()) for i,page in enumerate(reader.pages)]
-        scanned=[number-1 for number,body in pages if len(body)<80]
-        if scanned:
-            recognized=ocr_pdf(response.content,scanned)
-            pages=[(number,recognized.get(number-1,body)) for number,body in pages]
+        from .attachments import extract_pdf_pages
+        pages=extract_pdf_pages(response.content)
         text="\n\n".join(body for _,body in pages)
         if len(text.strip()) < 80:
             raise ValueError("PDF 正文与 OCR 均无可用文字，未发布空白资料")

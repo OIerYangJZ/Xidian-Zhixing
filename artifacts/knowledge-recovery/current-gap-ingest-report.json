@@ -1,0 +1,64 @@
+{
+  "startedAt": "2026-09-27T06:56:14.343303+00:00",
+  "requested": 8,
+  "published": [
+    {
+      "id": "doc-2ef9c379beeb264054d0e7a9",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35582.htm",
+      "title": "关于做好2026～2027学年家庭经济困难本科生学费缓缴工作的通知-本科生院 西安电子科技大学",
+      "chunks": 6,
+      "publishedAt": "2026-09-14"
+    },
+    {
+      "id": "doc-fb13226bef80765d4afdc67a",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35562.htm",
+      "title": "关于启动2026～2027学年家庭经济困难学生认定工作的通知-本科生院 西安电子科技大学",
+      "chunks": 15,
+      "publishedAt": "2026-09-14"
+    },
+    {
+      "id": "doc-af0f99c0e8e627241b40542c",
+      "url": "https://job.xidian.edu.cn/campus/view/id/756544",
+      "title": "给梦想一颗澎湃的芯-芯动科技2027届校园招聘提前批火热开启",
+      "chunks": 9,
+      "publishedAt": "2026-09-17"
+    },
+    {
+      "id": "doc-496b4fba92fcb0a418b8adfb",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35632.htm",
+      "title": "关于2026年下半年全国大学英语四、六级考试报名的通知-本科生院 西安电子科技大学",
+      "chunks": 9,
+      "publishedAt": "2026-09-14"
+    },
+    {
+      "id": "doc-fb326e7fda15ff3d2e614c46",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35642.htm",
+      "title": "关于开展2026年国家奖学金、国家励志奖学金评选工作的通知-本科生院 西安电子科技大学",
+      "chunks": 5,
+      "publishedAt": "2026-09-14"
+    },
+    {
+      "id": "doc-d5f4017aa7a80befccfbc398",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35712.htm",
+      "title": "关于第三届 “中国电子杯” 高校 ICT 产教融合创新大赛西电校赛报名的通知-本科生院 西安电子科技大学",
+      "chunks": 10,
+      "publishedAt": "2026-09-17"
+    },
+    {
+      "id": "doc-c8079c39d52cc27dcadb081b",
+      "url": "https://bksy.xidian.edu.cn/info/1003/35782.htm",
+      "title": "关于对2024级本科生进行基础层（C2级）实验实践能力达标测试的通知-本科生院 西安电子科技大学",
+      "chunks": 8,
+      "publishedAt": "2026-09-20"
+    },
+    {
+      "id": "doc-fdc87cb02069ac8e1e20db95",
+      "url": "https://zsb.xidian.edu.cn/zsxx1/zszc.htm",
+      "title": "招生政策-西安电子科技大学本科招生信息网",
+      "chunks": 8,
+      "publishedAt": null
+    }
+  ],
+  "failed": [],
+  "completedAt": "2026-09-27T06:56:16.011078+00:00"
+}

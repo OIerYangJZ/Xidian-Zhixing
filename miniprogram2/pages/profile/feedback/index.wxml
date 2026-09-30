@@ -1,0 +1,37 @@
+<view class="{{pageMotion}} settings-page {{themeClass}}">
+  <settings-header title="{{c.feedback}}" theme-class="{{themeClass}}" english="{{currentLanguage === 'en'}}" busy="{{submitting}}" confirm-leave-message="{{content || contact ? (currentLanguage === 'en' ? 'Your feedback has not been submitted.' : '反馈内容尚未提交。') : ''}}" />
+  <view class="settings-tabs">
+    <button class="settings-tab {{tab === 'new' ? 'active' : ''}}" data-tab="new" bindtap="onTabChange" disabled="{{submitting}}">{{c.newFeedback}}</button>
+    <button class="settings-tab {{tab === 'records' ? 'active' : ''}}" data-tab="records" bindtap="onTabChange" disabled="{{submitting}}">{{c.myFeedback}}</button>
+  </view>
+  <block wx:if="{{tab === 'new'}}">
+    <view class="settings-section feedback-form">
+      <picker range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange" disabled="{{submitting}}">
+        <view class="settings-row" role="button"><view class="settings-row-body settings-title">{{c.feedbackType}}</view><view class="settings-value">{{categories[categoryIndex]}}</view><view class="ui-icon icon-chevron-right settings-chevron"></view></view>
+      </picker>
+      <view class="settings-field">
+        <view class="settings-label">{{c.feedbackContent}}</view>
+        <textarea class="settings-textarea feedback-textarea" value="{{content}}" bindinput="onContentInput" maxlength="800" placeholder="{{c.feedbackPlaceholder}}" placeholder-class="settings-placeholder" disabled="{{submitting}}" />
+        <view class="settings-field-footer"><text></text><text>{{content.length}} / 800</text></view>
+      </view>
+      <view class="settings-field">
+        <view class="settings-label">{{c.feedbackContact}} · {{c.optional}}</view>
+        <input class="settings-input" value="{{contact}}" bindinput="onContactInput" maxlength="80" placeholder="{{currentLanguage === 'en' ? 'Email or another contact' : '邮箱或其他联系方式'}}" placeholder-class="settings-placeholder" disabled="{{submitting}}" />
+      </view>
+      <view wx:if="{{submitError}}" class="settings-error">{{submitError}}</view>
+    </view>
+    <view class="settings-actions"><button class="settings-button" bindtap="submitFeedback" disabled="{{submitting}}" loading="{{submitting}}">{{submitting ? c.submitting : c.submit}}</button></view>
+  </block>
+  <block wx:else>
+    <view wx:if="{{submitted}}" class="settings-note settings-success">{{c.feedbackSent}}</view>
+    <view wx:if="{{loadingRecords}}" class="settings-empty settings-caption">{{c.loading}}</view>
+    <view wx:elif="{{recordsError}}" class="settings-empty"><view class="settings-error">{{recordsError}}</view><button class="settings-text-button" bindtap="loadRecords">{{c.retry}}</button></view>
+    <view wx:elif="{{!records.length}}" class="settings-empty"><view class="ui-icon icon-chat"></view><view class="settings-empty-title">{{c.feedbackEmpty}}</view></view>
+    <block wx:else><view wx:for="{{records}}" wx:key="id" class="settings-section feedback-record">
+      <view class="feedback-meta"><view class="settings-caption">{{item.category}}</view><view class="settings-status {{item.status === 'resolved' ? 'settings-success' : ''}}">{{item.statusText}}</view></view>
+      <text class="feedback-content" selectable>{{item.content}}</text>
+      <view class="settings-caption">{{item.timeText}}</view>
+      <view wx:if="{{item.schoolReply}}" class="feedback-reply"><view class="settings-label">{{c.feedbackReply}}</view><text selectable>{{item.schoolReply}}</text></view>
+    </view></block>
+  </block>
+</view>

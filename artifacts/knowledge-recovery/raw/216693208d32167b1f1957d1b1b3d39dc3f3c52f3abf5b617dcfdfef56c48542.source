@@ -1,0 +1,401 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><HTML><HEAD><TITLE>出访指南-西安电子科技大学-国际合作交流处港澳台事务办公室</TITLE><meta name="pageType" content="2">
+<meta name="pageTitle" content="出访指南">
+<META Name="keywords" Content="西电国际合作交流处" />
+
+
+
+
+
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type"><script type="text/javascript" src="../js/jquery.min.js"></script><script type="text/javascript" src="../js/thcic_menu.js"></script><script src="../js/jltx.js" type="text/javascript"></script><script src="../js/jquery.slideBox.min.js" type="text/javascript"></script><LINK rel="stylesheet" href="../css/css.css"><script language="javascript">
+function checkInput(sef,n){
+    if(n==0){
+        if(sef.value=='请输入关键字'){
+            sef.value = '';
+        }
+    }else{
+        if(sef.value==''){
+            sef.value = '请输入关键字';
+        }
+    }
+}
+</script><script>
+jQuery(function($){
+    $('#demo1').slideBox({
+        duration : 0.3,//滚动持续时间，单位：秒
+        easing : 'linear',//swing,linear//滚动特效
+        delay :10,//滚动延迟时间，单位：秒
+        hideClickBar : false,//不自动隐藏点选按键
+        clickBarRadius : 10
+    });
+    $('#demo2').slideBox({
+        duration : 0.3,//滚动持续时间，单位：秒
+        easing : 'linear',//swing,linear//滚动特效
+        delay :10,//滚动延迟时间，单位：秒
+        hideClickBar : false,//不自动隐藏点选按键
+        clickBarRadius : 10
+    });
+    $('#demo3').slideBox({
+        duration : 0.3,//滚动持续时间，单位：秒
+        easing : 'linear',//swing,linear//滚动特效
+        delay :10,//滚动延迟时间，单位：秒
+        hideClickBar : false,//不自动隐藏点选按键
+        clickBarRadius : 10
+    });
+});
+</script><script language="javascript">
+    function checkInput(sef,n){
+        if(n==0){
+            if(sef.value=='请输入关键字...'){
+                sef.value = '';
+            }
+        }else{
+            if(sef.value==''){
+                sef.value = '请输入关键字...';
+            }
+        }
+    }
+    </script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../wsjzwy.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1014,'/wsjzwy.jsp',-1,1194971964)</script>
+</HEAD>
+<BODY><!--head-box头部-->
+<DIV class="head-box auto">
+<DIV class="head-top-box">
+<DIV class="head-top auto">
+<DIV class="logo fl"><IMG src="../images/logo.png" width="560" height="89"></DIV>
+<DIV class="logo-right fr">
+<DIV class="logo-right-top">    <script language="javascript" src="/system/resource/js/dynclicks.js"></script><a href="http://www.xidian.edu.cn/" target="_blank"><img src="../images/top-right-zhuye.png"></a><a href="http://en.xidian.edu.cn/" target="_blank"><img src="../images/top-right-en.png"></a></DIV>
+<DIV class="search">
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><style>
+    #appu1 .qwss{
+    width: 190px;
+    height: 26px;
+    line-height: 26px;
+    margin: 8px 0 0 10px;
+    background: none;
+    border: 1px solid #fff;
+    color: #afafaf;
+    float:left;
+    outline:none;}
+    #appu1 .tj{
+
+    background:url(../images/search-img.jpg) no-repeat center center;
+background-size:100% 100%;
+    width: 26px;
+    height: 23px;
+    margin: 10px 10px 0 0;
+    border:0px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="请输入关键字..." autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+            <input class="tj" name="submit_button" type="button" value="" v-on:click="onSubmit()"/>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1194971964";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+<DIV class="clear"></DIV></DIV></DIV>
+<DIV class="clear"></DIV></DIV><!--nav导航--></DIV>
+<DIV class="nav-box auto">
+<DIV class="nav auto">
+<UL id="nav"><li id="mainlevel_09" class="mainlevel"><a href="../index.htm">本站首页</a> 
+</li>
+
+<li id="mainlevel_09" class="mainlevel"><a href="../bmjj1/bmgk.htm">部门简介</a> 
+<ul id="sub_dh">
+
+<li><a href="../bmjj1/bmgk.htm">部门概况</a> </li>
+
+
+
+<li><a href="../bmjj1/zzjg.htm">组织机构</a> </li>
+
+
+</ul></li>
+
+<li id="mainlevel_09" class="mainlevel"><a href="../hzbx1/zyhzbx/xmjj.htm">合作办学</a> 
+<ul id="sub_dh">
+
+<li><a href="../hzbx1/zyhzbx.htm">中英合作办学</a> </li>
+
+
+
+<li><a href="../hzbx1/zfhzbx.htm">中法合作办学</a> </li>
+
+
+
+<li><a href="../hzbx1/zmhzbx.htm">中美合作办学</a> </li>
+
+
+</ul></li>
+
+<li id="mainlevel_09" class="mainlevel"><a href="../lxhw.htm">留学海外</a> 
+<ul id="sub_dh">
+
+<li><a href="../lxhw/xmsl.htm">项目速览</a> </li>
+
+
+
+<li><a href="../lxhw/xmbmjpcgl.htm">项目报名及派出管理</a> </li>
+
+
+
+<li><a href="../lxhw/zcfg.htm">政策法规</a> </li>
+
+
+
+<li><a href="../lxhw/lxwm.htm">联系我们</a> </li>
+
+
+</ul></li>
+
+<li id="mainlevel_09" class="mainlevel"><a href="../wzpq1.htm">外专引智</a> 
+<ul id="sub_dh">
+
+<li><a href="../wzpq1/pqzn.htm">聘请指南</a> </li>
+
+
+
+<li><a href="../wzpq1/xgxz.htm">相关下载</a> </li>
+
+
+
+<li><a href="../wzpq1/jl.htm">外专生活</a> </li>
+
+
+</ul></li>
+
+<li id="mainlevel_09" class="mainlevel"><a href="../ygcg_j.htm">因公出国（境）</a> 
+<ul id="sub_dh">
+
+<li><a href="jscf/yglscg.htm">教师出访</a> </li>
+
+
+
+<li><a href="xscf/yglscg.htm">学生出访</a> </li>
+
+
+
+<li><a href="ggqzcl2.htm">各国签证材料</a> </li>
+
+
+
+<li><a href="xgxz.htm">相关下载</a> </li>
+
+
+</ul></li>
+
+<li id="mainlevel_09" class="mainlevel"><a href="../gatjl/gatzdjlxmjj.htm">港澳台交流</a> 
+<ul id="sub_dh">
+
+<li><a href="../gatjl/gatzdjlxmjj.htm">港澳台重点交流项目简介</a> </li>
+
+
+
+<li><a href="../gatjl/gathzyx.htm">港澳台合作概况</a> </li>
+
+
+
+<li><a href="../gatjl/gatzs.htm">港澳台招生简章</a> </li>
+
+
+</ul></li>
+
+<li id="mainlevel_09" class="mainlevel"><a href="../hzhb1/yhyx.htm">合作伙伴</a> 
+<ul id="sub_dh">
+
+<li><a href="../hzhb1/yhyx.htm">友好院校</a> </li>
+
+
+
+<li><a href="../hzhb1/lhsys.htm">联合实验室</a> </li>
+
+
+
+<li><a href="../hzhb1/kzxy1.htm">孔子学院</a> </li>
+
+
+</ul></li>
+
+<li id="mainlevel_09" class="mainlevel"><a href="../gjhy1/sbzn.htm">国际会议</a> 
+<ul id="sub_dh">
+
+<li><a href="../gjhy1/sbzn.htm">申报指南</a> </li>
+
+
+
+<li><a href="../gjhy1/zcfg.htm">政策法规</a> </li>
+
+
+</ul></li>
+
+</UL></DIV></DIV><!--lanmu-zhuangshi-->
+<DIV class="lanmu-main">
+<DIV class="main-left-ceng"></DIV>
+<DIV class="lanmu-main-left fl">
+<DIV class="left-zhuangshi">
+<DIV class="lanmu-mc"><span class="windowstyle64111">
+因公出国（境）</span></DIV><IMG src="../images/left-zhiangshi2.jpg"> </DIV>
+<UL class="lanmu-nav"><li class="li1"><a href="jscf/yglscg.htm">教师出访</a></li>
+<li class="li1"><a href="xscf/yglscg.htm">学生出访</a></li>
+<li class="li1"><a href="ggqzcl2.htm">各国签证材料</a></li>
+<li class="li1"><a href="xgxz.htm">相关下载</a></li>
+</UL></DIV>
+<DIV class="lanmu-main-right fr">
+<DIV class="main-right-top">
+<DIV class="top-right fr">  
+<table cellspacing="0" cellpadding="0"><tr><td nowrap>当前位置：   
+<a href="../index.htm"><span>本站首页</span></a><span class="splitflagstyle64104">>></span><a href="../ygcg_j.htm"><span>因公出国（境）</span></a><span class="splitflagstyle64104">>></span><a href="cfzn.htm"><span>出访指南</span></a></td></tr></table></DIV>
+<DIV class="clear"></DIV></DIV>
+<DIV class="info">
+<DIV class="info-mc"><span class="windowstyle64106">
+出访指南</span></DIV>
+
+
+
+
+
+<script language="javascript" src="/system/resource/js/ajax.js"></script><script language="javascript">_getBatchClickTimes('null',1194971964,'wbnews','u7')</script>
+<link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script>function seeContenta7(contentid,size,displayid){	document.getElementById(contentid).innerHTML = '[';	for(var i=0;i<=size;i++){		var allcontentid = contentid+(i+1);		if(allcontentid==displayid){			document.getElementById(contentid).innerHTML += " <span id='"+allcontentid+"' name='"+allcontentid+"'  >"+(i+1)+"</span> ";			document.getElementById(displayid).style.display = 'block';		}else{			document.getElementById(contentid).innerHTML += " <span style='cursor:pointer' id='"+allcontentid+"' name='"+allcontentid+"' onclick=seeContenta7('"+contentid+"','"+size+"','"+allcontentid+"')  >"+(i+1)+"</span> ";			document.getElementById(allcontentid).style.display = 'none';		}	}	document.getElementById(contentid).innerHTML += ']';}</script>
+<script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<script>_addDynClicks('wbnews',1194971964,1458)</script>
+<DIV class="info-top">
+<DIV class="clear"></DIV></DIV>
+<DIV class="info-content"><div id="vsb_content_2_1458_u71"><div id="vsb_content_2"><style type="text/css" _ue_org_tagname="style" style="display: none"><!--
+a:link {
+	text-decoration: underline;}
+a:visited {
+	text-decoration: underline;}
+a:hover {
+	text-decoration: underline;}
+a:active {
+	text-decoration: underline;}
+-->
+</style> 
+<p class="vsbcontent_start"><a href="../info/1011/5035.htm" target="_self">关于办理因公临时出国（境）手续的温馨提示</a></p> 
+<p class="vsbcontent_start"><a href="../info/1014/5156.htm" target="_self">出访总结报告书写格式及要求</a></p> 
+<p class="vsbcontent_start"><a href="../images/13_141223164218_1.gif" target="_blank">因公临时出国（境）手续办理流程图<span id="_baidu_bookmark_start_4" style="line-height: 0px;display: none">‍</span></a><span id="_baidu_bookmark_start_4" style="line-height: 0px;display: none"></span> </p> 
+<p>凡我校教职员工因公临时出国（境）（以下简称出访）三个月以内，参加国际会议、考察访问、合作研究、讲学、交流、培训、参展等，或学生出访交流学习无论时间长短，均由我校国际合作与交流处（以下简称国际处）或港澳台事务办公室（以下简称港澳台办）负责受理办理相关出访手续。</p> 
+<p class="vsbcontent_end"><a href="../images/shuangkua.jpg" target="_blank">短期因公参加双跨团组出访手续办理流程</a></p> 
+<p class="vsbcontent_end">双跨团组是指由中央的部、委、办、局及其下属经外交部授权具有出国审批权的单位以及外省、市、自治区组团邀请我单位人员参加，或由我单位组团，邀请中央有关部门及外省市人员参加的团组。</p> 
+<p><a></a> </p></div></div>
+    <span id="vsb_content_2_1458_u7" name="vsb_content_2_1458_u7"></span><br /><br />
+
+</div>
+</DIV></DIV>
+<DIV class="clear"></DIV></DIV><!--foot版权-->
+<DIV class="foot-box auto">
+<DIV class="foot auto"><style type="text/css"><!-- 
+.STYLE1 {color: #FFFFFF;} 
+--></style>
+<p style="padding-top: 20px">
+    联系电话：029-81891022 传真：029-81891671 邮箱：<a href="mailto:fao@xidian.edu.cn " target="_blank" style="text-decoration: none"><span style="color: #ffffff">fao@xidian.edu.cn</span> </a>地址：陕西省西安市西沣路兴隆段266号 技术支持：<a href="#" target="_blank"><span style="color: #ffffff">西安聚力</span></a>&nbsp;&nbsp;&nbsp; <br />西安电子科技大学国际合作与交流部&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 版权所有
+</p></DIV></DIV></DIV>
+<DIV></DIV>
+<DIV></DIV>
+<DIV></DIV>
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

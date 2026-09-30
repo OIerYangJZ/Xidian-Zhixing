@@ -1,0 +1,51 @@
+import { enterPage } from '../../../utils/motion';
+import { getMyReports } from '../../../api/user';
+import { requireLoginPage } from '../../../utils/auth_guard';
+import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
+
+const STATUS_TEXT = {
+  pending: '待处理',
+  resolved: '已处理',
+  rejected: '已驳回',
+  closed: '已关闭'
+};
+
+Page({
+  data: {
+    loading: true,
+    reports: [],
+    errorMessage: ''
+  },
+
+  onShow() {
+    enterPage(this);
+    applyThemeAndLanguage(this);
+    if (!requireLoginPage()) return;
+    this.loadData();
+  },
+
+  onPullDownRefresh() {
+    this.loadData().finally(() => wx.stopPullDownRefresh());
+  },
+
+  async loadData() {
+    this.setData({ loading: true, errorMessage: '' });
+    try {
+      const reports = (await getMyReports()).map((item) => ({
+        ...item,
+        statusText: STATUS_TEXT[item.status] || item.status || '待处理'
+      }));
+      this.setData({ reports, loading: false, errorMessage: '' });
+    } catch (error) {
+      this.setData({
+        loading: false,
+        errorMessage: '举报记录加载失败，请重试'
+      });
+    }
+  },
+
+  openTarget(event) {
+    const item = this.data.reports[Number(event.currentTarget.dataset.index)];
+    if (item) wx.navigateTo({ url: `/pages/profile/report-detail/index?id=${item.id}` });
+  }
+});

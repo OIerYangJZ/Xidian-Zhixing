@@ -1,0 +1,17 @@
+<view class="{{pageMotion}} settings-page {{themeClass}}">
+  <settings-header title="{{c.blocks}}" theme-class="{{themeClass}}" english="{{currentLanguage === 'en'}}" />
+  <view wx:if="{{loading}}" class="settings-empty settings-caption">{{c.loading}}</view>
+  <view wx:elif="{{errorMessage}}" class="settings-empty"><view class="settings-error">{{errorMessage}}</view><button class="settings-text-button" bindtap="loadBlocks">{{c.retry}}</button></view>
+  <view wx:elif="{{!blocks.length}}" class="settings-empty"><view class="ui-icon icon-person"></view><view class="settings-empty-title">{{c.noBlocks}}</view></view>
+  <view wx:else class="settings-section blocklist-section">
+    <view wx:for="{{blocks}}" wx:key="id" class="blocked-account">
+      <view class="settings-row blocklist-row">
+        <image wx:if="{{item.avatarUrl}}" class="settings-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+        <view wx:else class="settings-avatar">{{item.avatarInitial}}</view>
+        <view class="settings-row-body settings-title">{{item.nickname}}</view>
+        <button class="settings-text-button unblock-button" data-id="{{item.id}}" bindtap="onUnblockTap" disabled="{{pending[item.id]}}">{{pending[item.id] ? c.loading : c.unblock}}</button>
+      </view>
+      <view wx:if="{{errors[item.id]}}" class="settings-error">{{errors[item.id]}}</view>
+    </view>
+  </view>
+</view>

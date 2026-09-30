@@ -1,0 +1,510 @@
+﻿<!DOCTYPE html><HTML><HEAD><TITLE>下载专区- 西安电子科技大学-党委学生工作部/学生工作处</TITLE><meta name="pageType" content="2">
+<meta name="pageTitle" content="下载专区">
+<META Name="keywords" Content="西安电子科技大学,党委学生工作部/学生工作处" />
+
+
+
+
+
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type"><script type="text/javascript" src="js/bdtxk.js"></script><script type="text/javascript" src="js/super.js"></script><LINK rel="stylesheet" type="text/css" href="style/style.css" media="all">
+<STYLE>
+.right-con ul li:hover a{color:#004181 !important;}
+</STYLE>
+
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="list.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1035,'/list.jsp',-1,1370093333)</script>
+</HEAD>
+<BODY><!-- 头部开始 -->
+<DIV id="header">
+<DIV id="top">
+<DIV class="w cl">
+<DIV class="f fl">&nbsp; </DIV>
+<DIV class="f fr cl"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><div class="frr">
+    <ul>
+      <li class="line"><a href="http://www.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370093333, 34050)">学校主页</a></li>
+      <li><a href="javascript:void(0)" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370093333, 34052)">欢迎访问西安电子科技大学-党委学生工作部/学生工作处网站！</a></li>
+    </ul>
+</div></DIV></DIV><!--.w--></DIV><!--/top-->
+<DIV id="mid">
+<DIV class="logo w" style="overflow: hidden">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="index.htm" title="学工处" style="float:left;"><img src="images/xgc_logo.png" width="742" height="67" border="0" alt="学工处" title="学工处"></a><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu2 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+ <table border='0' cellspacing="1" cellpadding="0" style="float:right;margin-top:57px;">
+  <tr>
+      <td>
+       <input size='12' style="height:28px;line-height:28px;background:url(images/inputtxtbg.png);border:none;width:174px;padding-left:15px;" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" >
+   </td>
+   <td align="absmiddle" nowrap="nowrap" height="1">
+       <input type="image" src="images/search-icon.png" align="absmiddle" valign="bottom" style="cursor: hand" value="" v-on:click="onSubmit()"/>
+   </td>
+  </tr>
+ </table>
+        </div>
+        
+        
+
+        
+        
+        
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1370093333";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1370093333";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></DIV><!--.logo--></DIV><!--/mid-->
+<DIV id="bot"><!--.nav 菜单开始-->
+<DIV class="nav w">
+<UL class="cl">
+<LI><A href="index.htm">网站首页</A> 
+
+<LI><A href="bmjs.htm">部门介绍</A> 
+<UL>
+<LI><A href="bmjs/ldfg.htm">领导分工</A></LI>
+<LI><A href="bmjs/bmjj.htm">部门简介</A></LI>
+<LI><A href="bmjs/jgsz.htm">机构设置</A></LI>
+</UL></LI>
+
+<LI><A href="gzzd.htm">规章制度</A> 
+<UL>
+<LI><A href="gzzd/gjfg.htm">国家法规</A></LI>
+<LI><A href="gzzd/xxgz.htm">学校规章</A></LI>
+</UL></LI>
+
+<LI><A href="tzgg1.htm">通知公告</A> 
+
+<LI><A href="xgyw.htm">学工要闻</A> 
+
+<LI><A href="xydt.htm">学院动态</A> 
+
+<LI><A href="bszn.htm">办事指南</A> 
+
+<LI><A href="bszn1.htm">下载专区</A> 
+
+</UL></DIV><!--.nav 菜单结束--></DIV><!--/bot--></DIV><!-- 头部结束 -->
+<DIV><img src="images/list-banner.png" width="100%" height="305" /></DIV><!-- main部分开始 -->
+<DIV class="main cl">
+<DIV class="wape-left">
+
+
+
+
+
+
+
+<div>下载专区
+            <p></p></div>
+</DIV><!--wape-left-->
+<DIV class="wape-right">
+<DIV class="biaoTi"><SPAN>
+下载专区</SPAN><span>
+    当前位置： 
+                        <a href="index.htm">网站首页</a>
+                &gt;&gt;
+                <a href="bszn1.htm">下载专区</a>
+</span></DIV><!--biaoTi-->
+<DIV class="right-con">
+
+
+<script language="javascript" src="/system/resource/js/centerCutImg.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><div style="min-height:300px;">
+    <ul style="min-height:300px;margin-bottom:20px;">
+    
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/14334.htm" target="_blank" title="2025-2026学年学生测评相关附件" style="color: #333;display: block;float: left;width:600px;">2025-2026学年学生测评相关附件</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2026-09-14</span>
+</li>
+        <span id="section_u8_0" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/13904.htm" target="_blank" title="2026年生源地信用助学贷款操作指南" style="color: #333;display: block;float: left;width:600px;">2026年生源地信用助学贷款操作指南</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2026-05-08</span>
+</li>
+        <span id="section_u8_1" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/12674.htm" target="_blank" title="防范非法金融活动背景知识" style="color: #333;display: block;float: left;width:600px;">防范非法金融活动背景知识</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2025-06-02</span>
+</li>
+        <span id="section_u8_2" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/12614.htm" target="_blank" title="本科生大类专业分流学业评价综合素质测评系统学生/辅导员使用手册（2023版）" style="color: #333;display: block;float: left;width:600px;">本科生大类专业分流学业评价综合素质测评系统学生/辅导员使用手册（2023版）</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2025-05-27</span>
+</li>
+        <span id="section_u8_3" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/11594.htm" target="_blank" title="2023-2024总评相关表格（含国家奖学金、国家励志奖学金）" style="color: #333;display: block;float: left;width:600px;">2023-2024总评相关表格（含国家奖学金、国家励志奖学金）</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2024-09-12</span>
+</li>
+        <span id="section_u8_4" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/11483.htm" target="_blank" title="2024年生源地信用助学贷款申请指南、手册" style="color: #333;display: block;float: left;width:600px;">2024年生源地信用助学贷款申请指南、手册</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2024-07-03</span>
+</li>
+        <span id="section_u8_5" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/11472.htm" target="_blank" title=" 中央高校基层就业资助管理系统操作手册" style="color: #333;display: block;float: left;width:600px;"> 中央高校基层就业资助管理系统操作手册</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2024-06-10</span>
+</li>
+        <span id="section_u8_6" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/11469.htm" target="_blank" title="本科生大类专业分流学业评价综合素质测评系统学生/辅导员使用手册（2023级）" style="color: #333;display: block;float: left;width:600px;">本科生大类专业分流学业评价综合素质测评系统学生/辅导员使用手册（2023级）</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2024-05-31</span>
+</li>
+        <span id="section_u8_7" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/11184.htm" target="_blank" title="2022-2023学年总评表格模板" style="color: #333;display: block;float: left;width:600px;">2022-2023学年总评表格模板</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2023-09-12</span>
+</li>
+        <span id="section_u8_8" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/11156.htm" target="_blank" title="校园地国家助学贷款申请操作指南" style="color: #333;display: block;float: left;width:600px;">校园地国家助学贷款申请操作指南</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2023-07-07</span>
+</li>
+        <span id="section_u8_9" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/11080.htm" target="_blank" title="校园地国家助学贷款线上毕业确认流程2023" style="color: #333;display: block;float: left;width:600px;">校园地国家助学贷款线上毕业确认流程2023</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2023-05-11</span>
+</li>
+        <span id="section_u8_10" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/11079.htm" target="_blank" title="校园地国家助学贷款还款注意事项2023" style="color: #333;display: block;float: left;width:600px;">校园地国家助学贷款还款注意事项2023</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2023-05-11</span>
+</li>
+        <span id="section_u8_11" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/11062.htm" target="_blank" title="生源地信用助学贷款申请指南(2023)" style="color: #333;display: block;float: left;width:600px;">生源地信用助学贷款申请指南(2023)</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2023-05-04</span>
+</li>
+        <span id="section_u8_12" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/11061.htm" target="_blank" title="生源地信用助学贷款政策介绍（2023，含申请和还款）" style="color: #333;display: block;float: left;width:600px;">生源地信用助学贷款政策介绍（2023，含申请和还款）</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2023-05-04</span>
+</li>
+        <span id="section_u8_13" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/10963.htm" target="_blank" title=" 勤工助学系统学生使用手册" style="color: #333;display: block;float: left;width:600px;"> 勤工助学系统学生使用手册</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2023-02-12</span>
+</li>
+        <span id="section_u8_14" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/10865.htm" target="_blank" title="助学金系统使用手册" style="color: #333;display: block;float: left;width:600px;">助学金系统使用手册</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2022-11-03</span>
+</li>
+        <span id="section_u8_15" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/10816.htm" target="_blank" title="家庭经济困难认定学生使用手册" style="color: #333;display: block;float: left;width:600px;">家庭经济困难认定学生使用手册</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2022-09-26</span>
+</li>
+        <span id="section_u8_16" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/10815.htm" target="_blank" title="家庭经济困难认定辅导员使用手册" style="color: #333;display: block;float: left;width:600px;">家庭经济困难认定辅导员使用手册</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2022-09-26</span>
+</li>
+        <span id="section_u8_17" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/10795.htm" target="_blank" title="2021-2022学年总评表格模板" style="color: #333;display: block;float: left;width:600px;">2021-2022学年总评表格模板</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2022-09-22</span>
+</li>
+        <span id="section_u8_18" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+
+        <li style="height:40px;line-height: 40px;font-size: 15px;padding-left:20px;background:url('images/point.png') no-repeat left center;border-bottom:1px dotted #aaa;overflow:hidden;">
+
+            <a href="info/1035/10793.htm" target="_blank" title="2021-2022学年国家奖学金、国家励志奖学金申请表模板" style="color: #333;display: block;float: left;width:600px;">2021-2022学年国家奖学金、国家励志奖学金申请表模板</a>
+
+<span style="display: block;float: right;font-size:12px;color:#999;">2022-09-22</span>
+</li>
+        <span id="section_u8_19" style="display:none;"><hr style="height:1px;border:none;border-top:1px dashed #CCCCCC;"></span>
+    </ul>
+    <div align="center"><INPUT TYPE="hidden" NAME="actiontype" VALUE=""><input type="hidden" name="_scode_" value="1789552647157"><input type="hidden" name="urltype" value="tree.TreeTempUrl"><input type="hidden" name="wbtreeid" value="1035"><input type="hidden" name="outFlag" value="false">
+<style type="text/css">
+.headStyle12k71675tv, .headStyle12k71675tv td, .headStyle12k71675tv div {font-size: 12px;font-family:宋体; color: #000000; margin-left: auto; margin-right: auto; line-height:14px;}
+.defaultButtonStyle {font-size: 12px;font-family:宋体; height:20px;color: #000000;BORDER: #AFD5F5 1px solid; margin: 0px;padding: 0px; FILTER:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#ffffff, EndColorStr=#BDDBF7);  CURSOR: pointer; line-height:14px;background:-webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#BDDBF7));background: -moz-linear-gradient( top,#ffffff,#BDDBF7);background:-ms-linear-gradient(top,#ffffff 0%,#bddbf7 100%);}
+.defaultinputStyle {font-size: 12px;font-family:宋体; height:20px; border:1px solid #AFD5F5; line-height:14px;}
+.colHeader {font-size: 12px;font-family:宋体; line-height:14px;}
+.headStyle12k71675tv a, .pageList .this-page {font-size: 12px;font-family:宋体; display:inline-block; height:14px; padding: 2px 4px; border: solid 1px #AFD5F5; background: #fff; text-decoration: none; MARGIN-RIGHT: 1px;line-height:14px;}
+.headStyle12k71675tv a:visited {font-size: 12px;font-family:宋体; color: #000000; text-decoration: none; line-height:14px;}
+.headStyle12k71675tv .PrevDisabled {font-size: 12px;font-family:宋体; display:inline-block;height:14px;  margin-right: 3px; padding: 2px 4px; background: #fff;color:#ccc;border: solid 1px #AFD5F5; line-height:14px;}
+.headStyle12k71675tv .SelectList {font-size: 12px;font-family:宋体;line-height:14px;}
+.headStyle12k71675tv .Prev { font-size: 12px;font-family:宋体; margin-right: 3px; padding: 2px 4px;line-height:14px;}
+.headStyle12k71675tv .break {font-size: 12px;font-family:宋体; border: none; text-decoration: none; line-height:14px;}
+.headStyle12k71675tv .NextDisabled { font-size: 12px;font-family:宋体;display:inline-block; height:14px; margin-left: 2px; padding: 2px 4px;background: #fff;color:#ccc;border: solid 1px #AFD5F5; line-height:14px;}
+.headStyle12k71675tv .Next { font-size: 12px;font-family:宋体; margin-left: 2px; padding: 2px 4px;line-height:14px;}
+.headStyle12k71675tv .this-page {font-size: 12px;font-family:宋体;display:inline-block;height:14px;padding: 2px 4px; border: solid 1px #AFD5F5; background: #E1F0FD; font-weight: bold; color:black; MARGIN-RIGHT: 1px;line-height:14px;}
+.headStyle12k71675tv a:hover {font-size: 12px;font-family:宋体;color: black; background: #EFF7FE; border-color: #AFD5F5; text-decoration: none;line-height:14px;}
+.headStyle12k71675tv a:link {font-size: 12px;font-family:宋体;color: #000000; text-decoration: none;line-height:14px;}
+.headStyle12k71675tv a:active { font-size: 12px;font-family:宋体;color: black; text-decoration: none; background: #EFF7FE; line-height:14px;}
+</style><script language="javascript" src="/system/resource/js/gotopage.js"></script><script type="text/javascript">function a190188_gopage_fun(){_simple_list_gotopage_fun(14,'a190188GOPAGE',2)}</script><table cellspacing="0" cellpadding="0" border="0"><TR><td colspan="0"><table cellspacing="0" class="headStyle12k71675tv" width="100%" cellpadding="1"><tr valign="middle"><TD nowrap align="left" width="1%" id="fanye190188">共265条&nbsp;&nbsp;1/14&nbsp;</td><td nowrap align="left"><div><span class="PrevDisabled">首页</span><span class="PrevDisabled">上页</span><a href="bszn1/13.htm" class="Next">下页</a><a href="bszn1/1.htm" class="Next">尾页</a>&nbsp;&nbsp;<input align="absmiddle" type="button" class="defaultButtonStyle" id="gotopagebut" name="a190188Find" value="转到" onclick="javascript:a190188_gopage_fun()"><INPUT size="2" align="absmiddle" class="defaultInputStyle" NAME="a190188GOPAGE" id="a190188GOPAGE" VALUE="" style="margin-left:1px;margin-right:1px">页</div></td></tr></table></table></div>
+</div><script>_showDynClickBatch(['dynclicks_u8_14334','dynclicks_u8_13904','dynclicks_u8_12674','dynclicks_u8_12614','dynclicks_u8_11594','dynclicks_u8_11483','dynclicks_u8_11472','dynclicks_u8_11469','dynclicks_u8_11184','dynclicks_u8_11156','dynclicks_u8_11080','dynclicks_u8_11079','dynclicks_u8_11062','dynclicks_u8_11061','dynclicks_u8_10963','dynclicks_u8_10865','dynclicks_u8_10816','dynclicks_u8_10815','dynclicks_u8_10795','dynclicks_u8_10793'],[14334,13904,12674,12614,11594,11483,11472,11469,11184,11156,11080,11079,11062,11061,10963,10865,10816,10815,10795,10793],"wbnews", 1370093333)</script></DIV><!--right-con--></DIV><!--wape-right--></DIV><!-- main部分结束 --><!-- 底部开始 -->
+<DIV id="footer">
+<DIV class="w cl">
+<DIV class="f fl"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p><p>
+    <span class="banquan">版权所有©西安电子科技大学党委学生工作部/学生工作处</span><span class="adress">地址：西安市西沣路兴隆段266号</span>
+</p>
+<p>
+    电话：029-81891096
+</p>
+<p>
+    技术支持：<a href="#" target="_blank">西安聚力</a>
+</p></p></DIV>
+<DIV class="f fr cl">    <div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="images/xuegong.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">西电学工</p>
+</div>
+<div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="images/xdxsjz.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">西电学生奖助</p>
+</div>
+<div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="images/jiuye.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">西电科大就业中心</p>
+</div>
+<div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="images/hsmzdb.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">红色民族电波</p>
+</div>
+</DIV></DIV></DIV><!-- 底部结束 -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

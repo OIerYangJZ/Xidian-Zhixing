@@ -1,0 +1,147 @@
+<view class="{{pageMotion}} service-page safe-bottom {{themeClass}}" style="padding-top: {{navTop + navHeight + 8}}px;">
+  <view class="schedule-nav" style="padding-top: {{navTop}}px; padding-right: {{navRight}}px; height: {{navTop + navHeight + 8}}px;">
+    <button class="schedule-back" bindtap="goBack" aria-label="返回"><view class="ui-icon icon-back"></view></button>
+    <view class="top-week-switch" wx:if="{{service && service.slug === 'classtable'}}">
+      <button class="top-week-arrow" data-delta="-1" bindtap="shiftWeek" aria-label="上一周"><view class="ui-icon icon-back"></view></button>
+      <picker mode="selector" range="{{weekPickerLabels}}" value="{{weekPickerIndex}}" bindchange="pickWeek">
+        <view class="top-week-current" aria-label="{{selectedWeekText}}">{{selectedWeekShortText || '选择周次'}}</view>
+      </picker>
+      <button class="top-week-arrow" data-delta="1" bindtap="shiftWeek" aria-label="下一周"><view class="ui-icon icon-arrow"></view></button>
+    </view>
+    <view wx:else class="top-service-title">{{(service && service.name) || name || '校园日程'}}</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-state">正在加载</view>
+  <view wx:elif="{{errorMessage}}" class="loading-state">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
+
+  <block wx:elif="{{service}}">
+    <view class="detail-head" wx:if="{{false}}">
+      <view class="detail-title">{{service.name || name}}</view>
+    </view>
+
+    <view class="calendar-section" wx:if="{{service.kind === 'schedule' || service.calendarSource}}">
+      <view class="calendar-toolbar" wx:if="{{service.slug !== 'classtable'}}">
+        <view class="calendar-title">{{isExamList ? '考试安排' : '日程'}}</view>
+        <view class="calendar-nav">
+          <view class="nav-button" data-delta="-1" bindtap="shiftWeek">‹</view>
+          <picker mode="date" value="{{selectedDate}}" bindchange="pickDate">
+            <view class="date-picker" aria-label="{{calendar.startDate}} 至 {{calendar.endDate}}">{{calendarRangeText}}</view>
+          </picker>
+          <view class="nav-button" data-delta="1" bindtap="shiftWeek">›</view>
+        </view>
+      </view>
+
+      <block wx:if="{{isExamList}}">
+        <view class="exam-list" wx:if="{{examItems.length}}">
+          <view class="exam-card" wx:for="{{examItems}}" wx:key="id">
+            <view class="exam-date">{{item.dateLabel}}</view>
+            <view class="exam-title">{{item.title}}</view>
+            <view class="exam-row">
+              <view class="exam-label">时间</view>
+              <view class="exam-value">{{item.timeLabel}}</view>
+            </view>
+            <view class="exam-row" wx:if="{{item.locationText}}">
+              <view class="exam-label">地点</view>
+              <view class="exam-value">{{item.locationText}}</view>
+            </view>
+            <view class="exam-row" wx:if="{{item.seatText}}">
+              <view class="exam-label">座位号</view>
+              <view class="exam-value">{{item.seatText}}</view>
+            </view>
+          </view>
+        </view>
+        <view wx:else class="schedule-empty">尚未读取到考试安排数据</view>
+      </block>
+
+      <block wx:else>
+        <scroll-view class="schedule-grid-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+          <view class="schedule-grid" style="height: {{calendarGrid.heightRpx}}rpx;">
+            <view class="schedule-corner"></view>
+            <view
+              class="schedule-day-head"
+              wx:for="{{calendarGrid.columns}}"
+              wx:for-index="dayIndex"
+              wx:key="date"
+              style="grid-column: {{dayIndex + 2}}; grid-row: 1;"
+            >
+              <view class="schedule-day-name">{{item.name}}</view>
+              <view class="schedule-day-num">{{item.dayNumber}}</view>
+            </view>
+            <block wx:for="{{calendarGrid.rows}}" wx:for-item="row" wx:for-index="rowIndex" wx:key="section">
+              <view
+                class="schedule-empty-cell {{row.isInnerLine ? 'is-inner' : ''}}"
+                wx:for="{{calendarGrid.columns}}"
+                wx:for-item="col"
+                wx:for-index="colIndex"
+                wx:key="date"
+                style="grid-column: {{colIndex + 2}}; grid-row: {{rowIndex + 2}};"
+              ></view>
+            </block>
+            <view
+              class="schedule-time-head"
+              wx:for="{{calendarGrid.periods}}"
+              wx:key="section"
+              style="grid-column: 1; grid-row: {{item.gridRow}};"
+            >
+              <view class="schedule-section">{{item.section}}</view>
+            </view>
+            <view
+              class="schedule-time-label-group"
+              wx:for="{{calendarGrid.timeLabels}}"
+              wx:key="style"
+              style="{{item.style}}"
+            >
+              <view
+                class="schedule-time-label"
+                wx:for="{{item.labels}}"
+                wx:for-item="label"
+                wx:key="*this"
+              >{{label}}</view>
+            </view>
+            <view
+              wx:for="{{calendarGrid.blocks}}"
+              wx:key="id"
+              class="schedule-block block--{{item.color}} {{item.isExam ? 'exam' : ''}}"
+              style="{{item.blockStyle}}"
+              data-index="{{index}}"
+              bindtap="showScheduleItem"
+              role="button"
+              aria-label="{{item.title}}，{{item.startTime}} 至 {{item.endTime}}，{{item.location}}"
+              hover-class="motion-press"
+            >
+              <view class="schedule-block-title">{{item.shortTitle}}</view>
+              <view class="schedule-block-meta">{{item.locationText}}</view>
+              <view wx:if="{{item.teacher}}" class="schedule-block-meta">{{item.teacher}}</view>
+            </view>
+          </view>
+        </scroll-view>
+        <view wx:if="{{!calendarGrid.blocks.length}}" class="schedule-empty">{{service.emptyText || '尚未读取到日程数据'}}</view>
+      </block>
+    </view>
+
+    <view class="section-card action-panel" wx:if="{{actions.length}}">
+      <view class="section-title">操作</view>
+      <view class="action-grid">
+        <view class="action-card" wx:for="{{actions}}" wx:key="label" data-index="{{index}}" bindtap="runAction" hover-class="tap-active" role="button">
+          <view class="ui-icon icon-share"></view>
+          <view class="action-label">{{item.label}}</view>
+          <view class="ui-icon icon-chevron-right"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="section-card" wx:if="{{maps.length}}">
+      <view class="section-head-tight">
+        <view class="section-title">相关地图</view>
+        <view class="section-link" bindtap="openMap">打开地图</view>
+      </view>
+      <view class="map-row" wx:for="{{maps}}" wx:key="id">
+        <view class="map-title">{{item.name}}</view>
+        <view class="map-desc">{{item.description}}</view>
+      </view>
+    </view>
+  </block>
+</view>

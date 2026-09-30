@@ -1,0 +1,305 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>关于第三届 “中国电子杯” 高校 ICT 产教融合创新大赛西电校赛报名的通知-本科生院 西安电子科技大学</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="关于第三届 “中国电子杯” 高校 ICT 产教融合创新大赛西电校赛报名的通知">
+<META Name="keywords" Content="本科生院,西安电子科技大学,西电,产,大赛,教,融合,创新,ICT,校,赛,高校,电子,报名,通知,中国" />
+<META Name="description" Content="本届大赛由&quot;四邮四电&quot;八所高校主办，中国电子信息产业集团有限公司联合主办，华大半导体、华大九天、飞腾公司、中国长城、中国软件、麒麟软件、中电金信、奇安信、中国电子云等企业带来产业真实命题。参赛团队以 3 人组队，从芯片设计与应用、先进计算应用、网信产业应用三大赛道中选择一道赛题，完成方案设计、系统开发、技术验证和现场答辩。如果你想把课堂知识用到真实工程场景中，这一次，欢迎来挑战！01为什么值得参加？■ 企业真实命题题目来自芯片、..." />
+
+
+
+
+
+<META charset="UTF-8"><LINK rel="stylesheet" href="../../css/style.css"><script src="../../js/bdtxk.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1003,'/content.jsp',35712,1482657449)</script>
+</HEAD>
+<BODY><!-- top -->
+<DIV class="top">
+<DIV class="wrap">
+<DIV class="fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="本科生院"><img src="../../images/logo.png" width="460" height="64" border="0" alt="本科生院" title="本科生院"></a></DIV>
+<DIV class="fr">
+<DIV class="search"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError">
+
+            <INPUT class="ss"  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" > 
+            <INPUT class="btn" src="../../images/search.png" type="image" v-on:click="onSubmit()"> 
+            
+            
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1482657449";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1482657449";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+<FORM onsubmit="return subsearchdataa222254a()" method="post" name="a222254a" action="/system/resource/code/notemp.jsp?owner=1482657449&wbtreeid=-1&tempname=%E6%96%87%E7%AB%A0%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E9%A1%B5&notuse=notuse" style="display: inline"></DIV>
+<UL>    <li><a href="../../index.htm" title="网站首页">网站首页</a></li>
+    <li><a href="../../bmjs.htm" title="部门介绍">部门介绍</a></li>
+    <li><a href="../../tzgg.htm" title="通知公告">通知公告</a></li>
+    <li><a href="../../gzdt.htm" title="工作动态">工作动态</a></li>
+    <li><a href="https://bksy.xidian.edu.cn/info/1020/4366.htm" title="书院风采">书院风采</a></li>
+    <li><a href="../../bszn.htm" title="办事指南">办事指南</a></li>
+    <li><a href="../../xzzq.htm" title="下载专区">下载专区</a></li>
+</UL>
+<DIV class="clear"></DIV></DIV>
+<DIV class="en"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41785)">学校主页</a>
+<a href="../../English.htm" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41786)">English</a>
+		<a href="javascript:void(0);" title="手机版" onclick="_vsb_multiscreen.setDevice('mobile')">手机版</a>
+</DIV></DIV></DIV><!-- banner-in -->
+<DIV class="banner-in"><img src="../../images/zwy.png" /></DIV>
+<DIV class="main">
+<DIV class="wrap">
+<DIV class="zwy">
+<DIV class="now">
+<DIV class="fl">
+通知公告</DIV>
+<DIV class="fr">位置: 
+                        <a href="../../index.htm">网站首页</a>
+               &gt;
+                <a href="../../tzgg.htm">通知公告</a>
+               &gt;
+                正文
+</DIV></DIV>
+<DIV class="artical">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div>
+    <h3>关于第三届 “中国电子杯” 高校 ICT 产教融合创新大赛西电校赛报名的通知</h3>
+   <div class="time"><span>发布时间：</span>2026-09-17 11:36:31<span>来源：</span>
+    <span> 点击：</span><script>_showDynClicks("wbnews", 1482657449, 35712)</script></div>
+
+    
+    <div id="vsb_content"><div class="v_news_content">
+<section data-page-node-id="s1oSfBLEhPInS6RwA6xId7" data-dm-ref="11" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; background: rgb(244, 247, 251); border-radius: 6px; padding: 14px 16px; margin: 0px 0px 8px;"><p data-page-node-id="4ZWWqofFALdLd2MvHhtnFi" data-dm-ref="12" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;">本届大赛由<strong data-page-node-id="JMw14DmrKGwNszAz8ZlGyC" data-dm-ref="13" style="color: rgb(27, 75, 143);">"四邮四电"八所高校</strong>主办，<strong data-page-node-id="FTlMiPoSaAXPDmERYrRcwF" data-dm-ref="14" style="color: rgb(27, 75, 143);">中国电子信息产业集团有限公司</strong>联合主办，华大半导体、华大九天、飞腾公司、中国长城、中国软件、麒麟软件、中电金信、奇安信、中国电子云等企业带来产业真实命题。</p></section><p data-page-node-id="H3JHhqDdeThTrpvvBP04NT" data-dm-ref="15" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 10px 0px;">参赛团队<strong data-page-node-id="9M5HlQrJ4ZrhgHYzZHczS1" data-dm-ref="16">以 3 人组队</strong>，从<strong data-page-node-id="5ARPJTIDc9JqiQtosS0GXB" data-dm-ref="17">芯片设计与应用、先进计算应用、网信产业应用</strong>三大赛道中选择一道赛题，完成方案设计、系统开发、技术验证和现场答辩。</p><p data-page-node-id="7bjxL12wvNAe9izspo9oG6" data-dm-ref="18" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; font-size: 14px; color: rgb(208, 58, 43); font-weight: bold; line-height: 1.9; margin: 10px 0px 24px;">如果你想把课堂知识用到真实工程场景中，这一次，欢迎来挑战！</p><p><br></p><section data-page-node-id="9UCmEhyKGCFQQjmx4HorXy" data-dm-ref="19" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 32px 0px 16px; border-left: 4px solid rgb(27, 75, 143); padding-left: 10px;"><span data-page-node-id="A698QgYXoTrVMAtX8ssnB8" data-dm-ref="20" style="font-size: 14px; color: rgb(27, 75, 143); font-weight: bold; letter-spacing: 1px;">01</span><p data-page-node-id="RWlJhi08z54q6tS2tax9x8" data-dm-ref="21" style="margin: 2px 0px 0px; font-size: 17px; font-weight: bold; color: rgb(34, 34, 34);">为什么值得参加？</p></section><section data-page-node-id="9N4aRYJiQWk4rlWTfOy7Td" data-dm-ref="22" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 0px 0px 6px;"><p data-page-node-id="CGv5Fp2urKI4EgvFMF2vNw" data-dm-ref="23" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="UpnIlRg5sABwotE3xCZl9y" data-dm-ref="24" style="color: rgb(27, 75, 143);">■ 企业真实命题</strong><br data-page-node-id="ctfV1gF8B7H7sEBCkiYhv2" data-dm-ref="25">题目来自芯片、基础软件、人工智能、数据平台和网络安全等产业场景。</p><p data-page-node-id="gJ2EMoi4cPjzXxfHLWNnx7" data-dm-ref="26" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="JjgTnD099KFf8Cj8Teg4dF" data-dm-ref="27" style="color: rgb(27, 75, 143);">■ 专家参与评审</strong><br data-page-node-id="tjuc7FurMIVhhSfRV8yA0w" data-dm-ref="28">命题企业和高校专家共同参与评价，帮助参赛同学了解工程实践中的真实要求。</p><p data-page-node-id="6FWxSq0hr1dM3OTj1nKmVL" data-dm-ref="29" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="jO9R656oe7AFBAXOxpRYQu" data-dm-ref="30" style="color: rgb(27, 75, 143);">■ 积累项目成果</strong><br data-page-node-id="0vEV2heKT3W1sAoa3YfzZ9" data-dm-ref="31">从需求分析、方案设计到开发验证和现场路演，完整经历一次项目推进过程。</p><p data-page-node-id="pnU7DYJZK8GQa2VNfnNIkv" data-dm-ref="32" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;"><strong data-page-node-id="lH1YOkZONKflGplUYykFga" data-dm-ref="33" style="color: rgb(27, 75, 143);">■ 奖金与发展机会</strong><br data-page-node-id="p3mSuuJu3Ey30yxFGU1gEQ" data-dm-ref="34">学生团队<strong data-page-node-id="nObxMqCkI6T6vn85fyypn1" data-dm-ref="35">奖金丰厚</strong>，综合评估排名前 10<strong data-page-node-id="g4VvkMjq6bwf1r1huSTJqj" data-dm-ref="36" style="color: rgb(208, 58, 43);">% 的</strong>选手可获得<strong data-page-node-id="LVYeUmMW0bJiEWNyuL13t1" data-dm-ref="37" style="color: rgb(208, 58, 43);">中国电子招聘和实习直通卡</strong>。</p></section><section data-page-node-id="Pb4WuWKgwGYExn2lza1vEr" data-dm-ref="38" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 32px 0px 16px; border-left: 4px solid rgb(27, 75, 143); padding-left: 10px;"><span data-page-node-id="MHlOriLHtuTlzLBdfHbcKv" data-dm-ref="39" style="font-size: 14px; color: rgb(27, 75, 143); font-weight: bold; letter-spacing: 1px;">02</span><p data-page-node-id="ayUEQVbqSYqJGygwsbDfjR" data-dm-ref="40" style="margin: 2px 0px 0px; font-size: 17px; font-weight: bold; color: rgb(34, 34, 34);">三大赛道、九道企业命题</p></section><section data-page-node-id="g2DFD4V3luHYCJ9RsCoHDs" data-dm-ref="41" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; background: rgb(244, 247, 251); border-radius: 6px; padding: 14px 16px; margin: 0px 0px 12px;"><p data-page-node-id="HHZhCBrblylG7xD4pro3PO" data-dm-ref="42" style="font-size: 15px; font-weight: bold; color: rgb(27, 75, 143); margin: 0px 0px 10px;">赛道一 · 芯片设计与应用</p><p data-page-node-id="NvT6EOnbcyNC5iaa7Hb0ey" data-dm-ref="43" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="0lN7Woaeo4eHjYL5FOA8pK" data-dm-ref="44">赛题一：高压高精度电流传感放大器芯片设计</strong><br data-page-node-id="yP9YVGGwyq1q9vsZH4Pc5y" data-dm-ref="45"><span data-page-node-id="2lw5Ig4UvWA6RNefbROfSf" data-dm-ref="46" style="color: rgb(136, 136, 136); font-size: 13px;">命题单位：上海贝岭股份有限公司</span></p><p data-page-node-id="LMFcejCjUrENvb9ozpRD5W" data-dm-ref="47" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="k3brZoTXxv5g0Gbtgo8yzc" data-dm-ref="48">赛题二：模拟电路 AI 智能化设计</strong><br data-page-node-id="5FiOtzfzOp0sGZYQMGbEBS" data-dm-ref="49"><span data-page-node-id="27kfKaw0UGZpKJUfNgyIM4" data-dm-ref="50" style="color: rgb(136, 136, 136); font-size: 13px;">命题单位：北京华大九天科技股份有限公司</span></p><p data-page-node-id="stGMUFNoCcbHMmKfgm4DVY" data-dm-ref="51" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;"><strong data-page-node-id="2wAhwHSunIKh71EK5zjgfv" data-dm-ref="52">赛题三：带高阶 FIR 数字滤波器的 SoC 处理器设计</strong><br data-page-node-id="CPMEwElNN0jrnglfyiXwSN" data-dm-ref="53"><span data-page-node-id="BRt0IwPXkrexpig0iwDzC9" data-dm-ref="54" style="color: rgb(136, 136, 136); font-size: 13px;">命题单位：飞腾信息技术有限公司</span></p></section><section data-page-node-id="hJkz2FXehWksIwWBqKmW4I" data-dm-ref="55" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; background: rgb(244, 247, 251); border-radius: 6px; padding: 14px 16px; margin: 0px 0px 12px;"><p data-page-node-id="p73h3zyKa6K4ANLnUObQrE" data-dm-ref="56" style="font-size: 15px; font-weight: bold; color: rgb(27, 75, 143); margin: 0px 0px 10px;">赛道二 · 先进计算应用</p><p data-page-node-id="XpYpjeJJkizAJrCoKoPzCz" data-dm-ref="57" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="CHHXAtER6dT3bZzmgEwySo" data-dm-ref="58">赛题四：国产服务器性能调优</strong><br data-page-node-id="a9pBnhZT2gL08g3IPE58Aa" data-dm-ref="59"><span data-page-node-id="8GPLXreyu2GuJ1vR3SHO2S" data-dm-ref="60" style="color: rgb(136, 136, 136); font-size: 13px;">命题单位：中国长城科技集团股份有限公司</span></p><p data-page-node-id="6CuLcSKOjHdc7a7KEZGTyk" data-dm-ref="61" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="nppjOQpf84Gh5sHOEkhrqo" data-dm-ref="62">赛题五：面向行业数据的智能实体挖掘与关系建模</strong><br data-page-node-id="OFbB27CMHkjSmFcfAKkFtc" data-dm-ref="63"><span data-page-node-id="DRtwn1uwsMBMjjB5Zo3D64" data-dm-ref="64" style="color: rgb(136, 136, 136); font-size: 13px;">命题单位：中国软件与技术服务股份有限公司</span></p><p data-page-node-id="tFsI0INFLJ0LlzEb0sd2sn" data-dm-ref="65" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;"><strong data-page-node-id="KkViKjmbedCpuUk8gB1jmI" data-dm-ref="66">赛题六：基于 x-kernel 的 Chromium 运行环境构建与优化</strong><br data-page-node-id="6CmMvWXb1TFNWqkFl4JrS7" data-dm-ref="67"><span data-page-node-id="UN23Zn1xtJTR0C02fpkQzz" data-dm-ref="68" style="color: rgb(136, 136, 136); font-size: 13px;">命题单位：麒麟软件有限公司</span></p></section><section data-page-node-id="bQNstmv1RGCy5GDqxXxJ28" data-dm-ref="69" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; background: rgb(244, 247, 251); border-radius: 6px; padding: 14px 16px; margin: 0px;"><p data-page-node-id="klw1Zq0Gtz4cAOd6yY1tAb" data-dm-ref="70" style="font-size: 15px; font-weight: bold; color: rgb(27, 75, 143); margin: 0px 0px 10px;">赛道三 · 网信产业应用</p><p data-page-node-id="ENwSmFzEBH6mqDijxHutHj" data-dm-ref="71" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="FnSSj2kkVroia4eUTVsukt" data-dm-ref="72">赛题七：MaaS 平台的智能路由与多级缓存引擎设计</strong><br data-page-node-id="Nhrg4vOYtIiYzYDWBozHin" data-dm-ref="73"><span data-page-node-id="HBOObmBnExnsGu7qzvld0k" data-dm-ref="74" style="color: rgb(136, 136, 136); font-size: 13px;">命题单位：中电金信软件有限公司</span></p><p data-page-node-id="sfSE4ZtMX7ifKbJHyTRhzh" data-dm-ref="75" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="6rdtAy31SElQh5OaaDsxOc" data-dm-ref="76">赛题八：多模态数据驱动的可解释精准问数问答智能体</strong><br data-page-node-id="22SEpFSYEsl6RWWCsAqfyj" data-dm-ref="77"><span data-page-node-id="HxX1c938NP2uQzPy06g7P3" data-dm-ref="78" style="color: rgb(136, 136, 136); font-size: 13px;">命题单位：中电云计算技术有限公司</span></p><p data-page-node-id="p11XwGQlAQf42VBzGTrDwF" data-dm-ref="79" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;"><strong data-page-node-id="fYlEoqlQTVFRj2VlYRFnGU" data-dm-ref="80">赛题九：智能体驱动的 AI 安全知识情报系统设计与实现</strong><br data-page-node-id="1SHWuW7lgASnZU0EuY633Y" data-dm-ref="81"><span data-page-node-id="SDAkRaVsONhEhr5bErDx7i" data-dm-ref="82" style="color: rgb(136, 136, 136); font-size: 13px;">命题单位：奇安信科技集团股份有限公司</span></p></section><section data-page-node-id="MkjPsdbx89xQDx3VhIuOHX" data-dm-ref="83" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 32px 0px 16px; border-left: 4px solid rgb(27, 75, 143); padding-left: 10px;"><span data-page-node-id="s6lpGsB3Fm4VtgvhJ0p2Rb" data-dm-ref="84" style="font-size: 14px; color: rgb(27, 75, 143); font-weight: bold; letter-spacing: 1px;">03</span><p data-page-node-id="qEB1YKNqbsA3SdZ3DcCdFi" data-dm-ref="85" style="margin: 2px 0px 0px; font-size: 17px; font-weight: bold; color: rgb(34, 34, 34);">参赛对象与赛程安排</p></section><section data-page-node-id="HJC0VxEFnze6kcarhiYwFP" data-dm-ref="86" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 0px 0px 6px;"><p data-page-node-id="wG6RUSuEs4qtUIcUb5sMiZ" data-dm-ref="87" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="mEroTDnfoVAZloWUJpZkHA" data-dm-ref="88" style="color: rgb(27, 75, 143);">参赛对象</strong><br data-page-node-id="KQjP5FCfySxpqFtaksPkyf" data-dm-ref="89">"四邮四电"高校全日制在校<strong data-page-node-id="6A7md75tq5Hbid7AvOZo9N" data-dm-ref="90">本科生、研究生</strong>。</p><p data-page-node-id="RZcJlYC4lWDV8czU9O73Me" data-dm-ref="91" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 16px;"><strong data-page-node-id="0S2GPyUYdy6qKtiL5vY4YD" data-dm-ref="92" style="color: rgb(27, 75, 143);">组队要求</strong><br data-page-node-id="l7Hz5jLAw3wAxJHmfTO6uY" data-dm-ref="93">每队由 3<strong data-page-node-id="s0gZBLviPgyCRCSZRhbdFJ" data-dm-ref="94" style="color: rgb(208, 58, 43);"> 名</strong>学生组成，每队指导教师<strong data-page-node-id="0Uxr6seqcF3MeeET1lWC7K" data-dm-ref="95">不超过 2 人</strong>，鼓励跨学校、跨专业组队。</p></section><section data-page-node-id="kcjfOFjZ6foqvw1TukMMhr" data-dm-ref="96" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 0px 0px 16px;"><p data-page-node-id="tT6WRiWtbFqoZpVBHaeddS" data-dm-ref="97" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="uQcNuxJYQyomloEGbl6KHW" data-dm-ref="98" style="color: rgb(27, 75, 143);">1. 报名截止</strong><br data-page-node-id="M79u4ucvSBBBRkcDEhIBoP" data-dm-ref="99">2026 年<strong data-page-node-id="dFEKcFehATTO9nNzDLsDPa" data-dm-ref="100" style="color: rgb(208, 58, 43);">9月 30日 24:00</strong></p><p data-page-node-id="sBPH8oVjB6eLF8gxVWEiNg" data-dm-ref="101" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="LCtHivH2xzYAKnaROeJ512" data-dm-ref="102" style="color: rgb(27, 75, 143);">2. 校内初赛</strong><br data-page-node-id="HG3Sxql45H3zcDG32Lw20p" data-dm-ref="103">2026 年 <strong data-page-node-id="ejtwCJDGNCQknwj3E3gATf" data-dm-ref="104">10 月 初</strong></p><p data-page-node-id="ZbsV3XCFMSCiwe5hX8Iiyx" data-dm-ref="105" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="umHRVvTuTzRSxoF4V5iBoL" data-dm-ref="106" style="color: rgb(27, 75, 143);">3. 报送晋级名单</strong><br data-page-node-id="HZwCzJofK9v0k5yIN2vNcN" data-dm-ref="107">2026 年 <strong data-page-node-id="spsh1KUGQh5aGxq8le1NsB" data-dm-ref="108">10 月 底</strong><br data-page-node-id="NNpBJetdNZ0NDB7e1khDe6" data-dm-ref="109">每校可推荐 9 支队伍，每道赛题可推荐 1 支队伍。</p><p data-page-node-id="oham5pTmRIgBnKARu1sjND" data-dm-ref="110" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="ef6ju5sHxBzbIeBMTt1kC5" data-dm-ref="111" style="color: rgb(27, 75, 143);">4. 提交决赛材料</strong><br data-page-node-id="uOMQ5qGd4rSjXSU4zU5gXZ" data-dm-ref="112">2026 年 <strong data-page-node-id="TJncqvLDjglmEAU2iDXMhH" data-dm-ref="113">11 月 20 日前</strong></p><p data-page-node-id="FpSdcY5zxCsknIvTa1sGzO" data-dm-ref="114" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 16px;"><strong data-page-node-id="PYWh792cKhNACDUD1qj0lU" data-dm-ref="115" style="color: rgb(27, 75, 143);">5. 现场决赛</strong><br data-page-node-id="vhMzsyCGELg8YNNne8Gaia" data-dm-ref="116">2026 年 <strong data-page-node-id="GDCuQvfJco1U7kRtdwE9M5" data-dm-ref="117">12 月 3 日</strong><br data-page-node-id="p0qsCyhSi5mFXnKPVHngM0" data-dm-ref="118">地点：南京邮电大学</p></section><section data-page-node-id="n1sO6r7WOEAgEIqaQfpZ0k" data-dm-ref="119" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; background: rgb(253, 246, 236); border-radius: 6px; padding: 14px 16px; margin: 0px 0px 8px;"><p data-page-node-id="7TLifNm9FQq1acBUSFX3Ag" data-dm-ref="120" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="DmZAaHGhpJsewdjEZomuqq" data-dm-ref="121" style="color: rgb(178, 106, 0);">晋级机制</strong><br data-page-node-id="vr1qisZGS7IsUgM0DBZ9vA" data-dm-ref="122">各命题企业还可从初赛作品质量优秀但未晋级的队伍中自主推荐 2 支队伍直通决赛，推荐名单须经组委会审核确认。</p><p data-page-node-id="xwav8q077F1cFFjWIwzXQm" data-dm-ref="123" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;"><strong data-page-node-id="HgZVCxAHEEuBboJPAeMD3Z" data-dm-ref="124" style="color: rgb(178, 106, 0);">决赛形式与排名规则</strong><br data-page-node-id="pc98vgrAnpiL6HMySdmo4o" data-dm-ref="125">现场决赛采用路演形式；各赛道第一名进入冠亚季军争夺赛。</p></section><section data-page-node-id="vIcQgsbMh3j7m2PVIeqoiF" data-dm-ref="126" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 32px 0px 16px; border-left: 4px solid rgb(27, 75, 143); padding-left: 10px;"><span data-page-node-id="DGlTBijpIDkYizBHkZMgVl" data-dm-ref="127" style="font-size: 14px; color: rgb(27, 75, 143); font-weight: bold; letter-spacing: 1px;">04</span><p data-page-node-id="aXJtEpVMKpuzJNlCRSRR2N" data-dm-ref="128" style="margin: 2px 0px 0px; font-size: 17px; font-weight: bold; color: rgb(34, 34, 34);">奖励与发展机会</p></section><p><br></p><p data-page-node-id="xQDaOQ6KTymF3aanHoXlLv" data-dm-ref="129" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 12px;">本届大赛鼓励大家积极报名，<strong data-page-node-id="yttNk6eeN2CRz8pdj1uQvO" data-dm-ref="130" style="color: rgb(208, 58, 43);">奖金丰厚！</strong></p><p><br></p><section data-page-node-id="ezI0MwWRNJu6DTi2L7fivb" data-dm-ref="131" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; background: rgb(244, 247, 251); border-radius: 6px; padding: 14px 16px; margin: 0px 0px 12px;"><p data-page-node-id="bxmz1SuUaNhl4WulJo48kF" data-dm-ref="132" style="font-size: 15px; font-weight: bold; color: rgb(27, 75, 143); margin: 0px 0px 10px;">奖金明细</p><p data-page-node-id="GfFg7fPKh8sHqz9aV7BCkx" data-dm-ref="133" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 6px;">● 冠军：1 项，<strong data-page-node-id="cUbHl9e1UEmvs9ci21Tc3n" data-dm-ref="134" style="color: rgb(208, 58, 43);">40,000 元</strong></p><p data-page-node-id="ScLbnBMHe6zHIBa2cFJrZB" data-dm-ref="135" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 6px;">● 亚军：1 项，<strong data-page-node-id="pawv5N5Qn75k3oTh5aqlYE" data-dm-ref="136" style="color: rgb(208, 58, 43);">20,000 元</strong></p><p data-page-node-id="f7Bk0zbE5hBeNBNa5amn98" data-dm-ref="137" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 6px;">● 季军：1 项，<strong data-page-node-id="oDYBGwdM32tBnDR7N2J4Qk" data-dm-ref="138" style="color: rgb(208, 58, 43);">15,000 元</strong></p><p data-page-node-id="ydtmlovnfJ9pBvvcmKISme" data-dm-ref="139" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 6px;">● 一等奖：6 项，<strong data-page-node-id="2Idy4NVswfWjindnDKffwG" data-dm-ref="140">8,000 元/项</strong></p><p data-page-node-id="oFbx0kNB0bpFmNXa3qjNVx" data-dm-ref="141" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 6px;">● 二等奖：9 项，<strong data-page-node-id="aPBXLdlcQabJBfNECYSvAw" data-dm-ref="142">6,000 元/项</strong></p><p data-page-node-id="BnRPibMkCYtZsZZkOrYKAE" data-dm-ref="143" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 6px;">● 三等奖：18 项，<strong data-page-node-id="DCW2hHzwswzPQoWRMkQMey" data-dm-ref="144">4,000 元/项</strong></p><p data-page-node-id="mSd5Wxd3zp6nKL6PVsug2W" data-dm-ref="145" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;">● 优秀奖：54 项，<strong data-page-node-id="sAPStKalZAPRZ6U5ZfeFwI" data-dm-ref="146">2,000 元/项</strong></p></section><section data-page-node-id="fV7te9N6ypUJO3nJroJiZO" data-dm-ref="147" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 0px;"><p data-page-node-id="EHbBZGjqgmnhipPmKELKQ3" data-dm-ref="148" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="HyA2jRZhOkk3MbaoHf6lx0" data-dm-ref="149" style="color: rgb(27, 75, 143);">■ 优秀指导教师奖</strong><br data-page-node-id="44RNLyipnqPCPMYKhr8KAB" data-dm-ref="150">晋级决赛项目的第一指导教师可获得 1,500<strong data-page-node-id="rJHC5n0Yee8MBsBETzWVyF" data-dm-ref="151"> 元</strong>。（同一指导教师指导多个团队获奖时，奖金可叠加）</p><p data-page-node-id="EEQu34RNsB4zbPr3dDsxyh" data-dm-ref="152" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="EblKp936cn8ZE2h0QoHxB8" data-dm-ref="153" style="color: rgb(27, 75, 143);">■ 招聘和实习直通卡</strong><br data-page-node-id="BjFJfNMRaJ0qzbFs3Xz0EY" data-dm-ref="154">综合评估排名前 10<strong data-page-node-id="pGgu0lVTGPh3HZgOiybibO" data-dm-ref="155" style="color: rgb(208, 58, 43);">% 的</strong>选手，可获得中国电子招聘和实习直通卡，免笔试直达技术终面，或获得定制化实习机会。</p><p data-page-node-id="tjD0UdxkSPskzetuTif2uM" data-dm-ref="156" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;"><strong data-page-node-id="x7ZaxZdojH1l2p4CbOILsF" data-dm-ref="157" style="color: rgb(27, 75, 143);">■ 其他发展机会</strong><br data-page-node-id="lZJeXOvQQOCKAKULyjO1HU" data-dm-ref="158">优秀成果可获得知识产权快速登记、成果孵化和企业内部项目推荐机会。所有决赛选手将建立包含技术栈、比赛表现和专家评语的人才档案，纳入中国电子人才库进行长期跟踪。</p></section><section data-page-node-id="GnMjArQ6bo4YggGXY9vhqY" data-dm-ref="159" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 32px 0px 16px; border-left: 4px solid rgb(27, 75, 143); padding-left: 10px;"><span data-page-node-id="C0tZgnN7wBd4jhKQ48A7zs" data-dm-ref="160" style="font-size: 14px; color: rgb(27, 75, 143); font-weight: bold; letter-spacing: 1px;">05</span><p data-page-node-id="CwzRNYNKzZfA7gcgQUVv1F" data-dm-ref="161" style="margin: 2px 0px 0px; font-size: 17px; font-weight: bold; color: rgb(34, 34, 34);">报名方式</p></section><section data-page-node-id="yrA5K2hbpEhOLEUioAUIlq" data-dm-ref="162" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; background: rgb(244, 247, 251); border-radius: 6px; padding: 14px 16px; margin: 0px 0px 8px;"><p data-page-node-id="YF6CPqZb2mpH7y1At36sS2" data-dm-ref="163" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 8px;">组建 3<strong data-page-node-id="Z4QuhaDVk6yrGAkLUWHtUa" data-dm-ref="164"> 人团队</strong>，确定团队负责人、指导教师和参赛赛题。填写<strong data-page-node-id="bZJTD8JAV9z4nh7OPk8nAf" data-dm-ref="165">《团队报名表》</strong>和<strong data-page-node-id="rorBsGfgnIvXksWduVKBTi" data-dm-ref="166">《报名汇总表》</strong>。由所在高校统一收集、审核，并发送至指定邮箱。</p><p data-page-node-id="TAWHXvH98sWS2d5Yp4jMco" data-dm-ref="167" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="ktodpA2Kw6aY0EyBua0ot4" data-dm-ref="168">邮箱：请以本校通知为准。</strong></p><p data-page-node-id="eFhCNSs1vNcpL7lh8cj5lT" data-dm-ref="169" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;"><strong data-page-node-id="BVfR6FKhSCgosVMm1njo4s" data-dm-ref="170">组委会截止时间：2026 年 9 月 30 日 24:00</strong>（各高校请以本校通知为准）。</p></section><section data-page-node-id="HFncDVglcI0nQ3svx7vuTH" data-dm-ref="171" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 32px 0px 16px; border-left: 4px solid rgb(27, 75, 143); padding-left: 10px;"><span data-page-node-id="zjwYpOADyIgYPRcWUtrLns" data-dm-ref="172" style="font-size: 14px; color: rgb(27, 75, 143); font-weight: bold; letter-spacing: 1px;">06</span><p data-page-node-id="RuQito8nVNe0J7qoT5fiLe" data-dm-ref="173" style="margin: 2px 0px 0px; font-size: 17px; font-weight: bold; color: rgb(34, 34, 34);">参赛规定</p></section><section data-page-node-id="BQGGP75Ke1tFTixCBvPoCA" data-dm-ref="174" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 0px;"><p data-page-node-id="XCj7k64QTnVOBPaf3uegi7" data-dm-ref="175" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="hHeZcqzRnsyTw53RlPeDt2" data-dm-ref="176" style="color: rgb(27, 75, 143);">■ 知识产权要求</strong><br data-page-node-id="6OFDyLqvd1nwHJkfeOjAcn" data-dm-ref="177">参赛团队须对提交的应答材料拥有自主知识产权，不得侵犯他人知识产权或物权。</p><p data-page-node-id="CWCKY6ExJtLa8MlzE2zeYh" data-dm-ref="178" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 10px;"><strong data-page-node-id="Q8jl9HDRqe15ntcgcIFwHm" data-dm-ref="179" style="color: rgb(27, 75, 143);">■ 诚信参赛要求</strong><br data-page-node-id="a0WItYv0k52OVEjWixdD7g" data-dm-ref="180">如有抄袭、盗用他人成果、提供虚假材料等行为，一经发现，将丧失参赛资格、所获奖项等相关权利，并承担相应法律责任。</p><p data-page-node-id="CMveWrb0XgIxHuvRcn9BWq" data-dm-ref="181" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;"><strong data-page-node-id="9y43WQMe1PBF2RobJkaYAG" data-dm-ref="182" style="color: rgb(27, 75, 143);">■ 资格审查</strong><br data-page-node-id="VmFTPBFMcXQckBEU807HJc" data-dm-ref="183">参赛团队所在学院负责审查参赛团队及项目的真实性和合规性。</p></section><section data-page-node-id="p3CO6cbJHzKb4yXk76wowl" data-dm-ref="184" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; margin: 32px 0px 16px; border-left: 4px solid rgb(27, 75, 143); padding-left: 10px;"><span data-page-node-id="b08oBRHsKDlVhnNuGucpjL" data-dm-ref="185" style="font-size: 14px; color: rgb(27, 75, 143); font-weight: bold; letter-spacing: 1px;">07</span><p data-page-node-id="hqEEivKlGkpu4hO36CbHrr" data-dm-ref="186" style="margin: 2px 0px 0px; font-size: 17px; font-weight: bold; color: rgb(34, 34, 34);">现在，该你上场了</p></section><section data-page-node-id="J1sw2u39kSruBRTyYe71gD" data-dm-ref="187" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; text-align: center; margin: 0px 0px 20px;"><p data-page-node-id="BrGX87lpMIKEKOaZyggCrA" data-dm-ref="188" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 2.1; margin: 0px;">一张电路图，<br data-page-node-id="toqRYK6RczLWWY40P8fSRq" data-dm-ref="189">可以回应真实的芯片设计需求；<br data-page-node-id="Oi4ozmsDXzv5POlUQvb3HB" data-dm-ref="190">一段代码，<br data-page-node-id="6dS24HsPsinjnJDNbOs3d8" data-dm-ref="191">可以成为一套系统的关键能力；<br data-page-node-id="YVaRaWEzCq5d52zsGiyD6A" data-dm-ref="192">一个 3 人团队，<br data-page-node-id="s6lmFOW0SXWc6N8hy3CX3P" data-dm-ref="193">也可以把不同专业的知识，<br data-page-node-id="eM7U7QiqMCgOjh8CT8lUnd" data-dm-ref="194">汇聚成完整方案。</p><p data-page-node-id="MwG6zKSDBEve8wlGQL2C6T" data-dm-ref="195" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 2.1; margin: 14px 0px 0px;">企业真题已经发布，<br data-page-node-id="Lm0tLlbgINiNPkQB4PsRRv" data-dm-ref="196">奖金和发展机会等你来争取。<br data-page-node-id="MAiYm6PCo2jChYUglsZdPP" data-dm-ref="197">现在组队、选择赛题，<br data-page-node-id="QkJ1TqqSEG7lnGgz13P1vL" data-dm-ref="198"><strong data-page-node-id="JOHqWy46rsq2STEVspWGcR" data-dm-ref="199" style="color: rgb(208, 58, 43);">9 月 30 日 24:00 前完成报名，</strong><br data-page-node-id="l9jHqPGOesTW3FmallEhfe" data-dm-ref="200">期待在"中国电子杯"赛场上见到你！</p></section><section data-page-node-id="4Qq1uZBwgfLPe0zIEA3bcq" data-dm-ref="201" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; background: rgb(244, 247, 251); border-radius: 6px; padding: 14px 16px; margin: 0px 0px 12px;"><p data-page-node-id="bzOknBODBFo6UV2HoeglaS" data-dm-ref="202" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 6px;"><strong data-page-node-id="eLymNdTPmiE71Xj9gb5IqX" data-dm-ref="203" style="color: rgb(27, 75, 143);">联系人：</strong>刘老师</p><p data-page-node-id="CtCgxCXwWBEkRDDOWSYpcu" data-dm-ref="204" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 6px;"><strong data-page-node-id="gOH7xV61qitMFZOwSmoP0I" data-dm-ref="205" style="color: rgb(27, 75, 143);">联系电话：</strong>029-81892262</p><p data-page-node-id="V4IpK5xaCUzPNsPcFUwN96" data-dm-ref="206" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px 0px 6px;"><strong data-page-node-id="wzFFCSpZLMptCyahXhLDsc" data-dm-ref="207" style="color: rgb(27, 75, 143);">邮箱：</strong>cxcy@xidian.edu.cn</p><p data-page-node-id="bLNaOOZqOqCIaiURtz5Azx" data-dm-ref="208" style="font-size: 14px; color: rgb(63, 63, 63); line-height: 1.9; margin: 0px;"><strong data-page-node-id="Ha9DItBsSwypwHl72ViS5F" data-dm-ref="209" style="color: rgb(208, 58, 43);">扫描二维码加入大赛 QQ 群（群号：1125792101），获取后续通知</strong></p></section><section data-page-node-id="5HNuwUa50FZ51pVdWwXhGn" data-dm-ref="210" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; text-align: center; margin: 0px 0px 24px;"><section data-page-node-id="JYwG1v7ITAVQy8WQ0LMVHJ" data-dm-ref="211" style="display: inline-block; width: 150px; height: 150px; border: 1px dashed rgb(204, 204, 204); border-radius: 6px; line-height: 150px; color: rgb(153, 153, 153); font-size: 12px;"><img src="/__local/F/42/A3/222D91FBEA4B2E39B78943DA598_3C2BFC48_B905.png" vsbhref="vurl" vurl="/_vsl/F42A3222D91FBEA4B2E39B78943DA598/3C2BFC48/B905" vheight="" vwidth="" orisrc="/__local/F/42/A3/222D91FBEA4B2E39B78943DA598_3C2BFC48_B905.png" class="img_vsb_content"></section></section><section data-page-node-id="3ZILQFZAKvnGLVGtDr8DR8" data-dm-ref="212" style="font-family: -apple-system, BlinkMacSystemFont, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif; white-space: normal; border-top: 1px solid rgb(238, 238, 238); padding-top: 16px; margin: 0px 0px 8px;"><p data-page-node-id="GNaT5Tntamwm2UDnVgsy7t" data-dm-ref="213" style="font-size: 13px; color: rgb(136, 136, 136); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="fteYuzY4TfnXvLaWl5UKTB" data-dm-ref="214" style="color: rgb(102, 102, 102);">主办单位</strong><br data-page-node-id="l9CgJYbEWr6EhmbQbvTcx5" data-dm-ref="215">北京邮电大学、电子科技大学、南京邮电大学、西安电子科技大学、重庆邮电大学、杭州电子科技大学、西安邮电大学、桂林电子科技大学</p><p data-page-node-id="4Hkzc6PFVUuwZ2FkVKeCKm" data-dm-ref="216" style="font-size: 13px; color: rgb(136, 136, 136); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="MrZm65BC9q00z73FRqBfVS" data-dm-ref="217" style="color: rgb(102, 102, 102);">联合主办单位</strong><br data-page-node-id="OJQAId53RAaIhq8rdSQD2E" data-dm-ref="218">中国电子信息产业集团有限公司</p><p data-page-node-id="YD7CMjX69zIkpqZ8yO5QiX" data-dm-ref="219" style="font-size: 13px; color: rgb(136, 136, 136); line-height: 1.9; margin: 0px 0px 8px;"><strong data-page-node-id="OB4k2qJKZ9Azjgf2AULpJh" data-dm-ref="220" style="color: rgb(102, 102, 102);">承办单位</strong><br data-page-node-id="JCA3TEp4BpWiZQJrwPa7Yr" data-dm-ref="221">南京邮电大学、南京鼓楼高新技术产业开发区</p><p data-page-node-id="Tdd53LajyHWEXxl5GiE90v" data-dm-ref="222" style="font-size: 13px; color: rgb(136, 136, 136); line-height: 1.9; margin: 0px;"><strong data-page-node-id="sETdklzYttwBm63gF0UG6M" data-dm-ref="223" style="color: rgb(102, 102, 102);">协办单位</strong><br data-page-node-id="0NHsFj7d2WftLGzRCFbe5r" data-dm-ref="224">华大半导体、华大九天、飞腾公司、中国长城、中国软件、麒麟软件、中电金信、奇安信、中国电子云</p></section><p><br></p><p><br></p>
+</div></div><div id="div_vote_id"></div>
+<div class="editor" style="margin-top:20px;">责任编辑：刘毅</div>
+    
+    
+        <UL style="list-style-type:none;"> 
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1482657449&wbfileid=2A3DBC1971335820C63DA7551413F041" target="_blank">附件1：第三届“中国电子杯”高校ICT产教融合创新大赛赛道方案.pdf</a>】已下载<span id="nattach18356956"><script language="javascript">getClickTimes(18356956,1482657449,"wbnewsfile","attach")</script></span>次</li>
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1482657449&wbfileid=BC94B71285A6C89ABFC9679AB30849C5" target="_blank">附件2：第三届“中国电子杯”高校ICT产教融合创新大赛命题.rar</a>】已下载<span id="nattach18356957"><script language="javascript">getClickTimes(18356957,1482657449,"wbnewsfile","attach")</script></span>次</li>
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1482657449&wbfileid=5819BDAE6CEC794C69DDB4BE54188615" target="_blank">附件3：第三届“中国电子杯”高校ICT产教融合创新大赛团队报名表.docx</a>】已下载<span id="nattach18356958"><script language="javascript">getClickTimes(18356958,1482657449,"wbnewsfile","attach")</script></span>次</li>
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1482657449&wbfileid=0C0BCA18F64F96AE495749666888D574" target="_blank">附件4：第三届“中国电子杯”高校ICT产教融合创新大赛报名汇总表.xlsx</a>】已下载<span id="nattach18356959"><script language="javascript">getClickTimes(18356959,1482657449,"wbnewsfile","attach")</script></span>次</li>
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1482657449&wbfileid=A825F1108AEE6F43EE5181A8992CA4A2" target="_blank">关于第三届 “中国电子杯” 高校 ICT 产教融合创新大赛报名的通知.pdf</a>】已下载<span id="nattach18356960"><script language="javascript">getClickTimes(18356960,1482657449,"wbnewsfile","attach")</script></span>次</li>
+        </UL>
+  
+
+
+
+
+<div class="pn"> <span>上一篇：</span><a href="35722.htm">关于2026“外研社·国才杯”“理解当代中国”全国大学生外语能力大赛短视频赛项及“四新”专项赛校级选拔赛获奖名单的公示</a>
+<br />
+          <br />
+          <span>下一篇：</span><a href="35702.htm">关于2026～2027学年第一学期重修选课的通知</a>
+ </div>
+
+
+
+
+
+    <p align="right" style="display:none">【<a href="javascript:window.opener=null;window.open('','_self');window.close();">关闭</a>】</p>
+</div>
+</form>
+</FORM></DIV></DIV></DIV></DIV><!-- copyright -->
+<DIV class="copyright">
+<DIV class="wrap"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>
+    版权所有©西安电子科技大学本科生院 &nbsp; &nbsp; &nbsp;地址：西安市西沣路兴隆段266号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;技术支持 西安聚力</p></DIV></DIV><script>
+
+$('.search').hover(function(){
+			$(this).find('.ss').stop().slideToggle();
+			$(this).find('.btn').stop().slideToggle();
+		})
+
+</script>
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

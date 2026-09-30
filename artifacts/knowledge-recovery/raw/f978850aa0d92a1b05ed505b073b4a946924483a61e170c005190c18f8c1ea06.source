@@ -1,0 +1,407 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>体育部学生党支部前往葛牌镇开展红色主题党日活动-西安电子科技大学体育部</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="体育部学生党支部前往葛牌镇开展红色主题党日活动">
+<META Name="keywords" Content="西安电子科技大学体育部,体育部,体育,学生,党支部,支部,前往,葛牌镇,开展,红色,主题,活动" />
+<META Name="description" Content="​（通讯员 崔一诺）近日，体育部学生党支部前往陕西省红色教育基地葛牌镇纪念馆进行学习。葛牌镇位于陕西省西安市蓝田县境内，是中国工农红军二十五军长征途中的重要驻地，也是鄂豫陕革命根据地的重要组成部分。这里，留下了无数革命先烈英勇奋斗的足迹，见证了中国共产党人为了民族独立和人民幸福而进行的艰苦卓绝的斗争。经过数小时车程，师生代表抵达庄严肃穆的葛牌镇区苏维埃政府纪念馆。这座纪念馆承载着中国共产党人在这..." />
+
+
+
+
+
+<META charset="UTF-8">
+<META name="description" content=""><LINK rel="stylesheet" href="../../css/reset.css"><LINK rel="stylesheet" href="../../css/style.css"><script type="text/javascript" src="../../js/bdtxk.js"></script><script type="text/javascript" src="../../js/slide.js"></script><script type="text/javascript" src="../../js/index.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1052,'/content.jsp',4724,1641759486)</script>
+</HEAD>
+<BODY><!-- header start -->
+<DIV id="header" class="w100">
+<DIV class="container">
+<DIV class="header_top">
+<DIV class="logo fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+
+<A href="../../index.htm" title="体育部2020"><IMG alt="" src="../../images/logo.png"> </A></DIV>
+<DIV class="hd_r_top fr">
+<DIV class="search fr"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError" style="padding:3px;margin:0px;display:inline;font-family:宋体;font-size:12px;">
+
+    <input autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" class="txt" value="请输入关键字！">
+    <input type="image" src="../../images/search_icon.png" align="absmiddle" v-on:click="onSubmit()" class="btn">
+ </div>
+        
+        
+        
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1641759486";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1641759486";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></DIV>
+<DIV class="hd_r_link fr"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><A href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 61540)" target="_blank">学校主页</A> 
+<A href="http://tyben.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 62678)" target="_blank">English</A> 
+</DIV></DIV></DIV><!-- nav start -->
+<DIV id="nav">
+<DIV class="nav_menu"><UL class="nav_list">
+<LI><A href="../../index.htm" title="首页">首页</A> 
+</LI>
+<LI><A href="../../bmgk1/bmjj.htm" title="部门概况">部门概况</A> 
+<DL class="menu">
+<DD><A href="../../bmgk1/bmjj.htm" title="部门简介">部门简介</A> </DD>
+<DD><A href="../../bmgk1/lsyg.htm" title="历史沿革">历史沿革</A> </DD>
+<DD><A href="../../bmgk1/xrld.htm" title="现任领导">现任领导</A> </DD>
+<DD><A href="../../bmgk1/jgsz.htm" title="机构设置">机构设置</A> </DD>
+<DD><A href="../../bmgk1/wyh.htm" title="委员会">委员会</A> </DD>
+<DD><A href="../../bmgk1/xcsp.htm" title="宣传视频">宣传视频</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../szdw.htm" title="师资队伍">师资队伍</A> 
+<DL class="menu">
+<DD><A href="../../szdw/js.htm" title="教授">教授</A> </DD>
+<DD><A href="../../szdw/fjs.htm" title="副教授">副教授</A> </DD>
+<DD><A href="../../szdw/js1.htm" title="讲师">讲师</A> </DD>
+<DD><A href="../../szdw/zj.htm" title="助教">助教</A> </DD>
+<DD><A href="../../szdw/zzgtjs.htm" title="专职公体教师">专职公体教师</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../djgz.htm" title="党建工作">党建工作</A> 
+<DL class="menu">
+<DD><A href="../../djgz/zzjg.htm" title="组织机构">组织机构</A> </DD>
+<DD><A href="../../djgz/gzdt.htm" title="工作动态">工作动态</A> </DD>
+<DD><A href="../../djgz/ztxx.htm" title="专题学习">专题学习</A> </DD>
+<DD><A href="../../djgz/ghgz.htm" title="工会工作">工会工作</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyjlb.htm" title="体育俱乐部">体育俱乐部</A> 
+<DL class="menu">
+<DD><A href="../../tyjlb/jlbjx.htm" title="俱乐部教学">俱乐部教学</A> </DD>
+<DD><A href="../../tyjlb/yjsjx.htm" title="研究生教学">研究生教学</A> </DD>
+<DD><A href="../../tyjlb/wskc.htm" title="网上课程">网上课程</A> </DD>
+<DD><A href="http://jpkc.xidian.edu.cn/dxty/" title="精品课程">精品课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../zspy.htm" title="招生培养">招生培养</A> 
+<DL class="menu">
+<DD><A href="../../zspy/sszs.htm" title="硕士招生">硕士招生</A> </DD>
+<DD><A href="../../zspy/sspy1.htm" title="硕士培养">硕士培养</A> </DD>
+<DD><A href="../../zspy/yddzsh.htm" title="运动队招生">运动队招生</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyky.htm" title="体育科研">体育科研</A> 
+<DL class="menu">
+<DD><A href="../../tyky/ktlx.htm" title="课题立项">课题立项</A> </DD>
+<DD><A href="../../tyky/xscg.htm" title="学术成果">学术成果</A> </DD>
+<DD><A href="../../tyky/kyhj.htm" title="科研获奖">科研获奖</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../ydjs.htm" title="运动竞赛">运动竞赛</A> 
+<DL class="menu">
+<DD><A href="../../ydjs/gspydd.htm" title="高水平运动队">高水平运动队</A> </DD>
+<DD><A href="../../ydjs/ptsydd.htm" title="普通生运动队">普通生运动队</A> </DD>
+<DD><A href="../../ydjs/xnjs.htm" title="校内竞赛">校内竞赛</A> </DD>
+<DD><A href="../../ydjs/syxw.htm" title="首页新闻">首页新闻</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../rydt.htm" title="荣誉殿堂">荣誉殿堂</A> 
+<DL class="menu">
+<DD><A href="../../rydt/xdqgry.htm" title="西电全国荣誉">西电全国荣誉</A> </DD>
+<DD><A href="../../rydt/xdsnry.htm" title="西电省内荣誉">西电省内荣誉</A> </DD>
+<DD><A href="../../rydt/xdxnry.htm" title="西电校内荣誉">西电校内荣誉</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../gzzd.htm" title="规章制度">规章制度</A> 
+</LI>
+<LI><A href="../../rczp.htm" title="人才招聘">人才招聘</A> 
+</LI>
+<LI><A href="#" title="下载专区">下载专区</A> 
+<DL class="menu">
+<DD><A href="../../xzzq1/xzzq.htm" title="下载专区">下载专区</A> </DD>
+<DD><A href="../../xzzq1/jxkyyb.htm" title="教学科研用表">教学科研用表</A> </DD>
+<DD><A href="../../xzzq1/rsfwxx.htm" title="人事服务信息">人事服务信息</A> </DD>
+<DD><A href="../../xzzq1/wskc.htm" title="网上课程">网上课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../cggl.htm" title="场馆管理">场馆管理</A> 
+<DL class="menu">
+<DD><A href="../../cggl/cgjs.htm" title="场馆介绍">场馆介绍</A> </DD>
+<DD><A href="../../cggl/glgd.htm" title="管理规定">管理规定</A> </DD>
+<DD><A href="../../cggl/cgsq.htm" title="场馆申请">场馆申请</A> </DD>
+</DL>
+</LI>
+</UL></DIV></DIV><!-- end nav --></DIV></DIV><!-- end header --><!-- ej_banner start -->
+<DIV id="ej_banner" class="w100">
+<DIV class="ej_banner_con">    <IMG alt="" src="../../images/ej_banner.jpg"> </DIV>
+<DIV class="ej_banner_bd">
+<DIV class="lmmc"><!-- header start -->
+工作动态</DIV></DIV></DIV><!-- end ej_banner --><!-- main start -->
+<DIV id="main" class="w100">
+<DIV class="container">
+<DIV class="main_con clearfix">
+<DIV class="main_con_l fl">
+<DIV class="sidebar"><UL>
+<LI><A href="../../djgz/zzjg.htm" title="组织机构">组织机构</A></LI>
+
+<LI class="active"><A href="../../djgz/gzdt.htm" title="工作动态">工作动态</A></LI>
+
+<LI><A href="../../djgz/ztxx.htm" title="专题学习">专题学习</A></LI>
+
+<LI><A href="../../djgz/ghgz.htm" title="工会工作">工会工作</A></LI>
+
+</UL>
+</DIV></DIV>
+<DIV class="main_con_r fr">
+<DIV class="main_hd">
+<DIV class="dqwz"><div>
+    位置: 
+                        <a href="../../index.htm">首页</a>
+                >
+                <a href="../../djgz.htm">党建工作</a>
+                >
+                <a href="../../djgz/gzdt.htm">工作动态</a>
+                >
+                正文
+</div>
+
+</DIV><SPAN class="line"></SPAN></DIV>
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="nr">
+	<div class="main_bd">
+	         <div class="con_title">
+   <h2 class="title">体育部学生党支部前往葛牌镇开展红色主题党日活动</h2>
+   <p class="info">来源：<span class="xxly">
+    </span>时间：<span class="time1">2024-06-13</span>点击数：<i class="djs"><script>_showDynClicks("wbnews", 1641759486, 4724)</script></i></p>
+                 </div>
+
+
+
+    <div id="vsb_content_2" class="content"><div class="v_news_content">
+<p class="vsbcontent_start"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">（通讯员 崔一诺）近日，体育部学生党支部前往陕西省红色教育基地葛牌镇纪念馆进行学习。</span></p>
+<p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">葛牌镇位于陕西省西安市蓝田县境内，是中国工农红军二十五军长征途中的重要驻地，也是鄂豫陕革命根据地的重要组成部分。这里，留下了无数革命先烈英勇奋斗的足迹，见证了中国共产党人为了民族独立和人民幸福而进行的艰苦卓绝的斗争。</span></p>
+<p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">经过数小时车程，师生代表抵达庄严肃穆的葛牌镇区苏维埃政府纪念馆。这座纪念馆承载着中国共产党人在这里的奋斗历程和丰功伟绩。纪念馆内，珍贵的历史照片、文物和资料详细记录了鄂豫陕边区苏维埃政府的斗争历程。通过观看展览、聆听讲解，学生们被革命先烈们为了民族独立和人民幸福而英勇奋斗的精神所感动，对党的历史有了更加深刻的认识和理解。</span></p>
+<p style="text-align: center;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;"><img src="/__local/4/CE/5E/C410EC75522AC3EFF7449B04B5B_614042EC_2D393.png" id="31lFTkSu" width="389" height="262" vsbhref="vurl" vurl="/_vsl/4CE5EC410EC75522AC3EFF7449B04B5B/614042EC/2D393" vheight=" 262px" vwidth=" 389px" orisrc="/__local/4/CE/5E/C410EC75522AC3EFF7449B04B5B_614042EC_2D393.png" class="img_vsb_content" style="width: 389px; height: 262px;"></span></p>
+<p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">在参观中，学生们特别关注了红军长征途中的艰苦岁月。他们了解到，在长征途中，红军战士们面临着极其恶劣的自然环境和敌人的围追堵截，但他们凭借着坚定的信念和顽强的意志，克服了重重困难，最终取得了长征的胜利。这种不屈不挠的精神深深打动了学生们的心灵，让他们更加珍惜今天的幸福生活，也更加坚定了他们为实现中华民族伟大复兴的中国梦而努力奋斗的信念。学生们纷纷表示要铭记历史、珍惜现在、开创未来，为实现中华民族伟大复兴的中国梦贡献自己的力量。</span></p>
+<p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">参观结束后，学生党员重温了入党誓词，铿锵有力的宣言回荡在纪念馆上空。</span></p>
+<p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">本次主题党日学习之旅让学生们受益匪浅。体育学研究生胡重庆表示，要将这次学习的成果转化为实际行动，以更加饱满的热情和更加坚定的信念投身到学习和工作中去，为实现中华民族的伟大复兴贡献自己的力量。运动训练专业大二学生周军驰认为，要自觉传承和发扬红色基因，牢记初心使命，将个人的理想追求与国家的发展大局紧密结合起来。</span></p>
+<p style="text-align: center;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;"><img src="/__local/9/3E/F5/CFD4A4E07EAA5C1085DC1E7108D_06CDE599_30C25.png" id="965ErkJg" vsbhref="vurl" vurl="/_vsl/93EF5CFD4A4E07EAA5C1085DC1E7108D/06CDE599/30C25" vheight="" vwidth="" orisrc="/__local/9/3E/F5/CFD4A4E07EAA5C1085DC1E7108D_06CDE599_30C25.png" class="img_vsb_content"></span></p>
+<p class="vsbcontent_end"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">此次主题党日学习活动，学生们通过参观、交流、重温入党誓词等方式深刻感受到了革命先烈们的英勇无畏和坚定信念。他们表示将以此次学习为契机，继续深入学习党的理论和路线方针政策，不断提高自己的思想政治素质和综合能力水平，为实现中华民族的伟大复兴贡献自己的力量。</span></p>
+<p class="vsbcontent_end" style="text-align: center;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;"><img src="/__local/4/24/32/E8F02548057CE1D9E6849D04ECA_B9AC9572_3255D.png" id="185ErkJg" vsbhref="vurl" vurl="/_vsl/42432E8F02548057CE1D9E6849D04ECA/B9AC9572/3255D" vheight="" vwidth="" orisrc="/__local/4/24/32/E8F02548057CE1D9E6849D04ECA_B9AC9572_3255D.png" class="img_vsb_content"></span></p>
+</div></div><div id="div_vote_id"></div>
+    
+<div class="page">
+  <p><span>上一条：</span><a href="6962.htm">体育部党总支赴安吴青年训练班纪念馆开展主题党日活动</a></p>
+  <p><span>下一条：</span><a href="4745.htm">体育部召开学生主题党日、主题团日  暨“时代之声”宣讲活动</a></p>
+</div>
+
+
+</div></div>
+</form>
+</DIV></DIV></DIV></DIV><!-- end main --><!-- footer start -->
+<DIV id="footer" class="w100">
+<DIV class="container">
+<DIV class="foot_con clearfix">
+<DIV class="foot_top">
+<DIV class="address fl"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>北校区地址:西安市太白南路2号 邮编：710071</p> 
+<p>南校区地址:西安市西沣路兴隆段266号 邮编：710126</p> 
+<p>电话：（029）81891207 办公邮箱：tiyubu1294@126.com</p> 
+<p>意见投诉信箱：tyb@xidian.edu.cn</p> 
+<p>师德师风监督电话：（029）81891207</p></DIV>
+<DIV class="ft_ewm fr">    
+
+<IMG alt="" src="../../images/erweima.jpg"> 
+<P class="title">官方微信</P>
+</DIV></DIV>
+<DIV class="copyright"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright&nbsp;© 2007-2021 西安电子科技大学体育部 版权所有 技术支持： <a href="https://xxzx.xidian.edu.cn/" style="text-decoration: none; color: white">信息网络技术中心 </a>&nbsp;&nbsp;西安聚力</p></DIV></DIV></DIV></DIV><!-- end footer --><!-- back start -->
+<DIV id="back"></DIV><!-- end back -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

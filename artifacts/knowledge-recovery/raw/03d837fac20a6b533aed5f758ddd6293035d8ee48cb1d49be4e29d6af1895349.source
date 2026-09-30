@@ -1,0 +1,232 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><HTML><HEAD><TITLE>网络使用认证使用指南-西安电子科技大学 迎新网</TITLE><meta name="pageType" content="2">
+<meta name="pageTitle" content="网络使用认证使用指南">
+<META Name="keywords" Content="西安电子科技大学 迎新网" />
+
+
+
+
+
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<META name="format-detection" content="telephone=no">
+<META name="format-detection" content="address=no">
+<META content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+<META name="viewport" content="width=device-width,initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"><LINK rel="stylesheet" href="../css/style.css"><script type="text/javascript" src="../js/bdtxk.js"></script><script type="text/javascript" src="../js/bdtxw.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../zhengwen.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1047,'/zhengwen.jsp',-1,1370298689)</script>
+</HEAD>
+<BODY>
+<DIV class="logo w100">
+<DIV class="logo w1200">
+<DIV class="logo-img">
+<a href="../index.htm" title="迎新网"><img src="../images/logo.png" border="0"></a></DIV>
+
+<DIV class="toplinks">
+<UL><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script>    <LI><a href="https://xxcapp.xidian.edu.cn/site/universalForm/index?id=15" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370298689, 41766)">本科生学号查询</a></li>
+    <LI><a href="https://xxcapp.xidian.edu.cn/site/universalForm/index?id=13" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370298689, 41761)">研究生学号查询</a></li>
+ </UL></DIV>
+    
+<div class="denglu">
+           <a href="https://xgxt.xidian.edu.cn/xsfw/sys/yxapp/*default/index.do" target="_blank"> <img src="../images/denglu.png" />
+            用户登录</a>
+        </div>
+</DIV></DIV><!-- 本例子代码 开始 ------------------------------------------->
+<DIV class="navBar">
+<UL class="nav clearfix">   
+   
+    <li class="m">
+                <h3><a href="../index.htm">首页</a></h3>
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../bdxz.htm">报到须知</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../bdxz/bksbdxz.htm" target="">本科生报到须知</a></li>                
+                    <li><a href="../bdxz/yjsbdxz.htm" target="">研究生报到须知</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../zczd.htm">学习攻略</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../zczd/xsnlcs.htm" target="">能力测试和试点班选拔</a></li>                
+                    <li><a href="../zczd/dxsaqbmjy.htm" target="">大学生安全保密教育</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../xszz.htm">学生资助</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../xszz/bkszz.htm" target="">本科生资助</a></li>                
+                    <li><a href="../xszz/yjszz.htm" target="">研究生资助</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../szxy.htm">数字校园</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="wlsyrzsyzn.htm" target="">网络使用认证使用指南</a></li>                
+                    <li><a href="wlsyrzsyzn1.htm" target="">学生邮件认证申请指南</a></li>                
+                    <li><a href="wlsyrzsyzn2.htm" target="">一卡通使用流程及指南</a></li>                
+                    <li><a href="rjzbh.htm" target="">软件正版化</a></li>                
+                    <li><a target="_blank" href="https://gis.xidian.edu.cn/#/live" target="target=" _blank"">西电720全景</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../zfqc.htm">绽放青春</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../zfqc/xshzc3.htm" target="">校团委</a></li>                
+                    <li><a href="../zfqc/xshzc.htm" target="">学生会</a></li>                
+                    <li><a href="../zfqc/yjsh.htm" target="">研究生会</a></li>                
+                    <li><a href="../zfqc/hlst.htm" target="">活力社团</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+
+<LI class="block"><!-- 滑动块 --></LI></UL></DIV><script type="text/javascript">
+
+(function(){
+    var ind = 0; //初始位置
+    var nav= jQuery(".nav");
+    var init = jQuery(".nav .m").eq(ind);
+    var block = jQuery(".nav .block"); //滑块
+    block.css({"left":init.position().left-1}); //初始化滑块位置
+    nav.hover(function(){},function(){ block.animate({"left":init.position().left-1},100); }); //移出导航滑块返回
+
+    jQuery(".nav").slide({ 
+            type:"menu", //效果类型
+            titCell:".m", // 鼠标触发对象
+            targetCell:".sub", // 效果对象，必须被titCell包含
+            delayTime:300, // 效果时间
+            triggerTime:0, //鼠标延迟触发时间
+            returnDefault:true,//on返回初始位置
+            defaultIndex:ind,//初始位置
+            startFun:function(i,c,s,tit){ //控制当前滑块位置
+                block.animate({"left":tit.eq(i).position().left-1},100);
+            }
+        });
+})()
+</script><!-- 本例子代码 结束 ------------------------------------------>
+<DIV class="banner"><img src="../images/banner1.png" style=" width:100%; height:234px;" /></DIV><!-- 轮播图 -->
+<DIV class="content w1200"><!--menu kaishi-->
+<DIV class="menu">
+<DIV class="menu-head">
+网络使用认证使用指南</DIV>
+<DIV class="menu-content">
+<DIV class="menu-content-nav">
+<UL>
+    <LI><A id="dangqian" href="wlsyrzsyzn.htm" onfocus="undefined">网络使用认证使用指南</A> </LI>
+
+
+
+
+    <LI><A href="wlsyrzsyzn1.htm" onfocus="undefined">学生邮件认证申请指南</A> </LI>
+
+
+
+
+    <LI><A href="wlsyrzsyzn2.htm" onfocus="undefined">一卡通使用流程及指南</A> </LI>
+
+
+
+
+    <LI><A href="rjzbh.htm" onfocus="undefined">软件正版化</A> </LI>
+
+
+
+
+    <LI><A href="https://gis.xidian.edu.cn/#/live" onfocus="undefined">西电720全景</A> </LI>
+
+
+
+</UL>
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV></DIV></DIV>
+<DIV class="clear"></DIV><!--menu jieshu--><!--main kaishi-->
+<DIV class="main">
+<DIV class="main-nav"><SPAN>    <span>当前位置: </span>
+        
+                <a href="../index.htm">首页</a>
+               <span>></span>            
+                <a href="../szxy.htm">数字校园</a>
+               <span>></span>            
+                <a href="wlsyrzsyzn.htm">网络使用认证使用指南</a>
+</SPAN></DIV>
+<DIV class="detail">
+
+
+
+
+
+<script language="javascript" src="/system/resource/js/ajax.js"></script><script language="javascript">_getBatchClickTimes('null',1370298689,'wbnews','u8')</script>
+<script>function seeContenta8(contentid,size,displayid){	document.getElementById(contentid).innerHTML = '[';	for(var i=0;i<=size;i++){		var allcontentid = contentid+(i+1);		if(allcontentid==displayid){			document.getElementById(contentid).innerHTML += " <span id='"+allcontentid+"' name='"+allcontentid+"'  >"+(i+1)+"</span> ";			document.getElementById(displayid).style.display = 'block';		}else{			document.getElementById(contentid).innerHTML += " <span style='cursor:pointer' id='"+allcontentid+"' name='"+allcontentid+"' onclick=seeContenta8('"+contentid+"','"+size+"','"+allcontentid+"')  >"+(i+1)+"</span> ";			document.getElementById(allcontentid).style.display = 'none';		}	}	document.getElementById(contentid).innerHTML += ']';}</script>
+<script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<script>_addDynClicks('wbnews',1370298689,1242)</script>
+<div class="detail_head">
+<div class="detail_head1">
+    上网指南</div><div class="clear"></div>
+
+ <div class="content-bt-xia">
+            <span>(</span><span>发布时间：2025-07-08</span><span>被阅览数： <script>_showDynClicks("wbnews", 1370298689, 1242)</script>次</span><span>来源：</span><span>)</span>
+        </div> 
+
+
+    <div class="detail_main"><div id="vsb_content_1242_u81"><div id="vsb_content"><div><p style="line-height: 2em; text-indent: 0em;"><span style="font-family: 微软雅黑,Microsoft YaHei;"><strong>校园无线分为以下几种：</strong></span></p><p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 微软雅黑,Microsoft YaHei;">1.教工无线名称：“xd-wlan”；</span></p><p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 微软雅黑,Microsoft YaHei;">2.学生无线名称：“stu-xdwlan”;</span></p><p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 微软雅黑,Microsoft YaHei;">3.翼讯用户（学生）无线名称：“xd-yixun”；</span></p><p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 微软雅黑,Microsoft YaHei;"><strong>无线认证方式分为两种：</strong></span></p><p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 微软雅黑,Microsoft YaHei;">1.页面认证方式，首次使用无线都会进行页面认证，如下图；</span></p><p style="text-align: center;"><img width="508" height="252" alt="IMG_256" src="/__local/3/31/58/F3DD1B56DDB017D59F53944B6D9_B893C44E_5C2B.jpg" vsbhref="vurl" vurl="/_vsl/33158F3DD1B56DDB017D59F53944B6D9/B893C44E/5C2B" vheight="252" vwidth="508" orisrc="/__local/3/31/58/F3DD1B56DDB017D59F53944B6D9_B893C44E_5C2B.jpg" class="img_vsb_content"></p><p style="text-align: center;"><img width="306" height="411" alt="IMG_256" src="/__local/F/9B/D5/6E42A683A84C369692223618DD6_D3B17E49_6DB4.gif" vsbhref="vurl" vurl="/_vsl/F9BD56E42A683A84C369692223618DD6/D3B17E49/6DB4" vheight="411" vwidth="306" orisrc="/__local/F/9B/D5/6E42A683A84C369692223618DD6_D3B17E49_6DB4.gif" class="img_vsb_content"></p><p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 微软雅黑,Microsoft YaHei;">2.无感知认证方式，进行过页面认证的设备，认证信息会被记录，连接到对应的无线网络（SSID）会自动进行认证上网；（“xd-yixun”没有无感知功能，不能进行无感知认证）</span></p><p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 微软雅黑,Microsoft YaHei;"><strong>无线使用方法：</strong></span></p><p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 微软雅黑,Microsoft YaHei;">1.搜索无线，连接对应的无线；</span></p><p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 微软雅黑,Microsoft YaHei;">2.打开浏览器(有些设备会自动弹出认证页面)，在浏览器地址栏输入学校主页地址(www.xidian.edu.cn)或者其它地址(例如:1.1.1.1),会自动重定向无线认证页面;</span></p><p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 微软雅黑,Microsoft YaHei;">3.在登录页面输入上网信息，连接上网。</span></p></div></div></div></div>
+    <span id="vsb_content_1242_u8" name="vsb_content_1242_u8"></span><br /><br />
+    <span>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1370298689&wbfileid=1BA3DAE5B1500986F83AB3BFB123761B"><span>上网指南.doc</span></a>】</span><br>
+
+ 
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV><!--main jieshu--></DIV>
+<DIV class="clear"></DIV><DIV class="clear"></DIV></DIV>
+<DIV class="footer w100"><p>版权所有：西安电子科技大学</p><p>长安校区地址：陕西省西安市西沣路兴隆段266号 邮编710126&nbsp;&nbsp;&nbsp; 技术支持：西安聚力</p></DIV>
+
+</BODY></HTML>

@@ -1,0 +1,13 @@
+<view class="{{pageMotion}} settings-page {{themeClass}}">
+  <settings-header title="{{c.about}}" theme-class="{{themeClass}}" english="{{currentLanguage === 'en'}}" />
+  <view class="settings-section about-brand">
+    <view class="about-wordmark">知行</view>
+    <view class="settings-caption">{{c.version}} {{version}}</view>
+  </view>
+  <view class="settings-section">
+    <view class="settings-section-title">{{c.agreements}}</view>
+    <view wx:for="{{items}}" wx:key="type" class="settings-row settings-link-row" hover-class="settings-pressed" role="button" data-type="{{item.type}}" bindtap="openLegal">
+      <view class="settings-row-body settings-title">{{item.label}}</view><view class="ui-icon icon-chevron-right settings-chevron"></view>
+    </view>
+  </view>
+</view>

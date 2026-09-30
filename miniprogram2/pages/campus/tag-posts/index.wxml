@@ -1,0 +1,37 @@
+<view class="{{pageMotion}} page tag-posts-page {{themeClass}}">
+  <view class="tag-appbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 12}}px; padding-right:{{navRight}}px;">
+    <view class="tag-back" bindtap="goBack" role="button" aria-label="返回" hover-class="motion-press">
+      <view class="ui-icon icon-back"></view>
+    </view>
+    <view class="tag-heading">
+      <view class="tag-name">#{{tag}}</view>
+      <view class="tag-count">共 {{total}} 条帖子</view>
+    </view>
+  </view>
+
+  <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="tag-list" style="padding-top: {{navTop + navHeight + 12}}px;">
+    <post-row
+      wx:for="{{posts}}"
+      wx:key="id"
+      item="{{item}}"
+      index="{{index}}"
+      show-follow-dot="true"
+      bind:open="goPostDetail"
+      bind:author="openAuthorProfile"
+      bind:tag="goTagPosts"
+      bind:like="togglePostLike"
+      bind:favorite="togglePostFavorite"
+    />
+
+    <view class="loading-state" wx:if="{{loading}}">加载中...</view>
+    <view class="tag-empty" wx:if="{{!loading && errorMessage && posts.length === 0}}">
+      <view class="tag-empty-title">加载失败</view>
+      <view class="tag-empty-desc">{{errorMessage}}</view>
+      <button bindtap="retryLoad">重新加载</button>
+    </view>
+    <view class="tag-empty" wx:elif="{{!loading && posts.length === 0}}">
+      <view class="tag-empty-title">还没有这个标签的帖子</view>
+      <view class="tag-empty-desc">#{{tag}}</view>
+    </view>
+  </scroll-view>
+</view>

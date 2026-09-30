@@ -1,0 +1,539 @@
+.service-page {
+  min-height: 100vh;
+  padding: 24rpx 0 80rpx;
+  background: var(--app-background);
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.schedule-nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  padding-right: 210rpx;
+  padding-left: 18rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+  background: var(--app-surface);
+}
+
+.schedule-back {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:40px;
+  height:32px;
+  padding:0;
+  background:transparent;
+  color:var(--app-text-primary);
+  flex: 0 0 auto;
+}
+.schedule-back .ui-icon { width:24px; height:24px; }
+.schedule-back { flex:0 0 40px; width:40px !important; min-width:40px; max-width:40px; margin:0 !important; }
+
+.top-week-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.top-week-arrow {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 28px;
+  width:28px;
+  height:32px;
+  padding:0;
+  background:transparent;
+  color: var(--app-text-primary);
+  font-size: 22px;
+  line-height: 48rpx;
+  text-align: center;
+}
+.top-week-arrow .ui-icon { width:18px; height:18px; }
+.top-week-switch picker { flex:1; min-width:0; }
+
+.top-week-current {
+  max-width: 380rpx;
+  height: 52rpx;
+  padding: 0 18rpx;
+  border-radius: 16rpx;
+  color: var(--app-text-primary);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 52rpx;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-service-title {
+  flex: 1;
+  min-width: 0;
+  color: var(--app-text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loading-state {
+  padding: 120rpx 32rpx 0;
+  color: var(--app-text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
+.detail-head {
+  padding: 0 32rpx 18rpx;
+}
+
+.detail-title {
+  color: var(--app-text-primary);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.section-card {
+  margin:0;
+  padding:20px;
+  border-bottom:1px solid var(--app-divider);
+  border-radius:0;
+  background:transparent;
+}
+
+.section-head-tight {
+  display: flex;
+  justify-content: space-between;
+  gap: 16rpx;
+  align-items: flex-start;
+}
+
+.section-title {
+  color: var(--app-text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.action-grid {
+  display:flex;
+  flex-direction:column;
+  margin-top:12px;
+}
+
+.action-card {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-height:56px;
+  padding:12px 0;
+  border-bottom:1px solid var(--app-divider);
+  background:transparent;
+}
+.action-card .ui-icon { width:20px; height:20px; color:var(--app-text-secondary); }
+
+.action-label {
+  flex:1;
+  min-width:0;
+  overflow-wrap:anywhere;
+  color: var(--app-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.top-week-arrow .icon-arrow { transform:rotate(90deg); }
+
+.calendar-section {
+  padding-bottom: 8rpx;
+  width: 100%;
+  max-width: 100vw;
+  overflow: hidden;
+}
+
+.calendar-toolbar {
+  display: flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:12px;
+  padding:20px 20px 12px;
+}
+
+.calendar-title {
+  color: var(--app-text-primary);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  min-width: 0;
+  width:100%;
+  justify-content:space-between;
+}
+.calendar-nav picker { flex:1; min-width:0; }
+
+.nav-button {
+  flex:0 0 44px;
+  width:44px;
+  height:44px;
+  border-radius:8px;
+  background:transparent;
+  color: var(--app-text-primary);
+  font-size: 21px;
+  font-weight: 500;
+  line-height:44px;
+  text-align: center;
+}
+
+.date-picker {
+  height:44px;
+  max-width:100%;
+  padding: 0 18rpx;
+  border-radius:8px;
+  background:var(--app-control);
+  color: var(--app-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height:44px;
+  text-align:center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.week-strip {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.week-strip-inner {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.week-card {
+  display: inline-flex;
+  flex-direction: column;
+  width: 128rpx;
+  min-height: 128rpx;
+  margin-left: 16rpx;
+  padding: 14rpx 12rpx;
+  border-radius: 22rpx;
+  background: transparent;
+  vertical-align: top;
+}
+
+.week-card:first-child {
+  margin-left: 32rpx;
+}
+
+.week-card:last-child {
+  margin-right: 32rpx;
+}
+
+.week-card.active {
+  background: var(--app-primary-soft);
+}
+
+.week-card-label {
+  color: var(--app-text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.week-card-range {
+  margin-top: 4rpx;
+  color: var(--app-text-secondary);
+  font-size: 9.5px;
+  line-height: 1.2;
+}
+
+.week-card-dots {
+  display: grid;
+  grid-template-columns: repeat(7, 10rpx);
+  gap: 6rpx;
+  margin-top: 12rpx;
+}
+
+.week-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: var(--app-divider);
+}
+
+.week-dot.active {
+  background: var(--app-primary);
+}
+
+.schedule-grid-scroll {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  margin-top: 26rpx;
+}
+
+.schedule-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 84rpx repeat(7, minmax(0, 1fr));
+  grid-template-rows: 78rpx repeat(10, 112rpx);
+  width: 100%;
+  max-width: none;
+  min-width: 560px;
+  min-height: 1198rpx;
+  padding: 0 0 28rpx;
+  box-sizing: border-box;
+}
+
+.schedule-corner,
+.schedule-day-head,
+.schedule-time-head,
+.schedule-empty-cell,
+.schedule-block {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.schedule-corner {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.schedule-day-head {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--app-text-primary);
+}
+
+.schedule-day-name {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.schedule-day-num {
+  margin-top: 8rpx;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.schedule-time-head {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 2rpx 0 0;
+  color: var(--app-text-primary);
+  text-align: center;
+}
+
+.schedule-section {
+  color: var(--app-text-primary);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.05;
+}
+
+.schedule-time-label-group {
+  position: absolute;
+  left: 0;
+  width: 84rpx;
+  padding-right: 8rpx;
+  transform: translateY(-50%);
+  box-sizing: border-box;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.schedule-time-label {
+  display: block;
+  margin: 2rpx 0;
+  color: var(--app-text-secondary);
+  font-size: 9px;
+  line-height: 1.05;
+  text-align: right;
+}
+
+.schedule-empty-cell {
+  border-top: 1rpx solid var(--app-divider);
+}
+
+.schedule-empty-cell.is-inner {
+  border-top-color: transparent;
+}
+
+.schedule-block {
+  z-index: 2;
+  overflow: hidden;
+  position: relative;
+  margin: 6rpx 3rpx;
+  padding: 11rpx 5rpx 9rpx 9rpx;
+  border: 1rpx solid var(--schedule-line);
+  border-left: 5rpx solid var(--schedule-accent);
+  border-radius: 14rpx;
+  background: var(--schedule-bg);
+  color: var(--app-text-primary);
+  box-shadow: none;
+}
+
+.schedule-block.exam {
+  position: absolute;
+  margin: 0;
+  color: var(--app-text-primary);
+}
+
+.schedule-block-title {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.24;
+  word-break: break-all;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  overflow:hidden;
+}
+
+.schedule-block-meta {
+  margin-top: 5rpx;
+  color: var(--app-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.schedule-block {
+  --schedule-accent: var(--app-primary);
+  --schedule-line: var(--app-divider);
+  --schedule-bg: var(--app-control);
+}
+
+.schedule-empty {
+  margin: 18rpx 32rpx 0;
+  padding: 22rpx 24rpx;
+  border-radius: 22rpx;
+  background: var(--app-surface);
+  color: var(--app-text-secondary);
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.exam-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin: 18rpx 32rpx 0;
+}
+
+.exam-card {
+  padding: 24rpx;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 24rpx;
+  background: var(--app-surface);
+}
+
+.exam-date {
+  color: var(--app-primary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.exam-title {
+  margin-top: 8rpx;
+  color: var(--app-text-primary);
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.exam-row {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 14rpx;
+}
+
+.exam-label {
+  width:48px;
+  flex: 0 0 auto;
+  color: var(--app-text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.exam-value {
+  flex: 1;
+  min-width: 0;
+  color: var(--app-text-primary);
+  font-size: 12.5px;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.map-row {
+  padding-top: 14rpx;
+}
+
+.map-row + .map-row {
+  margin-top: 14rpx;
+  border-top: 1rpx solid var(--app-divider);
+}
+
+.map-title {
+  color: var(--app-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.map-desc {
+  margin-top: 6rpx;
+  color: var(--app-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.section-link {
+  color: var(--app-primary);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Approved reference layout. */
+.section-card, .exam-card { margin:0; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; padding:28rpx 36rpx; box-shadow:none; }
+.calendar-section { border-radius:0; border-color:var(--app-divider); }
+.action-grid { gap:0; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.action-card { border:0; border-bottom:1px solid var(--app-divider); border-radius:0; min-height:112rpx; background:var(--app-background); box-shadow:none; }
+.schedule-block { background:var(--app-control); border:1px solid var(--app-divider); color:var(--app-text-primary); }
+.nav-button { min-width:44px; min-height:44px; }
+.section-card, .exam-card { background:transparent; }

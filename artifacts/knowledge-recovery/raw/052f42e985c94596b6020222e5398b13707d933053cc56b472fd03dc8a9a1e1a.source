@@ -1,0 +1,331 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<HEAD>
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<TITLE>信息公开指南-西安电子科技大学 信息公开网</TITLE><meta name="pageType" content="2">
+<meta name="pageTitle" content="信息公开指南">
+<META Name="keywords" Content="信息公开网" />
+
+<STYLE type="text/css">
+<!--
+body {
+    background-color: #B7D1E6;}
+a:link {
+    text-decoration: none;}
+a:visited {
+    text-decoration: none;}
+a:hover {
+    text-decoration: none;}
+a:active {
+    text-decoration: none;}
+
+-->
+</STYLE>
+
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="zwy.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1006,'/zwy.jsp',-1,1084254140)</script>
+</HEAD>
+<BODY leftmargin="0" topmargin="0" bgcolor="#ffffff" marginheight="0" marginwidth="0">
+<TABLE border="0" cellspacing="0" cellpadding="0" width="101%">
+<TBODY>
+<TR>
+<TD background="images/bgbg-3.jpg">
+<TABLE border="0" cellspacing="0" cellpadding="0" width="1000" align="center">
+<TBODY>
+<TR>
+<TD><IMG alt="" src="images/index_01.jpg" width="1000" height="124"></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>
+<TABLE id="__" border="0" cellspacing="0" cellpadding="0" width="1000" align="center" height="638">
+<TBODY>
+<TR>
+<TD bgcolor="#0084cf" valign="top" width="230">
+<TABLE id="__2" border="0" cellspacing="0" cellpadding="0" width="230">
+<TBODY>
+<TR>
+<TD><IMG alt="" src="images/index_02_01_01.gif" width="230" height="20"></TD></TR>
+<TR>
+<TD valign="top">
+
+<ul class="wzdh">  <li>
+    <a href="index.htm" title="网站首页">
+      <p><img src="images/dhbt_an-sy.png"><span>网站首页</span></p>
+    </a>
+  </li>
+  <li>
+    <a href="xxgkzd.htm" title="信息公开法规与制度">
+      <p><img src="images/dhbt_an-sy.png"><span>信息公开法规与制度</span></p>
+    </a>
+  </li>
+  <li class="on">
+    <a href="xxgkzn.htm" title="信息公开指南">
+      <p><img src="images/dhbt_an-sy.png"><span>信息公开指南</span></p>
+    </a>
+  </li>
+  <li>
+    <a href="xxgkml.htm" title="信息公开目录">
+      <p><img src="images/dhbt_an-sy.png"><span>信息公开目录</span></p>
+    </a>
+  </li>
+  <li>
+    <a href="zdlyxxgk.htm" title="重点领域信息公开">
+      <p><img src="images/dhbt_an-sy.png"><span>重点领域信息公开</span></p>
+    </a>
+  </li>
+  <li>
+    <a href="xxgksq.htm" title="信息公开申请">
+      <p><img src="images/dhbt_an-sy.png"><span>信息公开申请</span></p>
+    </a>
+  </li>
+</ul>
+
+</TD></TR>
+<TR>
+<TD><IMG alt="" src="images/index_02_01_05.jpg" width="230" height="32"></TD></TR>
+<TR>
+<TD valign="center" align="center">
+<TABLE border="0" cellspacing="0" cellpadding="0" width="100%">
+<TBODY>
+<TR>
+<TD align="center">    
+    
+    
+    
+  
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script>
+    
+<script language="javascript">    
+<!--    
+    function doLinksu1(o)    
+    {    
+        var link=document.getElementsByName("su1")[0];    
+        var index=link.selectedIndex;    
+        if (index==-1 || index>=link.options.length)    
+        {    
+          return;    
+        }    
+        var value = link.options[index].value;    
+        var obj = document.getElementById("hu1");    
+        obj.href = value;
+        var wburlid =link.options[index].getAttribute("aa49847aa");
+        _addDynClicks('wburl',1084254140,wburlid)
+            
+                     obj.target = "_blank"
+                    
+         if(document.all){
+          obj.click();     
+        }         
+         else 
+        { 
+          window.open(value);
+         }
+       
+       if(o.selectedIndex != 0)    
+       {    
+           o.selectedIndex = 0;    
+       }    
+    }    
+-->    
+</script>  
+<table>    
+    <tr><td align="center">    
+            <span class="titlestyle49847"></span> <a id="hu1"></a>    
+            <select name="su1" class="selectstyle49847" onChange="doLinksu1(this)">    
+                <option value="">　　　--校内网站链接--</option>    
+                <option vsbhrefname="value" aa49847aa="8149" value="https://www.xidian.edu.cn/">学校主页    
+                <option vsbhrefname="value" aa49847aa="8150" value="https://dzb.xidian.edu.cn">党政办公室    
+                <option vsbhrefname="value" aa49847aa="8151" value="https://jwc.xidian.edu.cn/">教务处    
+                <option vsbhrefname="value" aa49847aa="8152" value="https://ord.xidian.edu.cn/">科学研究院    
+                <option vsbhrefname="value" aa49847aa="8153" value="https://gr.xidian.edu.cn/">研究生院    
+                <option vsbhrefname="value" aa49847aa="8154" value="https://zsb.xidian.edu.cn/">本科招生信息网    
+                <option vsbhrefname="value" aa49847aa="8155" value="https://gr.xidian.edu.cn/yjsy.htm">研究生招生信息网    
+                </select>    
+        </td><tr></table></TD></TR>
+<TR>
+<TD align="center"><SPAN style="line-height: 120%;color: black;font-size: 9pt;font-weight: normal">    
+    
+    
+    
+  
+
+    
+<script language="javascript">    
+<!--    
+    function doLinksu2(o)    
+    {    
+        var link=document.getElementsByName("su2")[0];    
+        var index=link.selectedIndex;    
+        if (index==-1 || index>=link.options.length)    
+        {    
+          return;    
+        }    
+        var value = link.options[index].value;    
+        var obj = document.getElementById("hu2");    
+        obj.href = value;
+        var wburlid =link.options[index].getAttribute("aa49846aa");
+        _addDynClicks('wburl',1084254140,wburlid)
+            
+                     obj.target = "_blank"
+                    
+         if(document.all){
+          obj.click();     
+        }         
+         else 
+        { 
+          window.open(value);
+         }
+       
+       if(o.selectedIndex != 0)    
+       {    
+           o.selectedIndex = 0;    
+       }    
+    }    
+-->    
+</script>  
+<table>    
+    <tr><td align="center">    
+            <span class="titlestyle49846"></span> <a id="hu2"></a>    
+            <select name="su2" class="selectstyle49846" onChange="doLinksu2(this)">    
+                <option value="">　　　--教育部相关网站--</option>    
+                <option vsbhrefname="value" aa49846aa="8147" value="http://www.moe.gov.cn/">教育部    
+                <option vsbhrefname="value" aa49846aa="8148" value="http://www.moe.gov.cn/jyb_xxgk/">教育部信息公开    
+                </select>    
+        </td><tr></table></SPAN></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD>
+<TD bgcolor="#ffffff" valign="top" width="770">
+<TABLE border="0" cellspacing="0" cellpadding="0" width="100%">
+<TBODY>
+<TR>
+<TD height="30" background="images/dqwz-bg.jpg" width="3%">&nbsp;</TD>
+<TD background="images/dqwz-bg.jpg" width="97%">  
+<table class="winstyle49850" cellspacing="0" cellpadding="0"><tr><td nowrap>当前位置：   
+<a href="index.htm"><span class="fontstyle49850">网站首页</span></a><span class="splitflagstyle49850">>></span><a href="xxgkzn.htm"><span class="fontstyle49850">信息公开指南</span></a></td></tr></table></TD></TR></TBODY></TABLE><BR>
+<TABLE border="0" cellspacing="0" cellpadding="0" width="100%">
+<TBODY>
+<TR>
+<TD width="7%">&nbsp;</TD>
+<TD width="87%">
+
+
+<script>
+function seeContenta4(contentid,size,displayid)
+{
+	document.getElementById(contentid).innerHTML = "[";
+	for(var i=0;i<=size;i++)
+	{
+		var allcontentid = contentid+(i+1);
+		if(allcontentid==displayid)
+		{
+			document.getElementById(contentid).innerHTML += " <span id='"+allcontentid+"' name='"+allcontentid+"' "+' class="wb_content" '+" >"+(i+1)+"</span> ";
+			document.getElementById(displayid).style.display = 'block';
+		}else
+		{
+			document.getElementById(contentid).innerHTML += " <span style='cursor:pointer' id='"+allcontentid+"' name='"+allcontentid+"' onclick=seeContenta4('"+contentid+"','"+size+"','"+allcontentid+"') "+' class="wb_content" '+" >"+(i+1)+"</span> ";
+			document.getElementById(allcontentid).style.display = "none";
+		}
+	}
+
+	document.getElementById(contentid).innerHTML += "]";
+}
+</script>
+<table class="wb_window" width="100%">
+<script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+		<script>
+		_addDynClicks('wbnews',1084254140,1006)
+		</script>
+
+		<tr><td align="center"><span class="timestyle49855">
+	</span><span class="authorstyle49855"></span></td></tr>
+<tr><td class="contentstyle49855"><div id="vsb_content_2_1006_u41"><div id="vsb_content_2"><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><div class="v_news_content"><p style="text-align: left;">为建立健全学校信息公开服务制度，方便师生员工和其他公民、法人及其他组织（以下简称社会公众）依法获取学校信息，推进校务公开，促进依法治校，参照《高等学校信息公开办法》（以下简称《办法》），结合学校实际，特编制《西安电子科技大学信息公开指南<span style="text-indent: 28px;">（试行）</span>》（以下简称《指南》）。</p>
+<p style="text-align: left;">《指南》主要是告知师生员工和社会公众如何获取学校主动公开的相关信息、如何依申请获取没有公开或不宜公开的信息。需要获得学校信息公开服务的师生员工和社会公众建议阅读本《指南》。</p>
+<p style="text-align: left;">《指南》将随着公开信息的更新和变化作出及时调整。</p>
+<p style="text-align: left;"><strong>一、信息公开的程序</strong></p>
+<p style="text-align: left;">学校公开信息有两种程序：主动公开和依申请公开。</p>
+<p style="text-align: left;">主动公开是指学校主动将和《办法》要求主动公开的信息公开。</p>
+<p style="text-align: left;">依申请公开指符合《办法》但不属于主动公开范围的信息，申请人按程序向学校申请公开。</p>
+<p style="text-align: left;"><strong>二、信息公开的工作机构</strong></p>
+<p style="text-align: left;">校长领导学校的信息公开工作。学校成立信息公开工作领导小组和相关工作机构。</p>
+<p style="text-align: left;"><strong>（一）信息公开工作领导小组</strong></p>
+<p style="text-align: left;">校领导任组长，党政办公室、纪委、监察室、宣传部、工会以及主要职能部门负责人任小组成员，全面领导学校信息公开工作。</p>
+<p style="text-align: left;"><strong>（二）信息公开办公室</strong></p>
+<p style="text-align: left;">学校信息公开工作领导小组下设信息公开办公室，挂靠党政办公室。党政办公室主任兼任信息公开办公室主任。</p>
+<p style="text-align: left;">学校信息公开办公室负责编制学校信息公开指南和目录、受理信息公开申请、维护和更新学校信息等日常管理工作。</p>
+<p style="text-align: left;"><strong>三、主动公开</strong></p>
+<p style="text-align: left;"><strong>（一）公开范围</strong></p>
+<p style="text-align: left;">学校主动向师生员工和社会公众公开的信息范围详见《西安电子科技大学信息公开目录》（以下简称《目录》）。学校师生员工和社会公众可在学校信息公开网站上查阅《目录》，或是到学校信息公开办公室查询。</p>
+<p style="text-align: left;"><strong>（二）公开形式</strong></p>
+<p style="text-align: left;">对于主动公开信息，学校主要在“信息公开”专网或职能部门网页上进行公开（信息公开专网：<a href="http://xdo.xidian.edu.cn/a/xinxigongkai/">http://xxgk.xidian.edu.cn</a></p>
+<p style="text-align: left;">此外，学校还将根据实际情况，通过信息公告栏、办公自动化系统、电子显示屏、新闻媒体以及其他便于公众、法人和其他组织知晓的形式公开相关信息。</p>
+<p style="text-align: left;"><strong>（三）公开时限</strong></p>
+<p style="text-align: left;">需要公开的学校信息产生后，学校将在第一时间予以公开，最迟于信息形成或变更之日起20个工作日内予以公开。对信息公开的期限另有规定的，从其规定。</p>
+<p style="text-align: left;"><strong>四、依申请公开</strong></p>
+<p style="text-align: left;"><strong>（一）公开范围</strong></p>
+<p style="text-align: left;">依申请公开的学校信息，是指不属于主动公开范围，必须通过申请程序才可以获取的相关信息。国家秘密、商业秘密、个人隐私等法律法规规定不得公开的除外。学校依申请提供信息时，根据掌握该信息的实际状态进行提供，不对信息进行加工、统计、研究、分析或者其他处理。</p>
+<p style="text-align: left;"><strong>（二）受理机构</strong></p>
+<p style="text-align: left;">学校信息公开申请受理机构：学校信息公开办公室（党政办公室）</p>
+<p style="text-align: left;">办公地址：陕西省西安市西沣路兴隆段266号办公楼516室</p>
+<p style="text-align: left;">办公时间：学校工作日（周一至周五）</p>
+<p style="text-align: left;">上午8：30～12：00，下午2：00～5：30</p>
+<p style="text-align: left;">联系电话：029-81891827</p>
+<p style="text-align: left;">传真号码：029-81891819</p>
+<p style="text-align: left;">电子邮箱：<a href="mailto:xxgk@xidian.edu.cn">xxgk@xidian.edu.cn</a></p>
+<p style="text-align: left;">邮政编码：710126</p>
+<p style="text-align: left;"><strong>（三）受理程序</strong></p>
+<p style="text-align: left;"><strong>1</strong><strong>．提出申请</strong></p>
+<p style="text-align: left;">申请人向学校申请公开学校信息，应填写《西安电子科技大学信息公开申请表》（以下简称《申请表》）。《申请表》可在学校信息公开办公室领取，也可以在学校信息公开专网上下载。申请人可通过联系电话咨询相关申请手续。</p>
+<p style="text-align: left;">为提高处理效率，申请人对所需信息的描述应尽量详细、明确，若有可能，请提供信息的标题、发布时间、发文字号或者其他有助于明确该信息的提示。</p>
+<p style="text-align: left;"><strong>2</strong><strong>．申请方式</strong></p>
+<p style="text-align: left;">（1）现场申请。申请人可以到学校信息公开办公室（党政办公室）申请获取学校信息，并填写《申请表》。书写有困难的可以口头申请，由信息公开工作办公室代为填写《申请表》，但须申请人签名确认。</p>
+<p style="text-align: left;">（2）书面申请。申请人填写《申请表》后，可以通过传真、信函方式提出申请。通过信函方式申请的，应在信封左下角注明“学校信息公开申请”字样。</p>
+<p style="text-align: left;">（3）网上申请。申请人可填写电子版《申请表》，通过电子邮件方式发送至学校信息公开办公室的电子邮箱。</p>
+<p style="text-align: left;">（4）特别程序。申请人如申请获取与自身相关的学校信息的，应当持有效身份证件，当面提交书面申请。个人提出申请时，请同时提供身份证复印件；法人或其他组织提出申请时，请同时提供组织机构代码证复印件以及营业执照复印件。</p>
+<p style="text-align: left;">学校不直接受理通过电话方式提出的申请，但申请人可以通过电话咨询相应的服务。</p>
+<p style="text-align: left;"><strong>3</strong><strong>．申请处理</strong></p>
+<p style="text-align: left;">学校收到申请后，将从形式上对申请的要件是否完备进行审查，对要件不完备的申请予以退回，可要求申请人补正；对要件完备的，根据下列情况分别作出处理：</p>
+<p style="text-align: left;">（1）申请获取的信息如属于学校已主动公开的信息，可中止受理申请程序，并告知申请人获得该信息的方式和途径。</p>
+<p style="text-align: left;">（2）申请获取的信息如属于不予公开范围，应告之申请人并说明理由。</p>
+<p style="text-align: left;">（3）对不属于学校掌握的信息，信息公开办公室应及时告知申请人。如果能够确定该信息掌握单位的，应告知申请人联系方式。</p>
+<p style="text-align: left;">（4）学校根据收到申请的先后次序来处理申请。单件申请中同时提出几项独立请求的，学校将全部处理完毕后统一答复。鉴于针对不同请求的答复可能不同，为提高处理效率，建议申请人就不同请求分别申请。</p>
+<p style="text-align: left;"><strong>4</strong><strong>．处理时限</strong></p>
+<p style="text-align: left;">学校收到信息公开申请，能够当场答复或提供的，将当场予以答复或提供；不能当场答复或提供的，自收到申请之日起15个工作日内予以答复或提供；如需延长答复或提供期限的，将告知申请人，延长答复或提供的期限最长不超过15个工作日。</p>
+<p style="text-align: left;"><strong>5</strong><strong>．收费标准</strong></p>
+<p style="text-align: left;">学校依申请提供信息，按照国家有关规定收取实际发生的合理的检索、复制、邮寄、递送等成本费用。收取的费用全部上缴学校财政。如申请人经济困难，经本人申请、信息公开办公室审核同意，可以减免相关费用。</p>
+<p style="text-align: left;"><strong>五、监督方式及程序</strong></p>
+<p style="text-align: left;">师生员工和社会公众认为学校未依法履行学校信息公开义务的，可以向信息公开工作领导小组或学校监察部门投诉。</p>
+<p style="text-align: left;">办公地址：陕西省西安市西沣路兴隆段266号办公楼402室</p>
+<p style="text-align: left;">监督电话：029—81891725</p>
+<p style="text-align: left;">邮编：710126</p>
+<p style="text-align: left;">申请人也可以向学校主管部门投诉。</p></div></div></div></td></tr>
+<tr><td class="wb_content" align="left" id="vsb_content_2_1006_u4" name="vsb_content_2_1006_u4"></td></tr>
+
+</table>
+<table cellspacing="" cellpadding="" border="0">
+<tr><td align="center"></td></tr>
+</table></TD>
+<TD width="6%">&nbsp;</TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>
+<TABLE id="__01" border="0" cellspacing="0" cellpadding="0" width="100%" align="center">
+<TBODY>
+<TR>
+<TD bgcolor="#2c72a6" height="103" align="center"><p>
+    <span style="font-size: 9pt; color: #ffffff">南校区地址：陕西省西安市西沣路兴隆段266号 邮编：710126 总值班室电话：029-81891818<br /><br />北校区地址：陕西省西安市太白南路2号 总值班室电话：029-88202212 （05016463 ) 版权所有：西安电子科技大学信息公开网</p></TD></TR></TBODY></TABLE><!-- End ImageReady Slices -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,21 @@
+<view class="{{pageMotion}} page {{themeClass}}">
+  <status-view wx:if="{{loading}}" mode="loading" text="加载中..." />
+  <status-view wx:elif="{{errorMessage}}" mode="error" text="{{errorMessage}}" show-retry="true" bind:retry="retryLoad" />
+  <status-view wx:elif="{{!posts.length}}" mode="empty" text="暂无发布" />
+  <view wx:else>
+    <view class="my-post-item" wx:for="{{posts}}" wx:key="id">
+      <post-row
+        item="{{item}}"
+        index="{{index}}"
+        bind:open="goPostDetail"
+        bind:like="togglePostLike"
+        bind:favorite="togglePostFavorite"
+      />
+      <view class="post-tools">
+          <text catchtap="changeStatus" data-index="{{index}}" data-status="resolved">标记解决</text>
+          <text catchtap="changeStatus" data-index="{{index}}" data-status="closed">关闭</text>
+          <text class="danger" catchtap="deleteOwnPost" data-index="{{index}}">删除</text>
+      </view>
+    </view>
+  </view>
+</view>

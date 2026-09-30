@@ -14,7 +14,7 @@ class Models:
         # Rerank cost is linear in batch*seq, so these three decide whether a query
         # answers in a second or in half a minute on a CPU-only host.  Measured
         # defaults for 4 cores: see docs/ai/生产主机算力实测.md.
-        self.rerank_max_length=int(os.environ.get("KNOWLEDGE_RERANK_MAX_LENGTH","256"))
+        self.rerank_max_length=int(os.environ.get("KNOWLEDGE_RERANK_MAX_LENGTH","512"))
         self.rerank_batch_size=int(os.environ.get("KNOWLEDGE_RERANK_BATCH_SIZE","4"))
         if not self.device.startswith("cuda"):
             # Left unset, torch takes every core and starves the business backend

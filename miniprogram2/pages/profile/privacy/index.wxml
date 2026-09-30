@@ -1,0 +1,19 @@
+<view class="{{pageMotion}} settings-page {{themeClass}}">
+  <settings-header title="{{c.privacy}}" theme-class="{{themeClass}}" english="{{currentLanguage === 'en'}}" />
+  <view wx:if="{{loading}}" class="settings-empty">{{c.loading}}</view>
+  <view wx:elif="{{errorMessage}}" class="settings-empty"><view class="settings-caption">{{errorMessage}}</view><button class="settings-text-button" bindtap="loadProfile">{{c.retry}}</button></view>
+  <block wx:else>
+    <view wx:for="{{groups}}" wx:for-item="group" wx:key="id" id="settings-{{group.id}}" class="settings-section">
+      <view class="settings-section-title">{{group.label}}</view>
+      <view wx:for="{{group.rows}}" wx:key="key" class="preference-item">
+        <view class="settings-row">
+          <view class="settings-row-body"><view class="settings-title">{{item.title}}</view><view class="settings-caption">{{item.caption}}</view><view class="settings-inline-state">{{savingKeys[item.key] ? c.saving : savedKeys[item.key] ? c.saved : ''}}</view></view>
+          <switch class="settings-toggle" checked="{{values[item.key]}}" disabled="{{savingKeys[item.key]}}" data-key="{{item.key}}" bindchange="onSwitchChange" color="{{resolvedDisplayMode === 'dark' ? '#55b7fa' : '#1d9bf0'}}" aria-label="{{item.title}}" />
+        </view>
+        <view wx:if="{{saveErrors[item.key]}}" class="preference-error"><text class="settings-error">{{saveErrors[item.key]}}</text><button class="settings-text-button" data-key="{{item.key}}" bindtap="retrySave">{{c.retry}}</button></view>
+      </view>
+      <view wx:if="{{group.id === 'messages'}}" class="settings-row settings-link-row" bindtap="openBlocks" hover-class="settings-pressed" role="button"><view class="settings-row-body"><view class="settings-title">{{c.blocks}}</view><view class="settings-caption">{{c.blocksHint}}</view></view><view class="ui-icon icon-chevron-right settings-chevron"></view></view>
+    </view>
+    <view class="settings-note">{{c.noticeScope}}</view>
+  </block>
+</view>

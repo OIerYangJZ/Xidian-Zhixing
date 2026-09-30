@@ -1,0 +1,7 @@
+@import "../../../styles/settings.wxss";
+.feedback-form { padding-top:0; }
+.feedback-textarea { min-height:180px; height:180px; }
+.feedback-meta { display:flex; justify-content:space-between; gap:16px; align-items:baseline; }
+.feedback-meta .settings-caption { flex:1; }
+.feedback-content { display:block; margin:12px 0; font-size:15px; line-height:1.7; white-space:pre-wrap; overflow-wrap:anywhere; }
+.feedback-reply { padding-left:12px; border-left:2px solid var(--app-accent); margin-top:16px; font-size:13px; line-height:1.7; color:var(--app-text-secondary); white-space:pre-wrap; overflow-wrap:anywhere; }

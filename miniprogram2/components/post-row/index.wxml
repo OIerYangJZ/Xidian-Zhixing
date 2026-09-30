@@ -1,0 +1,48 @@
+<view class="post-row" bindtap="openPost">
+    <view class="post-avatar-wrap">
+    <view wx:if="{{item.isAnonymous}}" class="post-avatar">{{item.authorInitial || '匿'}}</view>
+    <block wx:else>
+      <image wx:if="{{item.authorAvatarUrl}}" class="post-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthor"></image>
+      <view wx:else class="post-avatar" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthor">{{item.authorInitial}}</view>
+    </block>
+    <view wx:if="{{showFollowDot && item.canShowFollowDot}}" class="post-follow-dot">+</view>
+  </view>
+
+  <view class="post-body">
+    <view class="post-head">
+      <view class="post-identity">
+      <view class="post-author">{{item.authorAlias || item.authorName || '匿名用户'}}</view>
+      <view wx:if="{{item.authorUsername}}" class="post-username">@{{item.authorUsername}}</view>
+      <view class="post-time">· {{item.timeText}}</view>
+      </view>
+      <text wx:if="{{item.sectionType === 'college' && item.sectionName}}" class="post-college">{{item.sectionName}}</text>
+      <view class="post-more" catchtap="showOptions" role="button" aria-label="帖子选项"><view class="ui-icon icon-more"></view></view>
+    </view>
+    <view class="post-text" wx:if="{{item.titleSegments && item.titleSegments.length}}">
+      <block wx:for="{{item.titleSegments}}" wx:for-item="segment" wx:key="index">
+        <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="openTag">{{segment.text}}</text>
+        <text wx:else>{{segment.text}}</text>
+      </block>
+    </view>
+    <view class="post-text" wx:if="{{item.summarySegments && item.summarySegments.length}}">
+      <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
+        <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="openTag">{{segment.text}}</text>
+        <text wx:else>{{segment.text}}</text>
+      </block>
+    </view>
+    <swiper class="post-media" wx:if="{{item.displayImages && item.displayImages.length > 0}}" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
+      <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
+        <image wx:if="{{previewImages}}" src="{{img}}" mode="aspectFill" class="post-image" data-url="{{img}}" catchtap="openImage"></image>
+        <image wx:else src="{{img}}" mode="aspectFill" class="post-image"></image>
+      </swiper-item>
+    </swiper>
+    <view class="post-actions">
+      <view class="post-action" catchtap="openReply" role="button" aria-label="回复帖子"><view class="ui-icon icon-chat"></view><text>{{counts.comments}}</text></view>
+      <view class="post-action {{item.isReposted ? 'reposted' : ''}}" catchtap="toggleRepost" role="button" aria-label="转发帖子"><view class="ui-icon icon-repost"></view><text>{{counts.reposts}}</text></view>
+      <view class="post-action {{item.liked || item.isLiked ? 'active' : ''}}" catchtap="toggleLike" role="button" aria-label="{{item.liked || item.isLiked ? '取消点赞' : '点赞'}}"><view class="ui-icon icon-heart"></view><text>{{counts.likes}}</text></view>
+      <view class="post-action metric" aria-label="浏览量 {{item.viewCount || 0}}"><view class="ui-icon icon-chart"></view><text>{{counts.views}}</text></view>
+      <view class="post-action {{item.favorited || item.isFavorited ? 'favorited' : ''}}" catchtap="toggleFavorite" role="button" aria-label="{{item.favorited || item.isFavorited ? '取消收藏' : '收藏'}}"><view class="ui-icon icon-bookmark"></view><text>{{counts.favorites}}</text></view>
+      <button class="post-action post-share" open-type="share" data-post-id="{{item.id}}" data-title="{{item.displayTitle || item.title || item.content}}" catchtap="stopTap" aria-label="分享帖子"><view class="ui-icon icon-share"></view></button>
+    </view>
+  </view>
+</view>

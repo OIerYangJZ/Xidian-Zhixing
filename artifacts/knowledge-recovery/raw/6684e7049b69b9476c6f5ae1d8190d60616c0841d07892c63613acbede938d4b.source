@@ -1,0 +1,301 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>关于开展2026年国家奖学金、国家励志奖学金评选工作的通知-本科生院 西安电子科技大学</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="关于开展2026年国家奖学金、国家励志奖学金评选工作的通知">
+<META Name="keywords" Content="本科生院,西安电子科技大学,奖学金,励志,国家,评选,工作,通知,开展" />
+<META Name="description" Content="各学院/学生社区:根据教育部《关于做好2026年普通高校本专科生及研究生国家奖学金评审工作的通知》（教助中心〔2026〕6号）《关于下达2026年中央高校国家奖助学金名额的通知》（教助中心〔2026〕23号）下达给我校2026年国家奖学金和国家励志奖学金的名额，结合我校实际情况，现将各单位名额分配如下：各学院/学生社区依据《西安电子科技大学本科生国家奖学金评审办法》（西电学〔2025〕11号）《西安电子科技大学本科生国家励志奖学金评审办法》..." />
+
+
+
+
+
+<META charset="UTF-8"><LINK rel="stylesheet" href="../../css/style.css"><script src="../../js/bdtxk.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1003,'/content.jsp',35642,1482657449)</script>
+</HEAD>
+<BODY><!-- top -->
+<DIV class="top">
+<DIV class="wrap">
+<DIV class="fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="本科生院"><img src="../../images/logo.png" width="460" height="64" border="0" alt="本科生院" title="本科生院"></a></DIV>
+<DIV class="fr">
+<DIV class="search"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError">
+
+            <INPUT class="ss"  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" > 
+            <INPUT class="btn" src="../../images/search.png" type="image" v-on:click="onSubmit()"> 
+            
+            
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1482657449";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1482657449";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+<FORM onsubmit="return subsearchdataa222254a()" method="post" name="a222254a" action="/system/resource/code/notemp.jsp?owner=1482657449&wbtreeid=-1&tempname=%E6%96%87%E7%AB%A0%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E9%A1%B5&notuse=notuse" style="display: inline"></DIV>
+<UL>    <li><a href="../../index.htm" title="网站首页">网站首页</a></li>
+    <li><a href="../../bmjs.htm" title="部门介绍">部门介绍</a></li>
+    <li><a href="../../tzgg.htm" title="通知公告">通知公告</a></li>
+    <li><a href="../../gzdt.htm" title="工作动态">工作动态</a></li>
+    <li><a href="https://bksy.xidian.edu.cn/info/1020/4366.htm" title="书院风采">书院风采</a></li>
+    <li><a href="../../bszn.htm" title="办事指南">办事指南</a></li>
+    <li><a href="../../xzzq.htm" title="下载专区">下载专区</a></li>
+</UL>
+<DIV class="clear"></DIV></DIV>
+<DIV class="en"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41785)">学校主页</a>
+<a href="../../English.htm" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41786)">English</a>
+		<a href="javascript:void(0);" title="手机版" onclick="_vsb_multiscreen.setDevice('mobile')">手机版</a>
+</DIV></DIV></DIV><!-- banner-in -->
+<DIV class="banner-in"><img src="../../images/zwy.png" /></DIV>
+<DIV class="main">
+<DIV class="wrap">
+<DIV class="zwy">
+<DIV class="now">
+<DIV class="fl">
+通知公告</DIV>
+<DIV class="fr">位置: 
+                        <a href="../../index.htm">网站首页</a>
+               &gt;
+                <a href="../../tzgg.htm">通知公告</a>
+               &gt;
+                正文
+</DIV></DIV>
+<DIV class="artical">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div>
+    <h3>关于开展2026年国家奖学金、国家励志奖学金评选工作的通知</h3>
+   <div class="time"><span>发布时间：</span>2026-09-14 16:09:11<span>来源：</span>
+    <span> 点击：</span><script>_showDynClicks("wbnews", 1482657449, 35642)</script></div>
+
+    
+    <div id="vsb_content"><div class="v_news_content">
+<p style="line-height: 2em;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">各学院/学生社区:</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">根据教育部《关于做好2026年普通高校本专科生及研究生国家奖学金评审工作的通知》（教助中心〔2026〕6号）《关于下达2026年中央高校国家奖助学金名额的通知》（教助中心〔2026〕23号）下达给我校2026年国家奖学金和国家励志奖学金的名额，结合我校实际情况，现将各单位名额分配如下：</span></p><p style="text-align: center; line-height: 2em;"><img src="/__local/5/2D/98/29DBA884A76596DDE03F5D0827D_E873EFC0_DF25.png" width="400" vsbhref="vurl" vurl="/_vsl/52D9829DBA884A76596DDE03F5D0827D/E873EFC0/DF25" vheight="" vwidth="400" orisrc="/__local/B/5E/A5/029821F6CD7300AADB3576A5CB8_E74E5CDA_2D7A1.png" class="img_vsb_content"></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">各学院/学生社区依据《西安电子科技大学本科生国家奖学金评审办法》（西电学〔2025〕11号）《西安电子科技大学本科生国家励志奖学金评审办法》（西电学〔2025〕12号）相关要求执行，坚持公开、公平、公正的原则，认真组织评审。</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">国家奖学金候选人和国家励志奖学金候选人申请表可从学工处官网“下载专区”下载，请严格按照相关要求填写，并将以下材料连同总评结果一并报送本科生院资助科（长安校区办公楼212室）：</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">1.国家奖学金申请审批表电子版，纸质版1份；</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">说明：国家奖学金审批表需通过教育部国奖系统导入验证，请电子版验证通过后再打印提交纸质版，按照以下流程审核：</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">各单位填写审核申请表“院系意见（含）”前内容——将院系审核通过的审批表Word版提交至学校审核——学校审核无误后导入教育部国奖系统验证——系统检测无误后学校导出申请审批表PDF版向各单位返回——各单位对于审批表涉及各环节签字、加盖院级公章——将签字盖章的审批表纸质版提交至学校——学校加盖校章后扫描PDF版上传至教育部国奖系统。</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">电子版材料命名规则：姓名+身份证+材料名称，例如：张三 141034200718756954 申请审批表。</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">2.国家励志奖学金申请审批表电子版，纸质版1份；</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">电子版材料命名规则：学院+姓名+学号+材料名称，例如：通信工程学院 张三23009100001申请审批表。</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">因学生在申请表上信息填写错误或弄虚作假而在审核时没有通过的，责任由学生本人承担。</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">联 系 人：杨 帆 &nbsp;王 &nbsp;鑫<br></span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">联系电话：81891099</span></p><p style="line-height: 2em; text-indent: 2em; font-size: 16px;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">联系邮箱：xgczzk@xidian.edu.cn</span></p><p style="text-align: right; line-height: 2em;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;本科生院</span></p><p style="text-align: right; line-height: 2em;"><span style="font-family: 宋体, SimSun; font-size: 16px; color: rgb(0, 0, 0);"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 2026年9月11日</span></p>
+</div></div><div id="div_vote_id"></div>
+<div class="editor" style="margin-top:20px;">责任编辑：王鑫</div>
+    
+    
+        <UL style="list-style-type:none;"> 
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1482657449&wbfileid=400F6E405F1DBC63FCBBBF894AF7E458" target="_blank">2025-2026学年学生测评相关附件.rar</a>】已下载<span id="nattach18354538"><script language="javascript">getClickTimes(18354538,1482657449,"wbnewsfile","attach")</script></span>次</li>
+        </UL>
+  
+
+
+
+
+<div class="pn"> <span>上一篇：</span><a href="35702.htm">关于2026～2027学年第一学期重修选课的通知</a>
+<br />
+          <br />
+          <span>下一篇：</span><a href="35632.htm">关于2026年下半年全国大学英语四、六级考试报名的通知</a>
+ </div>
+
+
+
+
+
+    <p align="right" style="display:none">【<a href="javascript:window.opener=null;window.open('','_self');window.close();">关闭</a>】</p>
+</div>
+</form>
+</FORM></DIV></DIV></DIV></DIV><!-- copyright -->
+<DIV class="copyright">
+<DIV class="wrap"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>
+    版权所有©西安电子科技大学本科生院 &nbsp; &nbsp; &nbsp;地址：西安市西沣路兴隆段266号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;技术支持 西安聚力</p></DIV></DIV><script>
+
+$('.search').hover(function(){
+			$(this).find('.ss').stop().slideToggle();
+			$(this).find('.btn').stop().slideToggle();
+		})
+
+</script>
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

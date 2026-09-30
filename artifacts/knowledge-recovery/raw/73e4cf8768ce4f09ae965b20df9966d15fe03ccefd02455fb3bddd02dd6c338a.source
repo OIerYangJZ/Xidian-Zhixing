@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>办事指南-本科生院 西安电子科技大学</title><meta name="pageType" content="2">
+<meta name="pageTitle" content="办事指南">
+<META Name="keywords" Content="本科生院,西安电子科技大学" />
+
+<link rel="stylesheet" href="css/style.css">
+<script src="js/bdtxk.js"></script>
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="list.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1005,'/list.jsp',-1,1482657449)</script>
+</head>
+<body>
+<!-- top -->
+<div class="top">
+  <div class="wrap">
+    <div class="fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="index.htm" title="本科生院"><img src="images/logo.png" width="460" height="64" border="0" alt="本科生院" title="本科生院"></a></div>
+    <div class="fr">
+	<DIV class="search">
+<!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError">
+
+            <INPUT class="ss"  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" > 
+            <INPUT class="btn" src="images/search.png" type="image" v-on:click="onSubmit()"> 
+            
+            
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1482657449";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1482657449";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+
+</DIV>
+
+
+
+      <ul>
+            <li><a href="index.htm" title="网站首页">网站首页</a></li>
+    <li><a href="bmjs.htm" title="部门介绍">部门介绍</a></li>
+    <li><a href="tzgg.htm" title="通知公告">通知公告</a></li>
+    <li><a href="gzdt.htm" title="工作动态">工作动态</a></li>
+    <li><a href="https://bksy.xidian.edu.cn/info/1020/4366.htm" title="书院风采">书院风采</a></li>
+    <li><a href="bszn.htm" title="办事指南">办事指南</a></li>
+    <li><a href="xzzq.htm" title="下载专区">下载专区</a></li>
+
+      </ul>
+      <div class="clear"></div>
+    </div>
+    <div class="en"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41785)">学校主页</a>
+<a href="English.htm" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41786)">English</a>
+		<a href="javascript:void(0);" title="手机版" onclick="_vsb_multiscreen.setDevice('mobile')">手机版</a>
+</div>
+  </div>
+</div>
+
+<!-- banner-in -->
+<div class="banner-in"><img src="images/zwy.png" /></div>
+<div class="main">
+  <div class="wrap">
+    <div class="list">
+      <div class="now">
+        <div class="fl">
+办事指南</div>
+        <div class="fr">位置: 
+                        <a href="index.htm">网站首页</a>
+               &gt;
+                <a href="bszn.htm">办事指南</a>
+</div>
+      </div>
+     
+
+
+<script language="javascript" src="/system/resource/js/centerCutImg.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script>    <UL>
+    
+ <li id="line_u8_0"> <a href="info/1005/30672.htm" target="_blank">本科生院办事指南</a> <span>2025-10-30</span> </li>
+
+    </UL>
+   <div class="switch"><link rel="stylesheet" Content-type="text/css" href="/system/resource/css/pagedown/sys.css"><div class="pb_sys_common pb_sys_normal pb_sys_style1" style="margin-top:10px;text-align:center;"><span class="p_pages"><span class="p_first_d p_fun_d">首页</span><span class="p_prev_d p_fun_d">上页</span><span class="p_no_d">1</span><span class="p_next_d p_fun_d">下页</span><span class="p_last_d p_fun_d">尾页</span></span> <span class="p_t">共1条</span> <span class="p_t">第</span><span class="p_goto"><script language="javascript" src="/system/resource/js/gotopage.js"></script><input type="text" class="p_goto_input" maxlength="10" id="u8_goto" value="1" onkeydown="if(event.keyCode==13){_simple_list_gotopage_fun(1,&quot;u8_goto&quot;,2)}" spellcheck="false"></span><span class="p_t">/1页</span> <span class="p_goto"><a href="javascript:;" onclick="_simple_list_gotopage_fun(1,&quot;u8_goto&quot;,2)">跳转</a></span></div></div><script>_showDynClickBatch(['dynclicks_u8_30672'],[30672],"wbnews", 1482657449)</script>
+    </div>
+  </div>
+</div>
+
+<!-- copyright -->
+<div class="copyright">
+  <div class="wrap"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>
+    版权所有©西安电子科技大学本科生院 &nbsp; &nbsp; &nbsp;地址：西安市西沣路兴隆段266号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;技术支持 西安聚力</p></div>
+</div>
+
+
+<script>
+
+$('.search').hover(function(){
+			$(this).find('.ss').stop().slideToggle();
+			$(this).find('.btn').stop().slideToggle();
+		})
+
+</script>
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

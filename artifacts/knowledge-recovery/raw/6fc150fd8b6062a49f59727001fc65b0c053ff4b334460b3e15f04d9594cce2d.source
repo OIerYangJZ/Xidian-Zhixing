@@ -1,0 +1,458 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>教学方法丨高校教学改革中有哪些有效的教学策略-西安电子科技大学教师发展中心</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="教学方法丨高校教学改革中有哪些有效的教学策略">
+<META Name="keywords" Content="西安电子科技大学教师发展中心,教学方法,教学,方法,高校,教学改革,改革,中有,哪些,有效,教学策略,策略" />
+<META Name="description" Content="课堂教学是教学的基本形式，优质、高效的课堂教学是促进学生有效学习的基本前提条件，是素质教育的重要保障。实现课堂教学的有效性，已成为当前课程改革的重要方向。那么，高校教学改革中有哪些有效的教学策略？一. 教学内容要连贯一致学生所接触到的信息，无论是出现在课本中还是来自教师的讲授，只要内容相互连贯，相互关系明晰，都能够容易地掌握。教师在借助解释、演示等方法进行教学时，需要对所教内容表现出很高的热情，..." />
+
+    <link rel="stylesheet" href="../../css/style.css" />
+    <script type="text/javascript" src="../../js/jquery.js"></script>
+    <script type="text/javascript" src="../../js/superslide.js"></script>
+    <style>
+    
+#vsb_content_2 TABLE{
+    margin:0 auto !important;}
+    </style>
+    
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../nry.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1072,'/nry.jsp',2744,1720849302)</script>
+</head>
+<body>
+   <!--头部开始-->
+  <div class="head">
+    <div class="top">
+      <div class="main">
+        <div class="logo">
+          
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="21教师发展中心"><img src="../../img/logo.png" width="552" height="67" border="0" alt="21教师发展中心" title="21教师发展中心"></a>
+        </div>
+        <div class="fr">
+          
+
+<ul style="float: right;">
+
+            <li><a href="https://www.xidian.edu.cn/">学校首页&emsp;|</a></li>
+            <li><a href="http://mooc1.chaoxing.com/course/221457285.html">云端教育教学节</a></li>
+</ul>
+
+
+
+    <div class="clear"></div>
+          <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+            color: #fff;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        height: 35px;
+    width: 220px;
+    border-radius: 50px;
+    border: 1px solid #fff;
+    background: #004fa8;
+    padding: 0 20px 0;
+    margin-top: 12px;
+    outline: none;}
+    #appu2 .tj{/*
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;*/
+        position: absolute;
+    top: 22px;
+    right: 13px;
+    outline: none;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+            <input class="tj img" name="submit_button" type="image" value="" src="../../img/search.png" v-on:click="onSubmit()"/>
+          
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1720849302";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1720849302";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+          </div>
+        </div>
+        <div class="clear"></div>
+      </div>
+    </div>
+    <!--导航开始-->
+    <div class="nav">
+      <div class="main">
+          <ul id="nav" class="nav clearfix">
+              <li class="nLi  on ">
+                <h3><a href="../../index.htm" title="首页">首页</a></h3>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../zxgk1/bmjj.htm" title="中心概况">中心概况</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../zxgk1/bmjj.htm" title="部门简介">部门简介</a></li>
+                    <li><a href="../../zxgk1/lxwm.htm" title="联系我们">联系我们</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jspx/xrzjspx.htm" title="教师培训">教师培训</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jspx/xrzjspx.htm" title="新入职教师培训">新入职教师培训</a></li>
+                    <li><a href="../../jspx/jxztbg.htm" title="教学专题报告">教学专题报告</a></li>
+                    <li><a href="../../jspx/yxjxsl.htm" title="院系教学沙龙">院系教学沙龙</a></li>
+                    <li><a href="../../jspx/wl_zx_px.htm" title="网络（在线）培训">网络（在线）培训</a></li>
+                    <li><a href="../../jspx/xwyxb_yth.htm" title="校外研修班&amp;研讨会">校外研修班&amp;研讨会</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jxpj.htm" title="教学评价">教学评价</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jxpj/jxcxj.htm" title="教学创新奖">教学创新奖</a></li>
+                    <li><a href="../../jxpj/jxzrz.htm" title="教学准入证">教学准入证</a></li>
+                    <li><a href="../../jxpj/jxjd.htm" title="教学鉴定">教学鉴定</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../jxjs.htm" title="教学竞赛">教学竞赛</a></h3>
+
+                  <ul class="sub">
+                    <li><a href="../../jxjs/qnjsjkjs.htm" title="青年教师讲课竞赛">青年教师讲课竞赛</a></li>
+                    <li><a href="../../jxjs/ktjxcxds.htm" title="课堂教学创新大赛">课堂教学创新大赛</a></li>
+                    <li><a href="../../jxjs/kcszbs.htm" title="课程思政比赛">课程思政比赛</a></li>
+                  </ul>
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../pxzy.htm" title="培训资源">培训资源</a></h3>
+
+              </li>
+              <li class="nLi ">
+                  <h3><a href="../../xzzx.htm" title="下载中心">下载中心</a></h3>
+
+              </li>
+</ul>
+      </div>
+    </div>
+    <!--导航结束-->
+    <script>jQuery("#nav").slide({ type:"menu", titCell:".nLi", targetCell:".sub",effect:"slideDown",delayTime:300,triggerTime:0,returnDefault:true});</script>
+  </div>
+    <!--头部结束-->
+    <!--banner开始-->
+    <div id="slideBox" class="slideBox" style="height:300px;display:none;">
+        <div class="bd">
+              <script language="javascript" src="/system/resource/js/dynclicks.js"></script><ul>
+            <li><a><img src="../../img/banner.jpg" style="height: 300px;width: 1920px;"></a></li>
+</ul>
+        </div>
+      </div>
+    <!--banner结束-->
+
+ 
+
+<!--============================主体 开始=============================-->    
+
+
+<div class="clear"></div>
+ 
+    <section class="main">
+            <div class="right n_neiye">
+
+              <section class="n_title">
+                <div class="position">
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+                &gt;
+                <a href="../../index/jyfx.htm">经验分享</a>
+                &gt;
+                正文
+</div>
+              </section>
+              
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format4.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><div class="detail ar_article">
+    <h2 align="center">教学方法丨高校教学改革中有哪些有效的教学策略</h2>
+    <div class="tittle"><span>发布时间：2021-04-13</span><span>点击数：<script>_showDynClicks("wbnews", 1720849302, 2744)</script></span> </span></div>
+                
+
+          
+    <div id="vsb_content_4"><div class="v_news_content">
+<div>
+ <p class="vsbcontent_start">课堂教学是教学的基本形式，优质、高效的课堂教学是促进学生有效学习的基本前提条件，是素质教育的重要保障。实现课堂教学的有效性，已成为当前课程改革的重要方向。</p>
+ <p><strong>那么，高校教学改革中有哪些有效的教学策略？</strong></p>
+ <p><strong>一. </strong><strong>教学内容要连贯一致</strong></p>
+ <p>学生所接触到的信息，无论是出现在课本中还是来自教师的讲授，只要内容相互连贯，相互关系明晰，都能够容易地掌握。教师在借助解释、演示等方法进行教学时，需要对所教内容表现出很高的热情，并精心组织课堂活动，使其清晰连贯，从而引导学生廓清所学知识的架构及其相互联系。</p>
+ <p>强调课程及教学内容的连贯一致性，目的在于使学生获得有效学习和应用知识的有益体验。为此目的，教师应该：</p>
+ <p>· 从学生已知的相关知识出发，导入新的知识，引导学生进行渐进性学习；</p>
+ <p>· 采用走动、手势、口头表述等技能帮助学生理解课程内容，努力避免含糊不清，模棱两可的语言或偏离主题，以保持讲授的连续性；</p>
+ <p>· 通过解释重要概念及其相互关系的方式，进一步扩展学生学习内容；在教学结束时，及时复习要点，并强调基本概念；</p>
+ <p>· 提出问题或要求学生用自己的语言转述教材内容，观察学生对课程内容的掌握程度；</p>
+ <p>· 辅之以切实可行的学习活动与评价手段，使学生有机会展示能够反映预期教学目标的学习水平。</p>
+ <p><strong>二. </strong><strong>课堂讨论要精心设计</strong></p>
+ <p>围绕教学内容组织课堂讨论，以引导学生参与以重要概念为线索的深入讨论分析。</p>
+ <p>· 课堂讨论问题的形式及其认知水平应符合教学目标的要求。教师可以通过提问的方式，刺激学生对所学内容进行知识梳理、加工和思考，认识重要概念之间的相互联系，针对所学内容进行批判性思维，并运用于实践活动。</p>
+ <p>· （1）验证性提问：适用于考查学生对新知识的认知和原有知识的巩固程度（2）发散性提问：能够完成有意义的教学目标，促进学生对所学知识进行实践、分析、概括和评价。</p>
+ <p>· 教师应依据系统构建知识的需要，按序设计课堂问题，并用建立新旧知识联系及讲授的方法，帮助学生理解所学内容。通过课堂讨论，学生可以强化和交流对所学内容的理解。</p>
+ <p>· 教师应针对全班同学的实际水平设计问题。有些问题可能会有若干种答案，有些则能进一步引发积极的讨论。针对全班同学的实际水平设计问题，有利于鼓励全体学生，而不只是个别学生参与。</p>
+ <p>· 课堂讨论不应仅限于要求学生凭借机械识记迅速地为各种问题提供答案，还应有助于他们保持并且发展已有概念。在一定思考基础上开展的讨论，可以使学生对相关知识进行深入探究，鼓励学生发表自己的观点。对学生的观点，教师应鼓励他们进行说明并加以论证，而不是不加辨别地接受。此外，教师还应鼓励他们阐述自己的看法，或对同学的观点进行评论。</p>
+ <p><strong>三. </strong><strong>教学活动要重视反馈<a></a></strong></p>
+ <p>· 教师和学生要及时地有针对性地调节教和学的活动，高效地实现教学目标，提高课堂教学效率。在课堂教学中，教师要重视学生的学习情况和学习行为反馈。</p>
+ <p class="vsbcontent_end">在互联网+教育时代，教师可借助移动教学平台，利用AI大数据对学生学习情况和学习行为轨迹进行分析和反馈。速课网教学平台以校内课堂电子化、教学活动云端化为特点，提供了线上线下教学相结合的最佳方案。结合AI人工智能大数据，帮助教师实时记录学生学习行为和学习数据，对学生个性化学情进行分析、评价及反馈，真正实现课堂教学的有效性。</p>
+ <p class="vsbcontent_end" style="text-align: right;">(转载自公众号【高校教师专业发展联盟】)</p>
+</div>
+</div></div><div id="div_vote_id"></div>
+  
+    <section id="ar_fot">        
+        <h5 class="fl"><span>上一篇：</span><a href="2892.htm">完美教案编写指南</a></h5>      
+    <h5 class="fr"><span>下一篇：</span><a href="2742.htm">智慧教育时代教师角色的“变”与“不变”</a></h5>  
+    <div class="clear"></div>     
+    </section>
+              
+
+
+
+
+
+
+
+</div>
+</form>
+
+        <SECTION class="detail"></SECTION>
+            </div>
+  </section>
+    
+    
+    <!--============================主体 结束=============================-->
+
+
+
+    <!--底部开始-->
+     <div class="foot">
+      <div class="main">
+        <div class="left">
+          <div class="tit">联系我们</div>
+          <script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>电话：029-81891791 &nbsp; &nbsp;029-81891792</p> 
+<p>邮箱：jsfz@xidian.edu.cn</p> 
+<p>邮编：710126</p> 
+<p>地址：西安电子科技大学南校区行政楼118办公室</p>
+        </div>
+        <div class="center">
+          <img src="../../img/foot_logo.png" alt="">
+        </div>
+<img src="../../sj-img/ewm.jpg" style="width:133px;margin: 60px 0px 0px 0px;">
+        <div class="right">
+          <div class="tit">友情链接</div>
+          <select name="qq" onchange="javascript:window.open(this.options[this.selectedIndex].value)" class="lj1">
+              <option value="#">—— 校内链接 ——</option>
+               <script language="javascript" src="/system/resource/js/openlink.js"></script><option value="https://www.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64967)">西安电子科技大学</option>
+<option value="https://news.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64966)">新闻网</option>
+<option value="https://jwc.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64965)">西电教务处</option>
+<option value="https://bksy.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64990)">本科生院</option>
+
+           </select>
+           <select class="lj1" onchange="window.location=this.value;">
+              <option value="#"> —— 常用链接 ——</option>
+               <option value="http://www.moe.gov.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64970)">中华人民共和国教育部</option>
+<option value="http://jyt.shaanxi.gov.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64969)">陕西省教育厅</option>
+<option value="http://www.cfd.tsinghua.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64968)">清华大学教师发展中心</option>
+<option value="http://cetl.pku.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64991)">北京大学教师教学发展中心</option>
+<option value="http://jfzx.xjtu.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1720849302, 64992)">西安交通大学教师教学发展中心</option>
+
+           </select>
+           <select class="lj1" onchange="window.location=this.value;">
+              <option value="#"> —— 其他链接 ——</option>
+               
+           </select>
+        </div>
+      </div>
+      <!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright © 2013-2017 西安电子科技大学 教师教学发展中心 &nbsp;技术支持： <a href="https://xxzx.xidian.edu.cn/" target="_blank">信息网络技术中心</a> &nbsp; &nbsp;西安聚力</p>
+    </div>
+      <!--底部结束-->
+  </body>
+  </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

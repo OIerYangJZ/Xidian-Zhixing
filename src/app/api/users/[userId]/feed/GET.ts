@@ -41,6 +41,10 @@ export async function GET(request: Request, props: { params: Promise<{ userId: s
   const cursorValue = searchParams.get('cursor');
   const cursor = parseCursor(cursorValue);
   const isNewer = searchParams.get('sort-direction') === 'asc';
+  const rawSpaceId = searchParams.get('spaceId');
+  const spaceId = rawSpaceId ? Number(rawSpaceId) : undefined;
+  if (rawSpaceId && (!Number.isInteger(spaceId) || Number(spaceId) <= 0))
+    return NextResponse.json({ error: 'Invalid space ID.' }, { status: 400 });
   if (cursorValue && cursorValue !== '0' && !cursor)
     return NextResponse.json({ error: 'Invalid feed cursor.' }, { status: 400 });
   const pageSize = Math.min(Math.max(Number(searchParams.get('limit')) || PAGE_SIZE, 1), 100);
@@ -60,6 +64,7 @@ export async function GET(request: Request, props: { params: Promise<{ userId: s
   const followingIds = following.map((u) => u.followingId);
 
   const visiblePostWhere = {
+    ...(spaceId ? { spaceId } : {}),
     status: 'PUBLISHED' as const,
     moderationCases: { none: { status: 'OPEN' as const } },
     NOT: [

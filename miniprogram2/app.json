@@ -1,0 +1,89 @@
+{
+  "pages": [
+    "pages/treehole/index",
+    "pages/campus/index",
+    "pages/ai/index",
+    "pages/campus/auth-center/index",
+    "pages/campus/service-detail/index",
+    "pages/campus/webview/index",
+    "pages/campus/map/index",
+    "pages/treehole/hot/index",
+    "pages/admin/index",
+    "pages/clubs/index",
+    "pages/clubs/detail/index",
+    "pages/clubs/apply/index",
+    "pages/profile/index",
+    "pages/campus/college/index",
+    "pages/campus/post-detail/index",
+    "pages/campus/create-post/index",
+    "pages/campus/search/index",
+    "pages/campus/tag-posts/index",
+    "pages/ai/history/index",
+    "pages/profile/auth/index",
+    "pages/profile/favorites/index",
+    "pages/profile/my-posts/index",
+    "pages/profile/my-comments/index",
+    "pages/profile/my-reports/index",
+    "pages/profile/report-detail/index",
+    "pages/profile/conversations/index",
+    "pages/profile/chat/index",
+    "pages/profile/social-list/index",
+    "pages/profile/public-user/index",
+    "pages/profile/notifications/index",
+    "pages/profile/settings/index",
+    "pages/profile/ai-settings/index",
+    "pages/profile/edit-profile/index",
+    "pages/profile/privacy/index",
+    "pages/profile/privacy/blocklist/index",
+    "pages/profile/account-security/index",
+    "pages/profile/about/index",
+    "pages/profile/feedback/index",
+    "pages/profile/legal/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "西电知行",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#ffffff"
+  },
+  "usingComponents": {
+    "radio-drawer": "/components/radio-drawer/index",
+    "post-row": "/components/post-row/index",
+    "status-view": "/components/status-view/index",
+    "social-header": "/components/social-header/index",
+    "settings-header": "/components/settings-header/index"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#707070",
+    "selectedColor": "#101010",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/treehole/index",
+        "text": "主页"
+      },
+      {
+        "pagePath": "pages/campus/index",
+        "text": "校园"
+      },
+      {
+        "pagePath": "pages/ai/index",
+        "text": "AI"
+      },
+      {
+        "pagePath": "pages/profile/conversations/index",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json",
+  "darkmode": true
+}

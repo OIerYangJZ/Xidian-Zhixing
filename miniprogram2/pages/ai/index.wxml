@@ -1,0 +1,114 @@
+<view class="{{pageMotion}} page ai-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+  <view class="ai-header" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; padding-right: {{navRight}}px;">
+    <button class="ai-header-button" bindtap="toggleSidebar" aria-label="打开会话栏" hover-class="pressed"><view class="ui-icon icon-list"></view></button>
+    <view class="ai-header-title">{{activeConversationTitle}}</view>
+    <button class="ai-header-button ai-new-button" bindtap="startNewChat" aria-label="新对话" hover-class="pressed"><view class="ui-icon icon-compose"></view></button>
+  </view>
+
+  <view wx:if="{{sidebarOpen || sidebarOpenLeaving}}" class="ai-sidebar-layer {{sidebarOpenLeaving && !sidebarOpen ? 'is-leaving' : ''}}">
+    <view class="ai-sidebar-mask motion-mask" bindtap="closeSidebar"></view>
+    <view class="ai-sidebar motion-sidebar" catchtap="stopTap" style="padding-top: {{navTop}}px;">
+      <view class="ai-sidebar-head" style="height:{{navHeight}}px; min-height:{{navHeight}}px; padding-right:{{sidebarCloseRight - 12}}px;">
+        <view class="ai-sidebar-brand"><view class="ui-icon icon-ai"></view><text>知行助手</text></view>
+        <button class="ai-sidebar-close" style="height:{{navHeight}}px;" bindtap="closeSidebar" aria-label="收起会话栏"><view class="ui-icon icon-close"></view></button>
+      </view>
+      <button class="ai-sidebar-new" bindtap="startNewChat"><view class="ui-icon icon-plus"></view><text>新对话</text></button>
+      <view class="ai-sidebar-label">最近对话</view>
+      <scroll-view class="ai-conversation-scroll" scroll-y show-scrollbar="{{false}}">
+        <view wx:if="{{!conversations.length}}" class="ai-sidebar-empty">暂无会话</view>
+        <view
+          wx:for="{{conversations}}"
+          wx:key="id"
+          class="ai-conversation-row {{activeConversationId === item.id ? 'active' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="selectConversation"
+          catchlongpress="openConversationMenu"
+        >
+          <view class="ai-conversation-main">
+            <view class="ai-conversation-title">{{item.title}}</view>
+            <view class="ai-conversation-date">{{item.dateText}}</view>
+          </view>
+        </view>
+      </scroll-view>
+      <button class="ai-sidebar-settings" bindtap="goToSettings"><view class="ui-icon icon-settings"></view><text>AI 服务状态</text></button>
+    </view>
+  </view>
+
+  <view wx:if="{{conversationMenuOpen || conversationMenuOpenLeaving}}" class="ai-conversation-menu-layer {{conversationMenuOpenLeaving && !conversationMenuOpen ? 'is-leaving' : ''}}">
+    <view class="ai-conversation-menu-mask motion-mask" bindtap="closeConversationMenu"></view>
+    <view class="ai-conversation-menu motion-sheet" catchtap="stopTap">
+      <view class="ai-menu-handle"></view>
+      <view class="ai-menu-title">{{selectedConversationTitle}}</view>
+      <block wx:if="{{conversationMenuMode === 'actions'}}">
+        <button class="ai-menu-action" bindtap="beginRenameConversation"><view class="ui-icon icon-compose"></view><text>重命名</text></button>
+        <button class="ai-menu-action danger" bindtap="beginDeleteConversation"><view class="ui-icon icon-close"></view><text>删除</text></button>
+        <button class="ai-menu-cancel" bindtap="closeConversationMenu"><text>取消</text></button>
+      </block>
+      <block wx:elif="{{conversationMenuMode === 'rename'}}">
+        <input class="ai-rename-input" value="{{renameDraft}}" maxlength="40" focus="{{conversationMenuOpen}}" bindinput="onRenameInput" bindconfirm="saveConversationName" confirm-type="done" />
+        <view class="ai-menu-buttons">
+          <button bindtap="closeConversationMenu">取消</button>
+          <button class="primary" bindtap="saveConversationName" disabled="{{!renameDraft}}">保存</button>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="ai-delete-confirm">删除后无法恢复这段会话。</view>
+        <view class="ai-menu-buttons">
+          <button bindtap="closeConversationMenu">取消</button>
+          <button class="danger-solid" bindtap="confirmDeleteConversation">确认删除</button>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="ai-workspace" style="padding-top: {{navTop + navHeight + 8}}px;">
+    <view wx:if="{{configLoading}}" class="ai-config-bar">正在连接模型</view>
+    <view wx:elif="{{configError}}" class="ai-config-bar error" bindtap="refreshConfigState">{{configError}} · 重试</view>
+    <view wx:elif="{{!configured}}" class="ai-config-bar error" bindtap="goToSettings">AI 尚未启用 · 查看设置</view>
+
+    <view wx:if="{{!messages.length}}" class="ai-empty-workspace">
+      <view class="ui-icon icon-ai ai-emblem" aria-label="知行助手"></view>
+      <view class="ai-greeting">{{currentLanguage === 'en' ? 'What can I help with?' : '有什么可以帮你？'}}</view>
+      <view class="ai-suggestions">
+        <view class="ai-suggestion" data-value="总结今天的校园热点" bindtap="onSuggestionTap">总结今天的校园热点</view>
+        <view class="ai-suggestion" data-value="帮我规划本周学习任务" bindtap="onSuggestionTap">规划本周学习任务</view>
+      </view>
+    </view>
+
+    <scroll-view wx:else class="ai-chat-scroll" scroll-y scroll-top="{{scrollTop}}" scroll-with-animation show-scrollbar="{{false}}">
+      <view class="ai-chat-list motion-content">
+        <view wx:for="{{messages}}" wx:for-index="messageIndex" wx:key="id" class="ai-message {{item.role === 'user' ? 'user' : 'assistant'}}">
+          <view wx:if="{{item.role === 'assistant'}}" class="ai-assistant-mark"><view class="ui-icon icon-ai"></view></view>
+          <view class="ai-message-content">
+            <text class="ai-message-text">{{item.content}}</text>
+            <view class="ai-references" wx:if="{{item.references && item.references.length}}">
+              <view class="ai-reference-label">参考来源</view>
+              <view
+                class="ai-reference"
+                wx:for="{{item.references}}"
+                wx:for-item="ref"
+                wx:for-index="referenceIndex"
+                wx:key="key"
+                data-message-index="{{messageIndex}}"
+                data-reference-index="{{referenceIndex}}"
+                bindtap="openReference"
+              >{{ref.type === 'post' ? '帖子' : '资料'}} · {{ref.title}}</view>
+            </view>
+          </view>
+        </view>
+        <view class="ai-message assistant" wx:if="{{isSending}}">
+          <view class="ai-assistant-mark"><view class="ui-icon icon-ai"></view></view>
+          <view class="ai-typing"><view></view><view></view><view></view></view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="ai-composer-wrap">
+      <view class="ai-composer">
+        <input value="{{draft}}" bindinput="onDraftInput" bindconfirm="submitQuestion" confirm-type="send" placeholder="{{currentLanguage === 'en' ? 'Message Zhixing Assistant' : '给知行助手发消息'}}" aria-label="输入问题" />
+        <button class="ai-send" bindtap="submitQuestion" disabled="{{!draft || isSending}}" aria-label="发送问题"><view class="ui-icon icon-arrow"></view></button>
+      </view>
+      <view class="ai-disclaimer">AI 可能会出错，请核对重要信息</view>
+    </view>
+  </view>
+</view>

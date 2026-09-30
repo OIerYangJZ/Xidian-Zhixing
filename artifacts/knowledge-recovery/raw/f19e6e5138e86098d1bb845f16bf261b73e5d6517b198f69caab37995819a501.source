@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>“浪潮杯”2024年西安电子科技大学第九届研究生趣味运动会成功举办-西安电子科技大学体育部</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="“浪潮杯”2024年西安电子科技大学第九届研究生趣味运动会成功举办">
+<META Name="keywords" Content="西安电子科技大学体育部,研究生,大学,科技,趣味,运动会,电子,西安,成功,浪潮,举办" />
+<META Name="description" Content="（通讯员 董颖初）金桂飘香，秋雨绵绵，西电的研究生们怀揣着满腔的热情与活力，迎来了“浪潮杯”2024年西安电子科技大学第九届研究生趣味运动会的盛大启幕。这场体育盛宴，不仅是一场身体的竞技，更是团结与友情的碰撞，它如同秋日里的一抹亮色，为西电的校园添上了几分生机与活力。10月20日清晨举行的开幕式上，绵绵细雨中研究生同学们整齐列队，斗志昂扬。体育部党总支书记张玉振致开幕辞，他期望通过举办研究生趣味运动会的形式，..." />
+
+
+
+
+
+<META charset="UTF-8">
+<META name="description" content=""><LINK rel="stylesheet" href="../../css/reset.css"><LINK rel="stylesheet" href="../../css/style.css"><script type="text/javascript" src="../../js/bdtxk.js"></script><script type="text/javascript" src="../../js/slide.js"></script><script type="text/javascript" src="../../js/index.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1021,'/content.jsp',5152,1641759486)</script>
+</HEAD>
+<BODY><!-- header start -->
+<DIV id="header" class="w100">
+<DIV class="container">
+<DIV class="header_top">
+<DIV class="logo fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+
+<A href="../../index.htm" title="体育部2020"><IMG alt="" src="../../images/logo.png"> </A></DIV>
+<DIV class="hd_r_top fr">
+<DIV class="search fr"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError" style="padding:3px;margin:0px;display:inline;font-family:宋体;font-size:12px;">
+
+    <input autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" class="txt" value="请输入关键字！">
+    <input type="image" src="../../images/search_icon.png" align="absmiddle" v-on:click="onSubmit()" class="btn">
+ </div>
+        
+        
+        
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1641759486";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1641759486";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></DIV>
+<DIV class="hd_r_link fr"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><A href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 61540)" target="_blank">学校主页</A> 
+<A href="http://tyben.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 62678)" target="_blank">English</A> 
+</DIV></DIV></DIV><!-- nav start -->
+<DIV id="nav">
+<DIV class="nav_menu"><UL class="nav_list">
+<LI><A href="../../index.htm" title="首页">首页</A> 
+</LI>
+<LI><A href="../../bmgk1/bmjj.htm" title="部门概况">部门概况</A> 
+<DL class="menu">
+<DD><A href="../../bmgk1/bmjj.htm" title="部门简介">部门简介</A> </DD>
+<DD><A href="../../bmgk1/lsyg.htm" title="历史沿革">历史沿革</A> </DD>
+<DD><A href="../../bmgk1/xrld.htm" title="现任领导">现任领导</A> </DD>
+<DD><A href="../../bmgk1/jgsz.htm" title="机构设置">机构设置</A> </DD>
+<DD><A href="../../bmgk1/wyh.htm" title="委员会">委员会</A> </DD>
+<DD><A href="../../bmgk1/xcsp.htm" title="宣传视频">宣传视频</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../szdw.htm" title="师资队伍">师资队伍</A> 
+<DL class="menu">
+<DD><A href="../../szdw/js.htm" title="教授">教授</A> </DD>
+<DD><A href="../../szdw/fjs.htm" title="副教授">副教授</A> </DD>
+<DD><A href="../../szdw/js1.htm" title="讲师">讲师</A> </DD>
+<DD><A href="../../szdw/zj.htm" title="助教">助教</A> </DD>
+<DD><A href="../../szdw/zzgtjs.htm" title="专职公体教师">专职公体教师</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../djgz.htm" title="党建工作">党建工作</A> 
+<DL class="menu">
+<DD><A href="../../djgz/zzjg.htm" title="组织机构">组织机构</A> </DD>
+<DD><A href="../../djgz/gzdt.htm" title="工作动态">工作动态</A> </DD>
+<DD><A href="../../djgz/ztxx.htm" title="专题学习">专题学习</A> </DD>
+<DD><A href="../../djgz/ghgz.htm" title="工会工作">工会工作</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyjlb.htm" title="体育俱乐部">体育俱乐部</A> 
+<DL class="menu">
+<DD><A href="../../tyjlb/jlbjx.htm" title="俱乐部教学">俱乐部教学</A> </DD>
+<DD><A href="../../tyjlb/yjsjx.htm" title="研究生教学">研究生教学</A> </DD>
+<DD><A href="../../tyjlb/wskc.htm" title="网上课程">网上课程</A> </DD>
+<DD><A href="http://jpkc.xidian.edu.cn/dxty/" title="精品课程">精品课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../zspy.htm" title="招生培养">招生培养</A> 
+<DL class="menu">
+<DD><A href="../../zspy/sszs.htm" title="硕士招生">硕士招生</A> </DD>
+<DD><A href="../../zspy/sspy1.htm" title="硕士培养">硕士培养</A> </DD>
+<DD><A href="../../zspy/yddzsh.htm" title="运动队招生">运动队招生</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyky.htm" title="体育科研">体育科研</A> 
+<DL class="menu">
+<DD><A href="../../tyky/ktlx.htm" title="课题立项">课题立项</A> </DD>
+<DD><A href="../../tyky/xscg.htm" title="学术成果">学术成果</A> </DD>
+<DD><A href="../../tyky/kyhj.htm" title="科研获奖">科研获奖</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../ydjs.htm" title="运动竞赛">运动竞赛</A> 
+<DL class="menu">
+<DD><A href="../../ydjs/gspydd.htm" title="高水平运动队">高水平运动队</A> </DD>
+<DD><A href="../../ydjs/ptsydd.htm" title="普通生运动队">普通生运动队</A> </DD>
+<DD><A href="../../ydjs/xnjs.htm" title="校内竞赛">校内竞赛</A> </DD>
+<DD><A href="../../ydjs/syxw.htm" title="首页新闻">首页新闻</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../rydt.htm" title="荣誉殿堂">荣誉殿堂</A> 
+<DL class="menu">
+<DD><A href="../../rydt/xdqgry.htm" title="西电全国荣誉">西电全国荣誉</A> </DD>
+<DD><A href="../../rydt/xdsnry.htm" title="西电省内荣誉">西电省内荣誉</A> </DD>
+<DD><A href="../../rydt/xdxnry.htm" title="西电校内荣誉">西电校内荣誉</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../gzzd.htm" title="规章制度">规章制度</A> 
+</LI>
+<LI><A href="../../rczp.htm" title="人才招聘">人才招聘</A> 
+</LI>
+<LI><A href="#" title="下载专区">下载专区</A> 
+<DL class="menu">
+<DD><A href="../../xzzq1/xzzq.htm" title="下载专区">下载专区</A> </DD>
+<DD><A href="../../xzzq1/jxkyyb.htm" title="教学科研用表">教学科研用表</A> </DD>
+<DD><A href="../../xzzq1/rsfwxx.htm" title="人事服务信息">人事服务信息</A> </DD>
+<DD><A href="../../xzzq1/wskc.htm" title="网上课程">网上课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../cggl.htm" title="场馆管理">场馆管理</A> 
+<DL class="menu">
+<DD><A href="../../cggl/cgjs.htm" title="场馆介绍">场馆介绍</A> </DD>
+<DD><A href="../../cggl/glgd.htm" title="管理规定">管理规定</A> </DD>
+<DD><A href="../../cggl/cgsq.htm" title="场馆申请">场馆申请</A> </DD>
+</DL>
+</LI>
+</UL></DIV></DIV><!-- end nav --></DIV></DIV><!-- end header --><!-- ej_banner start -->
+<DIV id="ej_banner" class="w100">
+<DIV class="ej_banner_con">    <IMG alt="" src="../../images/ej_banner.jpg"> </DIV>
+<DIV class="ej_banner_bd">
+<DIV class="lmmc"><!-- header start -->
+新闻动态</DIV></DIV></DIV><!-- end ej_banner --><!-- main start -->
+<DIV id="main" class="w100">
+<DIV class="container">
+<DIV class="main_con clearfix">
+<DIV class="main_con_l fl">
+<DIV class="sidebar"><UL>
+</UL>
+</DIV></DIV>
+<DIV class="main_con_r fr">
+<DIV class="main_hd">
+<DIV class="dqwz"><div>
+    位置: 
+                        <a href="../../index.htm">首页</a>
+                >
+                <a href="../../xwdt.htm">新闻动态</a>
+                >
+                正文
+</div>
+
+</DIV><SPAN class="line"></SPAN></DIV>
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="nr">
+	<div class="main_bd">
+	         <div class="con_title">
+   <h2 class="title">“浪潮杯”2024年西安电子科技大学第九届研究生趣味运动会成功举办</h2>
+   <p class="info">来源：<span class="xxly">
+    </span>时间：<span class="time1">2024-10-21</span>点击数：<i class="djs"><script>_showDynClicks("wbnews", 1641759486, 5152)</script></i></p>
+                 </div>
+
+
+
+    <div id="vsb_content_2" class="content"><div class="v_news_content">
+<p class="vsbcontent_start" style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">（通讯员 董颖初）金桂飘香，秋雨绵绵，西电的研究生们怀揣着满腔的热情与活力，迎来了“浪潮杯”2024年西安电子科技大学第九届研究生趣味运动会的盛大启幕。这场体育盛宴，不仅是一场身体的竞技，更是团结与友情的碰撞，它如同秋日里的一抹亮色，为西电的校园添上了几分生机与活力。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">10月20日清晨举行的开幕式上，绵绵细雨中研究生同学们整齐列队，斗志昂扬。体育部党总支书记张玉振致开幕辞，他期望通过举办研究生趣味运动会的形式，引领和激励广大研究生同学们树立健康第一的理念，强化团队精神，筑牢协作意识，全力以赴，同时好好享受运动乐趣，在精进学业的同时积极投身体育运动，为未来人生路上的拼搏夯实软硬件基础，为“溢彩研途”增添别样色彩。在党委研究生工作部部长张君博宣布比赛开始后，同学们立刻投身到如火如荼的各项赛事中去。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">本次研究生运动会设置有三人制篮球赛、半部电台起家、长征路上办学、锻炼铁的筋骨、红军的扁担、南泥湾大丰收、胜利大会师、齐心协力等8个比赛项目。这些项目的共同点是富有趣味性、团体性和历史性，每一位学生无论运动基础如何，都可以欢声笑语地参与进来，同时在竞赛的过程中感悟红色历史，体会革命先辈筚路蓝缕的艰辛。其中三人制篮球联赛每队需包含2名导师4名学生，不限男女且每场必须有一名导师或领导参赛。这种新颖的规则也极大地提升了师生间、男女同学之间的凝聚力，回归了集体运动的社会和趣味属性。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">在这金秋时节，研究生们以饱满的精神状态，参与到这场别开生面的趣味游戏中。他们脸上洋溢着对运动的热爱与对胜利的渴望，仿佛每一阵秋风都在为他们加油鼓劲，每一丝细雨都在为他们喝彩助威。赛场上，既有紧张激烈的角逐，也不乏欢声笑语与团队合作的温馨场景。运动员们挥洒汗水，挑战自我，不仅展现了西电学子顽强拼搏、勇于进取的精神风貌，更在轻松愉快的氛围中加深了彼此之间的友谊与默契。在这里，每一个参与者都是主角，每一份努力都值得被铭记。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">最终，计算机科学与技术学院以总分112的成绩拔得头筹，成为团体第一名，集成电路学部、数学与统计学院、光电工程学院、电子工程学院、经济与管理学院分获团体第二至第六名。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">优秀组织奖： 数学与统计学院 通信工程学院</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">最佳参与奖：马克思主义学院 外国语学院</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">体育道德风尚奖：物理学院 网络与信息安全学院</span></p><p class="vsbcontent_end" style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">运动会精彩照片</span></p><p class="vsbcontent_img"><img src="/__local/E/F3/BD/AD42D6162D12F85C05F6DB0734D_75BAE6FE_2447F.jpeg" vsbhref="vurl" vurl="/_vsl/EF3BDAD42D6162D12F85C05F6DB0734D/75BAE6FE/2447F" vheight=" 276.6pt" vwidth=" 414.6pt" orisrc="/__local/A/70/2E/0E7773D0A8F869C89DEAD318B2C_D9E36B33_53C21.jpeg" class="img_vsb_content" style="width: 414.6pt;height: 276.6pt"></p><p class="vsbcontent_img"><img src="/__local/5/1E/93/1E95E22BC1EAB2A77AD36FFCDE2_3BA6828F_22681.jpg" vsbhref="vurl" vurl="/_vsl/51E931E95E22BC1EAB2A77AD36FFCDE2/3BA6828F/22681" vheight=" 276.6pt" vwidth=" 414.6pt" orisrc="/__local/5/5E/72/596A3A9A899168C212D27069B2C_74A77546_38B62.jpg" class="img_vsb_content" style="width: 414.6pt;height: 276.6pt"></p><p class="vsbcontent_img"><img src="/__local/9/84/B9/8D3106803D8885D194332F3B1C7_8F5BD654_288B5.jpeg" vsbhref="vurl" vurl="/_vsl/984B98D3106803D8885D194332F3B1C7/8F5BD654/288B5" vheight=" 276.6pt" vwidth=" 414.6pt" orisrc="/__local/1/1C/C0/BD1693F714F1AA71F0F51DCD3C6_924E4A6D_687DC.jpeg" class="img_vsb_content" style="width: 414.6pt;height: 276.6pt"></p><p class="vsbcontent_img"><img src="/__local/F/B0/31/795448D0243C8F7D898FCBDDE9E_5AA280FE_25743.jpeg" vsbhref="vurl" vurl="/_vsl/FB031795448D0243C8F7D898FCBDDE9E/5AA280FE/25743" vheight=" 276.6pt" vwidth=" 414.6pt" orisrc="/__local/7/88/D6/4ADF781D6CD38B4A8091BDDB413_20CAA3B4_5E517.jpeg" class="img_vsb_content" style="width: 414.6pt;height: 276.6pt"></p><p class="vsbcontent_img"><img src="/__local/A/F4/21/58BF4E8A5D56CE211616FA79D03_F184D559_2B4B9.jpeg" vsbhref="vurl" vurl="/_vsl/AF42158BF4E8A5D56CE211616FA79D03/F184D559/2B4B9" vheight=" 276.6pt" vwidth=" 414.6pt" orisrc="/__local/B/A3/C2/3C9404639EC4321C08E4FA7024D_E73C8B0E_6B4DC.jpeg" class="img_vsb_content" style="width: 414.6pt;height: 276.6pt"></p><p class="vsbcontent_img"><img src="/__local/2/DA/5E/6F05ECC9ED0ACAB05D8CF38FA7F_E93F2E29_23F85.jpeg" vsbhref="vurl" vurl="/_vsl/2DA5E6F05ECC9ED0ACAB05D8CF38FA7F/E93F2E29/23F85" vheight=" 276.6pt" vwidth=" 415.2pt" orisrc="/__local/A/E4/A4/AAE09B198CF855FEE56D8A5304B_1762E5EB_5561F.jpeg" class="img_vsb_content" style="width: 415.2pt;height: 276.6pt"></p><p class="vsbcontent_img"><img src="/__local/5/0F/81/9AC41DB532CC24C22AE59892A96_84FCF407_1EB00.jpeg" vsbhref="vurl" vurl="/_vsl/50F819AC41DB532CC24C22AE59892A96/84FCF407/1EB00" vheight=" 276.6pt" vwidth=" 415.2pt" orisrc="/__local/4/E3/F9/90DABFA37EA9B38EA184B9086AA_ADE71C38_44D42.jpeg" class="img_vsb_content" style="width: 415.2pt;height: 276.6pt"></p><p class="vsbcontent_img"><img src="/__local/5/F8/A2/170B301591499F442D1DD7BB09D_9CA055B4_2A5C8.jpeg" vsbhref="vurl" vurl="/_vsl/5F8A2170B301591499F442D1DD7BB09D/9CA055B4/2A5C8" vheight=" 276.6pt" vwidth=" 415.2pt" orisrc="/__local/D/BD/72/12EDD49B110EE25A35C16438C3D_8015980D_5F98D.jpeg" class="img_vsb_content" style="width: 415.2pt;height: 276.6pt"></p><p class="vsbcontent_img"><img src="/__local/E/DD/49/2DF24EB1603E1C5CDE1C2B1703C_1FE576F7_2ED1E.jpeg" vsbhref="vurl" vurl="/_vsl/EDD492DF24EB1603E1C5CDE1C2B1703C/1FE576F7/2ED1E" vheight=" 276.6pt" vwidth=" 414.6pt" orisrc="/__local/D/97/FB/D8A8F59502C249AEFF36201F404_4D7EC494_678B6.jpeg" class="img_vsb_content" style="width: 414.6pt;height: 276.6pt"></p><p class="vsbcontent_img"><img src="/__local/1/23/75/6CF99027B266FDAF6CB602A6306_FDC4E5A2_22481.jpeg" vsbhref="vurl" vurl="/_vsl/123756CF99027B266FDAF6CB602A6306/FDC4E5A2/22481" vheight=" 276.6pt" vwidth=" 414.6pt" orisrc="/__local/7/BC/45/B99B72A09001AC87E2E815E21F2_7665B959_4E562.jpeg" class="img_vsb_content" style="width: 414.6pt;height: 276.6pt"><img src="/__local/6/78/93/3D6C8411C071934E34584C96253_92C2E3C8_1E5D1.jpeg" vsbhref="vurl" vurl="/_vsl/678933D6C8411C071934E34584C96253/92C2E3C8/1E5D1" vheight=" 276.6pt" vwidth=" 414.6pt" orisrc="/__local/6/3B/BF/27A3E6A432B2AD9428C7BD86C62_111D211B_46168.jpeg" class="img_vsb_content" style="width: 414.6pt;height: 276.6pt"><img src="/__local/2/6D/CC/24258C367001B2A56FAC1D32047_A0E47E29_20B06.jpeg" vsbhref="vurl" vurl="/_vsl/26DCC24258C367001B2A56FAC1D32047/A0E47E29/20B06" vheight=" 276.6pt" vwidth=" 414.6pt" orisrc="/__local/E/4A/F8/1E2D548D43210A4345BFE7DA4C8_B5D3FD27_4AC23.jpeg" class="img_vsb_content" style="width: 414.6pt;height: 276.6pt"></p>
+</div></div><div id="div_vote_id"></div>
+    
+<div class="page">
+  <p><span>上一条：</span><a href="5172.htm">体育部开展“走上新赛场”就业能力提升讲座</a></p>
+  <p><span>下一条：</span><a href="5132.htm">体育部召开夏锦民、周鹏老师荣休座谈会</a></p>
+</div>
+
+
+</div></div>
+</form>
+</DIV></DIV></DIV></DIV><!-- end main --><!-- footer start -->
+<DIV id="footer" class="w100">
+<DIV class="container">
+<DIV class="foot_con clearfix">
+<DIV class="foot_top">
+<DIV class="address fl"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>北校区地址:西安市太白南路2号 邮编：710071</p> 
+<p>南校区地址:西安市西沣路兴隆段266号 邮编：710126</p> 
+<p>电话：（029）81891207 办公邮箱：tiyubu1294@126.com</p> 
+<p>意见投诉信箱：tyb@xidian.edu.cn</p> 
+<p>师德师风监督电话：（029）81891207</p></DIV>
+<DIV class="ft_ewm fr">    
+
+<IMG alt="" src="../../images/erweima.jpg"> 
+<P class="title">官方微信</P>
+</DIV></DIV>
+<DIV class="copyright"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright&nbsp;© 2007-2021 西安电子科技大学体育部 版权所有 技术支持： <a href="https://xxzx.xidian.edu.cn/" style="text-decoration: none; color: white">信息网络技术中心 </a>&nbsp;&nbsp;西安聚力</p></DIV></DIV></DIV></DIV><!-- end footer --><!-- back start -->
+<DIV id="back"></DIV><!-- end back -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

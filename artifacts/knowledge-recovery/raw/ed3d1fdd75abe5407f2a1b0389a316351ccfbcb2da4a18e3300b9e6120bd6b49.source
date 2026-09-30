@@ -1,0 +1,232 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><HTML><HEAD><TITLE>一卡通使用流程及指南-西安电子科技大学 迎新网</TITLE><meta name="pageType" content="2">
+<meta name="pageTitle" content="一卡通使用流程及指南">
+<META Name="keywords" Content="西安电子科技大学 迎新网" />
+
+
+
+
+
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<META name="format-detection" content="telephone=no">
+<META name="format-detection" content="address=no">
+<META content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+<META name="viewport" content="width=device-width,initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"><LINK rel="stylesheet" href="../css/style.css"><script type="text/javascript" src="../js/bdtxk.js"></script><script type="text/javascript" src="../js/bdtxw.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../zhengwen.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1049,'/zhengwen.jsp',-1,1370298689)</script>
+</HEAD>
+<BODY>
+<DIV class="logo w100">
+<DIV class="logo w1200">
+<DIV class="logo-img">
+<a href="../index.htm" title="迎新网"><img src="../images/logo.png" border="0"></a></DIV>
+
+<DIV class="toplinks">
+<UL><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script>    <LI><a href="https://xxcapp.xidian.edu.cn/site/universalForm/index?id=15" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370298689, 41766)">本科生学号查询</a></li>
+    <LI><a href="https://xxcapp.xidian.edu.cn/site/universalForm/index?id=13" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370298689, 41761)">研究生学号查询</a></li>
+ </UL></DIV>
+    
+<div class="denglu">
+           <a href="https://xgxt.xidian.edu.cn/xsfw/sys/yxapp/*default/index.do" target="_blank"> <img src="../images/denglu.png" />
+            用户登录</a>
+        </div>
+</DIV></DIV><!-- 本例子代码 开始 ------------------------------------------->
+<DIV class="navBar">
+<UL class="nav clearfix">   
+   
+    <li class="m">
+                <h3><a href="../index.htm">首页</a></h3>
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../bdxz.htm">报到须知</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../bdxz/bksbdxz.htm" target="">本科生报到须知</a></li>                
+                    <li><a href="../bdxz/yjsbdxz.htm" target="">研究生报到须知</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../zczd.htm">学习攻略</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../zczd/xsnlcs.htm" target="">能力测试和试点班选拔</a></li>                
+                    <li><a href="../zczd/dxsaqbmjy.htm" target="">大学生安全保密教育</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../xszz.htm">学生资助</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../xszz/bkszz.htm" target="">本科生资助</a></li>                
+                    <li><a href="../xszz/yjszz.htm" target="">研究生资助</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../szxy.htm">数字校园</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="wlsyrzsyzn.htm" target="">网络使用认证使用指南</a></li>                
+                    <li><a href="wlsyrzsyzn1.htm" target="">学生邮件认证申请指南</a></li>                
+                    <li><a href="wlsyrzsyzn2.htm" target="">一卡通使用流程及指南</a></li>                
+                    <li><a href="rjzbh.htm" target="">软件正版化</a></li>                
+                    <li><a target="_blank" href="https://gis.xidian.edu.cn/#/live" target="target=" _blank"">西电720全景</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+   
+   
+    <li class="m">
+                <h3><a href="../zfqc.htm">绽放青春</a></h3>
+                
+                <ul class="sub">
+                
+                    <li><a href="../zfqc/xshzc3.htm" target="">校团委</a></li>                
+                    <li><a href="../zfqc/xshzc.htm" target="">学生会</a></li>                
+                    <li><a href="../zfqc/yjsh.htm" target="">研究生会</a></li>                
+                    <li><a href="../zfqc/hlst.htm" target="">活力社团</a></li>
+
+                </ul>
+                
+                
+            </li>
+   
+   
+
+<LI class="block"><!-- 滑动块 --></LI></UL></DIV><script type="text/javascript">
+
+(function(){
+    var ind = 0; //初始位置
+    var nav= jQuery(".nav");
+    var init = jQuery(".nav .m").eq(ind);
+    var block = jQuery(".nav .block"); //滑块
+    block.css({"left":init.position().left-1}); //初始化滑块位置
+    nav.hover(function(){},function(){ block.animate({"left":init.position().left-1},100); }); //移出导航滑块返回
+
+    jQuery(".nav").slide({ 
+            type:"menu", //效果类型
+            titCell:".m", // 鼠标触发对象
+            targetCell:".sub", // 效果对象，必须被titCell包含
+            delayTime:300, // 效果时间
+            triggerTime:0, //鼠标延迟触发时间
+            returnDefault:true,//on返回初始位置
+            defaultIndex:ind,//初始位置
+            startFun:function(i,c,s,tit){ //控制当前滑块位置
+                block.animate({"left":tit.eq(i).position().left-1},100);
+            }
+        });
+})()
+</script><!-- 本例子代码 结束 ------------------------------------------>
+<DIV class="banner"><img src="../images/banner1.png" style=" width:100%; height:234px;" /></DIV><!-- 轮播图 -->
+<DIV class="content w1200"><!--menu kaishi-->
+<DIV class="menu">
+<DIV class="menu-head">
+一卡通使用流程及指南</DIV>
+<DIV class="menu-content">
+<DIV class="menu-content-nav">
+<UL>
+    <LI><A href="wlsyrzsyzn.htm" onfocus="undefined">网络使用认证使用指南</A> </LI>
+
+
+
+
+    <LI><A href="wlsyrzsyzn1.htm" onfocus="undefined">学生邮件认证申请指南</A> </LI>
+
+
+
+
+    <LI><A id="dangqian" href="wlsyrzsyzn2.htm" onfocus="undefined">一卡通使用流程及指南</A> </LI>
+
+
+
+
+    <LI><A href="rjzbh.htm" onfocus="undefined">软件正版化</A> </LI>
+
+
+
+
+    <LI><A href="https://gis.xidian.edu.cn/#/live" onfocus="undefined">西电720全景</A> </LI>
+
+
+
+</UL>
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV></DIV></DIV>
+<DIV class="clear"></DIV><!--menu jieshu--><!--main kaishi-->
+<DIV class="main">
+<DIV class="main-nav"><SPAN>    <span>当前位置: </span>
+        
+                <a href="../index.htm">首页</a>
+               <span>></span>            
+                <a href="../szxy.htm">数字校园</a>
+               <span>></span>            
+                <a href="wlsyrzsyzn2.htm">一卡通使用流程及指南</a>
+</SPAN></DIV>
+<DIV class="detail">
+
+
+
+
+
+<script language="javascript" src="/system/resource/js/ajax.js"></script><script language="javascript">_getBatchClickTimes('null',1370298689,'wbnews','u8')</script>
+<script>function seeContenta8(contentid,size,displayid){	document.getElementById(contentid).innerHTML = '[';	for(var i=0;i<=size;i++){		var allcontentid = contentid+(i+1);		if(allcontentid==displayid){			document.getElementById(contentid).innerHTML += " <span id='"+allcontentid+"' name='"+allcontentid+"'  >"+(i+1)+"</span> ";			document.getElementById(displayid).style.display = 'block';		}else{			document.getElementById(contentid).innerHTML += " <span style='cursor:pointer' id='"+allcontentid+"' name='"+allcontentid+"' onclick=seeContenta8('"+contentid+"','"+size+"','"+allcontentid+"')  >"+(i+1)+"</span> ";			document.getElementById(allcontentid).style.display = 'none';		}	}	document.getElementById(contentid).innerHTML += ']';}</script>
+<script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<script>_addDynClicks('wbnews',1370298689,1243)</script>
+<div class="detail_head">
+<div class="detail_head1">
+    一卡通使用指南</div><div class="clear"></div>
+
+ <div class="content-bt-xia">
+            <span>(</span><span>发布时间：2025-07-09</span><span>被阅览数： <script>_showDynClicks("wbnews", 1370298689, 1243)</script>次</span><span>来源：</span><span>)</span>
+        </div> 
+
+
+    <div class="detail_main"><div id="vsb_content_1243_u81"><div id="vsb_content"><p class="vsbcontent_start">一卡通的初始密码为：123456</p><p>一卡通内的证件号：学生卡证件号为学号、教工卡证件号为工资号、临时卡证件号为身份证号</p><p><strong>1、</strong><strong>挂失方法及步骤</strong></p><p>圈存机挂失步骤：</p><p class="vsbcontent_img"><img width="538" height="189" src="/__local/8/BE/68/400218B0707EFF4BAA0AAD4102F_C3A38F55_3502.jpg" vwidth="538" vheight="189" vurl="/_vsl/8BE68400218B0707EFF4BAA0AAD4102F/C3A38F55/3502" vsbhref="vurl" orisrc="/__local/8/BE/68/400218B0707EFF4BAA0AAD4102F_C3A38F55_3502.jpg" class="img_vsb_content"></p><p>携带有效证件（学生证或身份证）在一卡通办公室挂失</p><p><strong>2</strong><strong>、银校转账步骤（仅限交通银行卡）</strong></p><p>银行卡与校园卡之间的绑定</p><p class="vsbcontent_img"><img width="540" height="225" src="/__local/9/9F/CF/3D425D9762262EB448DA05FBDD6_F1F630E8_3161.jpg" vwidth="540" vheight="225" vurl="/_vsl/99FCF3D425D9762262EB448DA05FBDD6/F1F630E8/3161" vsbhref="vurl" orisrc="/__local/9/9F/CF/3D425D9762262EB448DA05FBDD6_F1F630E8_3161.jpg" class="img_vsb_content"></p><p>银行卡与校园卡之间的转账</p><p class="vsbcontent_img"><img width="377" height="545" src="/__local/E/E6/55/C8ECAC2E0E92B2FC8ABCBB102D9_6C781645_3C0A.jpg" vwidth="377" vheight="545" vurl="/_vsl/EE655C8ECAC2E0E92B2FC8ABCBB102D9/6C781645/3C0A" vsbhref="vurl" orisrc="/__local/E/E6/55/C8ECAC2E0E92B2FC8ABCBB102D9_6C781645_3C0A.jpg" class="img_vsb_content"></p><p><strong>3、</strong><strong>支付宝转账步骤</strong></p><p class="vsbcontent_img"><img width="553" height="322" src="/__local/A/60/8B/CABA4CC98B538D061446F606D6E_38FB6053_5B26.jpg" vwidth="553" vheight="322" vurl="/_vsl/A608BCABA4CC98B538D061446F606D6E/38FB6053/5B26" vsbhref="vurl" orisrc="/__local/A/60/8B/CABA4CC98B538D061446F606D6E_38FB6053_5B26.jpg" class="img_vsb_content"></p><p><br></p><p><strong>4、一卡通虚拟卡</strong></p><p>推荐使用校园虚拟卡消费，快捷又方便，请扫描二维码领取虚拟卡，领取完成后可使用付款码在餐厅消费。(未绑定虚拟卡，使用微信、支付宝在餐厅消费将会额外加收20%搭伙费)</p><p>账号为：学号</p><p>密码为：统一身份认证账号密码（业务咨询电话88201650）</p><p>■微信虚拟卡二维码</p><p class="vsbcontent_img"><img src="/__local/7/0A/A4/3B2C626237E9BF9B975BDE310DD_A331392B_2ACA2.png" vsbhref="vurl" vurl="/_vsl/70AA43B2C626237E9BF9B975BDE310DD/A331392B/2ACA2" vheight="" vwidth="" orisrc="/__local/7/0A/A4/3B2C626237E9BF9B975BDE310DD_A331392B_2ACA2.png" class="img_vsb_content"></p><p>■支付宝虚拟卡二维码</p><p class="vsbcontent_img"><img src="/__local/3/AF/82/01A286D5063E2048608B7F44DBF_511CF159_2A969.png" vsbhref="vurl" vurl="/_vsl/3AF8201A286D5063E2048608B7F44DBF/511CF159/2A969" vheight="" vwidth="" orisrc="/__local/3/AF/82/01A286D5063E2048608B7F44DBF_511CF159_2A969.png" class="img_vsb_content"></p><p>5、<strong>设备及办公地址</strong></p><p>南校区圈存机地址：丁香、海棠、竹园食堂一楼；各个宿舍楼楼下；校医院大厅；一卡通办公室。</p><p>北校区圈存机地址：东区、西区食堂；各个宿舍楼楼下；校医院大厅；</p><p>一卡通办公室；图书馆11楼信息网络技术中心办公室。</p><p>南校区一卡通办公地址：南校区一站式服务大厅12号、13号窗口 &nbsp; 电话：81891357</p><p class="vsbcontent_end">北校区一卡通办公地址：教辅楼一楼东 电话：88204626</p></div></div></div>
+    <span id="vsb_content_1243_u8" name="vsb_content_1243_u8"></span><br /><br />
+    
+
+ 
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV></DIV>
+<DIV class="clear"></DIV><!--main jieshu--></DIV>
+<DIV class="clear"></DIV><DIV class="clear"></DIV></DIV>
+<DIV class="footer w100"><p>版权所有：西安电子科技大学</p><p>长安校区地址：陕西省西安市西沣路兴隆段266号 邮编710126&nbsp;&nbsp;&nbsp; 技术支持：西安聚力</p></DIV>
+
+</BODY></HTML>

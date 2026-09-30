@@ -1,0 +1,6 @@
+.section-tab-cursor { position:absolute; left:0; bottom:0; height:4px; display:flex; justify-content:center; pointer-events:none; transition:transform .42s cubic-bezier(.22,.68,.24,1); }
+.section-tab-line { width:46px; height:4px; border-radius:4px; background:var(--app-accent); }
+.section-tab { transition:color .28s ease; }
+.section-tab:active { transform:none; }
+.section-tab-pressed { opacity:.72; }
+@media (prefers-reduced-motion:reduce) { .section-tab-cursor, .section-tab { transition:none; } }

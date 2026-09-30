@@ -1,0 +1,54 @@
+<view class="{{pageMotion}} settings-page {{themeClass}}">
+  <settings-header title="{{c.campus}}" theme-class="{{themeClass}}" english="{{currentLanguage === 'en'}}" busy="{{submitting || smsSending || clearingRecord}}" />
+  <view class="settings-tabs">
+    <button class="settings-tab {{activeSystem === 'schoolnet' ? 'active' : ''}}" data-system="schoolnet" bindtap="switchSystem" disabled="{{submitting || smsSending || clearingRecord}}">{{c.network}}</button>
+    <button class="settings-tab {{activeSystem === 'dormWater' ? 'active' : ''}}" data-system="dormWater" bindtap="switchSystem" disabled="{{submitting || smsSending || clearingRecord}}">{{c.water}}</button>
+  </view>
+  <view class="settings-section connection-record">
+    <view class="settings-section-title">{{c.recentVerification}}</view>
+    <view class="settings-title">{{activeState ? activeState.studentId : c.neverVerified}}</view>
+    <view wx:if="{{activeState}}" class="settings-caption">{{activeState.updatedAt}}</view>
+    <view class="settings-caption">{{c.authRecordHint}}</view>
+  </view>
+  <view class="settings-section connection-form">
+    <block wx:if="{{activeSystem === 'schoolnet'}}">
+      <view class="settings-field">
+        <view class="settings-label">{{c.username}}</view>
+        <input class="settings-input" value="{{studentId}}" data-key="studentId" bindinput="onFieldInput" maxlength="40" placeholder="{{c.networkAccount}}" placeholder-class="settings-placeholder" disabled="{{submitting || smsSending || clearingRecord}}" />
+        <view wx:if="{{loadingStudent}}" class="settings-caption">{{c.loading}}</view>
+        <view wx:elif="{{profileError}}" class="settings-error">{{profileError}} <text class="connection-retry" bindtap="loadStudentId">{{c.retry}}</text></view>
+      </view>
+      <view class="settings-field">
+        <view class="settings-label">{{c.password}}</view>
+        <view class="password-field">
+          <input class="settings-input" password="{{!showPassword}}" value="{{password}}" data-key="password" bindinput="onFieldInput" maxlength="128" placeholder="{{c.networkPassword}}" placeholder-class="settings-placeholder" disabled="{{submitting}}" />
+          <button class="settings-icon-button" bindtap="togglePassword" disabled="{{submitting}}" aria-label="{{showPassword ? c.hidePassword : c.showPassword}}"><view class="ui-icon {{showPassword ? 'icon-eye-off' : 'icon-eye'}}"></view></button>
+        </view>
+      </view>
+    </block>
+    <view wx:else class="settings-field"><view class="settings-label">{{c.phone}}</view><input class="settings-input" type="number" maxlength="11" value="{{phone}}" data-key="phone" bindinput="onFieldInput" placeholder="{{c.phone}}" placeholder-class="settings-placeholder" disabled="{{submitting || smsSending || clearingRecord}}" /></view>
+    <view class="settings-field">
+      <view class="settings-label">{{c.captcha}}</view>
+      <view class="captcha-row">
+        <input class="settings-input" value="{{imageCode}}" data-key="imageCode" bindinput="onFieldInput" maxlength="12" placeholder="{{c.captcha}}" placeholder-class="settings-placeholder" disabled="{{captchaLoading || submitting || smsSending || clearingRecord}}" />
+        <button class="captcha-button" bindtap="refreshCaptcha" disabled="{{captchaLoading || submitting || smsSending || clearingRecord}}" aria-label="{{c.getCaptcha}}">
+          <image wx:if="{{captchaSrc}}" class="captcha-image" src="{{captchaSrc}}" mode="aspectFit" />
+          <text wx:else>{{captchaLoading ? c.loading : c.getCaptcha}}</text>
+        </button>
+      </view>
+      <button wx:if="{{captchaSrc}}" class="settings-text-button" bindtap="refreshCaptcha" disabled="{{captchaLoading || submitting || smsSending || clearingRecord}}">{{c.newCaptcha}}</button>
+    </view>
+    <view wx:if="{{activeSystem === 'dormWater'}}" class="settings-field">
+      <view class="settings-label">{{c.sms}}</view>
+      <view class="captcha-row">
+        <input class="settings-input" type="number" maxlength="8" value="{{smsCode}}" data-key="smsCode" bindinput="onFieldInput" placeholder="{{c.sms}}" placeholder-class="settings-placeholder" disabled="{{submitting || smsSending || clearingRecord}}" />
+        <button class="sms-button" bindtap="sendDormWaterCode" disabled="{{smsSending || smsRemaining || captchaLoading || submitting}}">{{smsRemaining ? smsRemaining + 's' : (smsSending ? c.submitting : c.sendCode)}}</button>
+      </view>
+    </view>
+    <view wx:if="{{errorMessage}}" class="settings-error">{{errorMessage}}</view>
+    <view wx:elif="{{resultMessage}}" class="settings-caption settings-success">{{resultMessage}}</view>
+  </view>
+  <view class="settings-actions"><button class="settings-button" bindtap="submitAuth" loading="{{submitting}}" disabled="{{submitting || captchaLoading || smsSending}}">{{submitting ? c.submitting : (activeState ? c.reconnect : c.connect)}}</button></view>
+  <view class="settings-note">{{c.credentialNote}}</view>
+  <view wx:if="{{activeState}}" class="connection-clear"><button class="settings-text-button" bindtap="clearCurrentState" disabled="{{submitting || smsSending || clearingRecord}}">{{c.clearRecord}}</button></view>
+</view>

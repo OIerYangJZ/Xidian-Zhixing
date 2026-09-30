@@ -35,12 +35,14 @@ def matches_scope(row,*,today,campus=None,level=None):
 
 
 def narrow_candidates(rows,*,today,campus=None,level=None,limit=12):
-    """Dedup, drop out-of-scope rows, then keep the top `limit` in input order.
+    """Dedup, drop out-of-scope rows, then keep a document-diverse top slice.
 
     `rows` arrives in RRF order and the slice has to stay last.  Reranking a pair
     costs about a hundred times what recalling it does, so only `limit` pairs can
     be afforded -- but cutting before the filters would let a withdrawn, superseded
     or out-of-scope chunk occupy one of those slots and silently starve recall.
+    A long document can contribute many highly ranked chunks, so cap it at the
+    same three passages the response stage can return from one document.
     Returns the filtered list and the slice, so callers can trace both counts.
     """
     distinct={}
@@ -48,7 +50,33 @@ def narrow_candidates(rows,*,today,campus=None,level=None,limit=12):
         distinct.setdefault(row["contentHash"],row)
     kept=[row for row in distinct.values()
         if matches_scope(row,today=today,campus=campus,level=level)]
-    return kept,kept[:limit]
+    candidates=[]
+    per_document=Counter()
+    for row in kept:
+        if len(candidates)>=limit:
+            break
+        document_id=row.get("documentId",row["id"])
+        if per_document[document_id]>=3:
+            continue
+        candidates.append(row)
+        per_document[document_id]+=1
+    return kept,candidates
+
+
+def dedupe_ranking(rows,lexical,limit=30):
+    """Keep one representative of each exact chunk before fusion."""
+    distinct=[]
+    seen=set()
+    for key,score in rows:
+        row=lexical.rows.get(key)
+        identity=(row.get("contentHash") if row else None) or key
+        if identity in seen:
+            continue
+        seen.add(identity)
+        distinct.append((key,score))
+        if len(distinct)>=limit:
+            break
+    return distinct
 
 
 def scope_qdrant_filter(authorities,*,campus=None,level=None,today=None):
@@ -95,11 +123,10 @@ class HybridEngine:
         self.lock=threading.RLock()
         self.index_write_lock=threading.Lock()
         # Required, not defaulted: a rerank threshold is only meaningful for the
-        # model it was calibrated against, and inheriting another model's cutoff
-        # either drops good evidence or admits unrelated passages -- neither of
-        # which shows up as an error.  Fail at startup instead.
+        # model, input length, and corpus it was calibrated against. Fail at
+        # startup instead of silently inheriting an unrelated cutoff.
         if "KNOWLEDGE_RERANK_THRESHOLD" not in os.environ:
-            raise RuntimeError("必须设置 KNOWLEDGE_RERANK_THRESHOLD，且需针对当前重排模型重新校准")
+            raise RuntimeError("必须设置 KNOWLEDGE_RERANK_THRESHOLD，且需针对当前重排配置和语料校准")
         self.rerank_threshold=float(os.environ["KNOWLEDGE_RERANK_THRESHOLD"])
         self._load_lexical()
 
@@ -147,6 +174,7 @@ class HybridEngine:
     def publish_document(self, doc, chunks):
         with self.index_write_lock:
             active = self.store.setting("activeIndex")
+            old_chunk_ids={row["id"] for row in self.store.chunks_for_document(doc["id"])}
             if active:
                 vectors = self.models.encode([row["searchText"] for row in chunks])
                 self.qdrant.upsert(active["collection"], points=[
@@ -157,9 +185,27 @@ class HybridEngine:
             with self.lock:
                 self.store.put_document(doc, chunks)
                 self._load_lexical()
-                if active:
-                    self._record_corpus_update(active)
+            if active:
+                obsolete_ids=old_chunk_ids-{row["id"] for row in chunks}
+                try:
+                    self._delete_chunk_vectors(active["collection"],obsolete_ids)
+                    if doc.get("supersedesId"):
+                        self._delete_document_vectors(active["collection"],doc["supersedesId"])
+                finally:
+                    with self.lock:
+                        self._record_corpus_update(active)
             return active
+
+    def _delete_chunk_vectors(self, collection, chunk_ids):
+        if not chunk_ids:
+            return
+        point_ids=[str(uuid.uuid5(uuid.NAMESPACE_URL,chunk_id)) for chunk_id in chunk_ids]
+        self.qdrant.delete(collection,points_selector=qm.PointIdsList(points=point_ids),wait=True)
+
+    def _delete_document_vectors(self, collection, document_id):
+        self.qdrant.delete(collection,points_selector=qm.FilterSelector(filter=qm.Filter(must=[
+            qm.FieldCondition(key="documentId",match=qm.MatchValue(value=document_id))
+        ])),wait=True)
 
     def _record_corpus_update(self, active):
         active["updatedAt"] = utcnow()
@@ -168,12 +214,26 @@ class HybridEngine:
         self.store.set_setting("activeIndex", active)
 
     def set_document_status(self, doc_id, status):
-        with self.index_write_lock, self.lock:
-            self.store.set_status(doc_id,status)
-            self._load_lexical()
+        with self.index_write_lock:
+            doc=self.store.get_document(doc_id)
+            if doc is None:
+                raise ValueError("知识文档不存在")
             active=self.store.setting('activeIndex')
-            if active:
-                self._record_corpus_update(active)
+            if active and status=="published" and doc.get("status")!="published":
+                chunks=self.store.chunks_for_document(doc_id)
+                vectors=self.models.encode([row["searchText"] for row in chunks])
+                self.qdrant.upsert(active["collection"],points=[
+                    qm.PointStruct(id=str(uuid.uuid5(uuid.NAMESPACE_URL,row["id"])),vector=vector,
+                        payload=point_payload(row))
+                    for row,vector in zip(chunks,vectors)
+                ],wait=True)
+            elif active and status!="published":
+                self._delete_document_vectors(active["collection"],doc_id)
+            with self.lock:
+                self.store.set_status(doc_id,status)
+                self._load_lexical()
+                if active:
+                    self._record_corpus_update(active)
 
     def status(self):
         active=self.store.setting("activeIndex")
@@ -186,7 +246,7 @@ class HybridEngine:
     def search(self,query:str,*,queries=None,limit=8,include_community=False,filters=None,trace_id=None):
         started=time.perf_counter()
         trace_id=trace_id or uuid.uuid4().hex
-        queries=list(dict.fromkeys(queries or [query]))[:3]
+        queries=list(dict.fromkeys([query,*(queries or [])]))[:3]
         filters=filters or {}
         with self.lock:
             active=self.store.setting("activeIndex")
@@ -210,14 +270,16 @@ class HybridEngine:
         rankings=[]
         stages=[]
         for text,vector in zip(queries,vector_queries):
-            dense=self.qdrant.query_points(active["collection"],query=vector,limit=30,
+            dense=self.qdrant.query_points(active["collection"],query=vector,limit=60,
                 query_filter=vector_filter,
                 with_payload=True).points
-            dense_rows=[(p.payload["chunkId"],float(p.score)) for p in dense]
-            sparse_rows=lexical.search(text,limit=30,allowed=allowed)
+            dense_rows=dedupe_ranking(
+                [(p.payload["chunkId"],float(p.score)) for p in dense
+                    if p.payload.get("chunkId") in allowed],lexical,limit=30)
+            sparse_rows=dedupe_ranking(lexical.search(text,limit=60,allowed=allowed),lexical,limit=30)
             rankings.extend([dense_rows,sparse_rows])
             stages.append({"query":text,"dense":dense_rows,"bm25":sparse_rows})
-        fused=reciprocal_rank_fusion(rankings,limit=60)
+        fused=reciprocal_rank_fusion(rankings,limit=60,rows_by_key=lexical.rows)
         # The current relational state decides visibility, even if old vectors remain.
         # get_chunks returns rows in the order of the ids it is given, so the RRF
         # ranking survives into narrow_candidates, which relies on it.

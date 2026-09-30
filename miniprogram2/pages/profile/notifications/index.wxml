@@ -1,0 +1,38 @@
+<view class="{{pageMotion}} page notification-page {{themeClass}} social-tab-page">
+  <social-header fixed brand="{{false}}">
+    <view slot="center" class="social-page-title">通知</view>
+    <button slot="actions" class="social-icon-button" bindtap="openNotificationSettings" aria-label="通知设置"><view class="ui-icon icon-settings"></view></button>
+  </social-header>
+  <view class="notification-tabs" style="top: {{navTop + navHeight + 8}}px;">
+    <button class="notification-tab section-tab {{activeFilter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="switchFilter" hover-class="section-tab-pressed"><text class="tab-label">全部<text wx:if="{{unreadCount}}" class="tab-unread"></text></text></button>
+    <button class="notification-tab section-tab {{activeFilter === 'replies' ? 'active' : ''}}" data-filter="replies" bindtap="switchFilter" hover-class="section-tab-pressed"><text class="tab-label">回复与提及</text></button>
+    <view class="section-tab-cursor" style="width:50%; transform:translateX({{activeFilter === 'all' ? 0 : 100}}%);" aria-hidden="true"><view class="section-tab-line"></view></view>
+  </view>
+  <scroll-view class="notification-scroll" scroll-y enhanced show-scrollbar="{{false}}" refresher-enabled refresher-triggered="{{refreshing}}" refresher-background="{{resolvedDisplayMode === 'dark' ? '#171b21' : '#ffffff'}}" bindrefresherrefresh="refreshList" style="top: {{navTop + navHeight + 56}}px; height: calc(100vh - {{navTop + navHeight + 56}}px - var(--tab-height));">
+    <view class="notification-body motion-content {{contentMotion}}">
+    <view class="inbox-status" wx:if="{{unreadCount && !loading && !errorMessage}}">
+      <text>{{unreadCount}} 条新通知</text>
+      <button class="mark-read-button" bindtap="markAllRead" disabled="{{markingRead}}" aria-label="全部标记为已读"><view class="ui-icon icon-check"></view></button>
+    </view>
+    <view wx:if="{{loading && !items.length}}" class="loading-state">加载中...</view>
+    <view wx:elif="{{errorMessage}}" class="inbox-empty"><view class="inbox-empty-title">暂时无法加载通知</view><view class="inbox-empty-copy">{{errorMessage}}</view><button class="primary-button retry-button" bindtap="retryLoad">重试</button></view>
+    <view wx:elif="{{!displayedItems.length}}" class="inbox-empty"><view class="inbox-empty-title">{{activeFilter === 'replies' ? '这里还很安静' : '暂时没有新动态'}}</view><view class="inbox-empty-copy">{{activeFilter === 'replies' ? '收到的回复与提及会显示在这里。' : '点赞、回复和关注会出现在这里。'}}</view></view>
+    <view wx:else class="notification-list">
+      <view class="notice notice-{{item.noticeKind}} {{item.isRead ? 'read' : 'unread'}}" wx:for="{{displayedItems}}" wx:key="id" data-index="{{index}}" bindtap="openItem" hover-class="notice-pressed" role="button" aria-label="{{item.title}}">
+        <view class="notice-symbol {{item.noticeKind === 'like' ? 'liked' : ''}}"><view class="ui-icon icon-{{item.noticeIcon}}"></view></view>
+        <view class="notice-body">
+          <view class="notice-topline">
+            <image wx:if="{{item.actorAvatarUrl}}" class="notice-avatar" src="{{item.actorAvatarUrl}}" mode="aspectFill" />
+            <view wx:elif="{{item.actorAlias}}" class="notice-avatar text-avatar">{{item.actorInitial}}</view>
+            <text class="notice-time">{{item.timeText}}</text>
+            <view wx:if="{{!item.isRead}}" class="notice-dot"></view>
+          </view>
+          <view class="notice-title">{{item.title}}</view>
+          <view wx:if="{{item.content}}" class="notice-content">{{item.content}}</view>
+        </view>
+      </view>
+    </view>
+    </view>
+    <view class="list-safe-end"></view>
+  </scroll-view>
+</view>

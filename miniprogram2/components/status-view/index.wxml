@@ -1,0 +1,4 @@
+<view class="status-view status-{{mode}}">
+  <view class="status-text">{{text}}</view>
+  <button wx:if="{{showRetry}}" class="status-retry" bindtap="retry">{{retryText}}</button>
+</view>

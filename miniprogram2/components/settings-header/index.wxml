@@ -1,0 +1,8 @@
+<view class="header-space" style="height:{{navTop + navHeight + 12}}px;"></view>
+<view class="settings-header {{themeClass}}" style="padding-top:{{navTop}}px;">
+  <view class="header-line" style="height:{{navHeight + 4}}px; padding-right:{{navRight}}px;">
+    <button class="header-back" bindtap="goBack" disabled="{{busy}}" aria-label="{{english ? 'Back' : '返回'}}" hover-class="header-pressed"><view class="ui-icon icon-back"></view></button>
+    <view class="header-title">{{title}}</view>
+    <view class="header-actions"><slot name="actions"></slot></view>
+  </view>
+</view>

@@ -1,0 +1,25 @@
+{
+  "action": "imported-from-app-snapshot-as-community-reference",
+  "sourceRecordId": "kd-xidian-student-guide-2026",
+  "documentId": "kd-xidian-student-guide-2026",
+  "title": "西电学生经验手册（2026）整理版",
+  "sourceUrl": "",
+  "sourceName": "西电学生经验手册（2026，非官方经验整理）",
+  "sourceType": "student_reference",
+  "authority": "community",
+  "bodyChars": 4609,
+  "chunks": 28,
+  "snapshotAt": "2026-09-20T07:09:36.098966+00:00",
+  "snapshotCreatedAt": "2026-08-12T15:36:32.829940+00:00",
+  "retrievalPolicy": "only include when the user asks for student experience or public discussion; never use as official policy evidence",
+  "candidateCounts": {
+    "documents": 1073,
+    "documentStatuses": {
+      "disabled": 64,
+      "published": 1009
+    },
+    "chunks": 6335,
+    "activeIndex": null
+  },
+  "denseIndexRebuilt": false
+}
