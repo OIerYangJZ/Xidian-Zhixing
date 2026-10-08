@@ -10,7 +10,7 @@
     --text-primary: 15 20 25;
     --text-secondary: 83 100 113;
     --separator: 239 243 244;
-    --accent-brand: 203 3 5;
+    --accent-brand: 176 94 105;
     --danger: 244 33 46;
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
@@ -27,7 +27,7 @@
     --content-width: 640px;
     --sidebar-width: 240px;
     --right-rail-width: 320px;
-    --font-family-ui: '华文中宋', 'STZhongsong', 'Songti SC', serif;
+    --font-family-ui: 'Noto Sans SC Variable', 'Noto Sans SC', 'Source Han Sans SC', sans-serif;
 
     --background: var(--page-bg);
     --foreground: var(--text-primary);
@@ -37,7 +37,7 @@
     --popover-foreground: var(--text-primary);
     --primary: var(--accent-brand);
     --primary-foreground: 255 255 255;
-    --primary-accent: 203 3 5;
+    --primary-accent: var(--accent-brand);
     --secondary: var(--surface-elevated);
     --secondary-foreground: var(--text-primary);
     --secondary-accent: 232 234 237;
@@ -62,7 +62,7 @@
     --text-primary: 231 233 234;
     --text-secondary: 113 118 123;
     --separator: 47 51 54;
-    --accent-brand: 203 3 5;
+    --accent-brand: 176 94 105;
     --danger: 244 33 46;
 
     --background: var(--page-bg);
@@ -73,7 +73,7 @@
     --popover-foreground: var(--text-primary);
     --primary: var(--accent-brand);
     --primary-foreground: 12 12 13;
-    --primary-accent: 203 3 5;
+    --primary-accent: var(--accent-brand);
     --secondary: var(--surface-elevated);
     --secondary-foreground: var(--text-primary);
     --secondary-accent: 39 42 45;
@@ -99,13 +99,12 @@
     --text-primary: 24 24 22;
     --text-secondary: 112 106 95;
     --separator: 225 219 207;
-    --accent-brand: 164 59 50;
-    --primary-accent: 126 41 36;
+    --accent-brand: 176 94 105;
+    --primary-accent: var(--accent-brand);
     --secondary-accent: 233 225 210;
     --muted: 233 227 215;
     --input: 225 219 207;
-    --ring: 164 62 51;
-    --font-family-ui: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', serif;
+    --ring: var(--accent-brand);
   }
 
   :root.dark[data-visual-theme='editorial'] {
@@ -115,13 +114,12 @@
     --text-primary: 244 241 232;
     --text-secondary: 177 170 157;
     --separator: 75 71 63;
-    --accent-brand: 224 128 117;
-    --primary-accent: 194 98 83;
+    --accent-brand: 176 94 105;
+    --primary-accent: var(--accent-brand);
     --secondary-accent: 58 55 49;
     --muted: 65 61 54;
     --input: 75 71 63;
-    --ring: 220 125 111;
-    --font-family-ui: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', serif;
+    --ring: var(--accent-brand);
   }
 
   html {
@@ -182,7 +180,7 @@
   }
 
   :root[data-visual-theme='editorial'] .page-header h1 {
-    font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', serif;
+    font-family: var(--font-family-ui);
     font-weight: 600;
     letter-spacing: 0.04em;
   }

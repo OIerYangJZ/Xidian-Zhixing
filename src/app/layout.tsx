@@ -1,4 +1,5 @@
 import './globals.css';
+import '@fontsource-variable/noto-sans-sc';
 import 'swiper/css';
 import 'swiper/css/zoom';
 import 'swiper/css/navigation';
