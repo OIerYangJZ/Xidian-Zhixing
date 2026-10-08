@@ -544,6 +544,14 @@ section {
   color: var(--blue);
   font-size: clamp(59px, 9vw, 165px);
 }
+body[data-lang='en'] .hero-title {
+  font-size: clamp(44px, min(6vw, 10vh), 92px);
+}
+@media (min-width: 981px) {
+  body[data-lang='en'] .hero-content {
+    padding-top: clamp(40px, 7vh, 95px);
+  }
+}
 .hero-title em {
   color: var(--ink);
   font-style: normal;
@@ -1256,6 +1264,9 @@ body.is-search-open {
   .hero-title {
     font-size: clamp(54px, 11vw, 100px);
   }
+  body[data-lang='en'] .hero-title {
+    font-size: clamp(40px, 7vw, 70px);
+  }
   .hero-photo-main {
     right: 5vw;
     bottom: 7vh;
@@ -1394,6 +1405,12 @@ body.is-search-open {
   }
   .hero-title {
     font-size: clamp(51px, 14.4vw, 82px);
+  }
+  body[data-lang='en'] .hero-content {
+    padding-top: 50px;
+  }
+  body[data-lang='en'] .hero-title {
+    font-size: clamp(30px, 7.7vw, 46px);
   }
   .hero-lead {
     max-width: 240px;
