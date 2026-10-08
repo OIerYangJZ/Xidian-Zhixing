@@ -38,7 +38,7 @@ export function MenuBarItem({
   const className = cn(
     'group relative flex h-12 w-full cursor-pointer items-center justify-center gap-0 rounded-full px-3 text-foreground transition-colors hover:bg-secondary md:justify-center xl:justify-start xl:gap-4 xl:px-4',
     mobileTab && 'h-14 flex-1 flex-col gap-0.5 rounded-md px-1 hover:bg-transparent',
-    isActive && !mobileTab && 'bg-secondary/80 font-semibold',
+    isActive && !mobileTab && 'bg-secondary/80',
     isActive && mobileTab && 'text-primary',
   );
   const contents = (
@@ -58,7 +58,11 @@ export function MenuBarItem({
         ) : null}
       </span>
       <span
-        className={cn('hidden text-[17px] leading-6 xl:block', mobileTab && 'block text-[10px] leading-3 md:hidden')}>
+        className={cn(
+          'hidden text-[17px] leading-6 xl:block',
+          mobileTab && 'block text-[10px] leading-3 md:hidden',
+          isActive && 'font-normal italic',
+        )}>
         {children}
       </span>
     </>

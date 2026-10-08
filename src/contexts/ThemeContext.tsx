@@ -4,7 +4,7 @@ import React, { createContext, useCallback, useEffect, useMemo, useState } from 
 
 type Themes = 'system' | 'light' | 'dark';
 export type VisualTheme = 'zhixing' | 'editorial';
-const DEFAULT_ACCENT_COLOR = '#cb0305';
+const DEFAULT_ACCENT_COLOR = '#b05e69';
 export const ThemeContext = createContext<{
   theme: Themes;
   handleThemeChange: (theme: Themes) => void;
@@ -77,7 +77,10 @@ export function ThemeContextProvider({ children }: { children: React.ReactNode }
     handleThemeChange(savedTheme);
     const savedVisualTheme = localStorage.getItem(LS_VISUAL_THEME_KEY);
     handleVisualThemeChange(savedVisualTheme === 'editorial' ? 'editorial' : 'zhixing');
-    handleAccentColorChange(localStorage.getItem(LS_ACCENT_COLOR_KEY) || DEFAULT_ACCENT_COLOR);
+    const savedAccentColor = localStorage.getItem(LS_ACCENT_COLOR_KEY);
+    handleAccentColorChange(
+      !savedAccentColor || savedAccentColor.toLowerCase() === '#cb0305' ? DEFAULT_ACCENT_COLOR : savedAccentColor,
+    );
   }, [handleThemeChange, handleVisualThemeChange, handleAccentColorChange]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
