@@ -157,7 +157,7 @@ export function CampusLoginExperience() {
     <main className="campus-login">
       <header className="campus-login__topbar">
         <Link className="campus-login__brand" href="/" aria-label={t('西电知行首页', 'Xidian Zhixing home')}>
-          <img className="campus-login__brand-logo" src="/campus-login/zhixing-logo.jpg" alt="" />
+          <img className="campus-login__brand-logo" src="/campus-login/zhixing-logo.png" alt="" />
           <span>{t('西电知行', 'Xidian Zhixing')}</span>
         </Link>
         <nav className="campus-login__top-links" aria-label={t('登录页导航', 'Sign-in navigation')}>

@@ -57,3 +57,4 @@ miniprogram*/config/env.local.js
 /artifacts/knowledge-recovery/*.db-shm
 /artifacts/knowledge-recovery/*.db-wal
 /artifacts/knowledge-recovery/*.log
+docs/项目介绍.md

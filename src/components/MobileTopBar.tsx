@@ -29,7 +29,7 @@ export function MobileTopBar() {
         href="/"
         className="flex h-10 items-center gap-2 rounded-full pr-2"
         aria-label={t('西电知行首页', 'Xidian Zhixing home')}>
-        <img src="/campus-login/zhixing-logo.jpg" alt="" className="h-8 w-8 rounded-md object-cover" />
+        <img src="/campus-login/zhixing-logo.png" alt="" className="h-8 w-8 rounded-md object-cover" />
       </Link>
       {showTitle && (
         <span className="absolute left-14 right-[196px] truncate text-center text-[15px] font-semibold">{title}</span>

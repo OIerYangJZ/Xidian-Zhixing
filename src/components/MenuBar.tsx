@@ -85,7 +85,7 @@ export function MenuBar() {
           href="/"
           aria-label={t('西电知行首页', 'Zhixing home')}
           className="mb-5 flex h-12 items-center justify-center gap-3 rounded-full px-2 transition hover:bg-secondary/70 xl:justify-start xl:px-3">
-          <img src="/campus-login/zhixing-logo.jpg" alt="" className="h-9 w-9 rounded-md object-cover" />
+          <img src="/campus-login/zhixing-logo.png" alt="" className="h-9 w-9 rounded-md object-cover" />
           <LogoText className="hidden text-xl text-foreground xl:block" />
         </Link>
         <nav className="flex w-full flex-col gap-1" aria-label={t('主导航', 'Main navigation')}>
