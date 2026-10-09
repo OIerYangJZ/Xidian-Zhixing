@@ -26,7 +26,7 @@ from urllib.request import HTTPHandler, HTTPSHandler, HTTPRedirectHandler, Proxy
 
 from dotenv import load_dotenv
 from fastapi.encoders import jsonable_encoder
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request as HttpRequest
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field, ValidationError
@@ -52,6 +52,9 @@ DEPLOYMENT_SNAPSHOT = ROOT / "deploy" / "knowledge" / "data" / "knowledge.db"
 DEFAULT_DB = SNAPSHOT if SNAPSHOT.is_file() else DEPLOYMENT_SNAPSHOT
 RUN_TIMEOUT_SECONDS = 120
 # Open-internet search is the slowest tool in the turn: one deadline covers a whole keyword batch.
+# Only engines that answered from this network are listed; a blocked or captcha-walled engine does
+# nothing but spend the deadline.
+DDGS_BACKENDS = "duckduckgo,yahoo"
 DDGS_TIMEOUT_SECONDS = 6
 INTERNET_SEARCH_DEADLINE_SECONDS = 8.0
 # Per-tool payload caps. A single `read_files` or `read_web_pages` call is re-sent with every later
@@ -90,7 +93,7 @@ class RequestTooLarge(Exception):
     """
 
 
-async def _read_chat_request(request: Request) -> ChatRequest:
+async def _read_chat_request(request: HttpRequest) -> ChatRequest:
     raw = await request.body()
     if len(raw) > MAX_REQUEST_BYTES:
         raise RequestTooLarge(f"请求体 {len(raw)} 字节超过 {MAX_REQUEST_BYTES} 字节上限")
@@ -111,7 +114,7 @@ def _validation_reason(error: ValidationError | Exception) -> str:
     return f"{location}: {first.get('msg', '不符合请求 schema')}"
 
 
-async def chat_request(request: Request) -> ChatRequest:
+async def chat_request(request: HttpRequest) -> ChatRequest:
     """Validated turn body as a dependency, so a rejected request is named, not opaque.
 
     Handlers stay directly callable with a `ChatRequest` in tests.
@@ -404,36 +407,46 @@ async def _search_internet_pages(queries: list[str], limit: int) -> list[dict[st
         return list(DDGS(timeout=DDGS_TIMEOUT_SECONDS).text(
             query,
             max_results=max(3, min(limit, 10)),
-            backend="duckduckgo,yahoo,mojeek,startpage",
+            backend=DDGS_BACKENDS,
             region="cn-zh",
         ))
 
-    try:
-        result_sets = await asyncio.wait_for(
-            asyncio.gather(
-                *(asyncio.to_thread(search, query) for query in queries[:8]), return_exceptions=True
-            ),
-            timeout=INTERNET_SEARCH_DEADLINE_SECONDS,
-        )
-    except asyncio.TimeoutError:
-        # A thread already running cannot be cancelled, but the turn must not wait for it.
-        logger.info("Internet search hit its %.1fs batch deadline", INTERNET_SEARCH_DEADLINE_SECONDS)
-        return []
-    pages: OrderedDict[str, dict[str, Any]] = OrderedDict()
-    for query, rows in zip(queries[:8], result_sets):
-        if isinstance(rows, Exception):
-            logger.info("Internet search skipped a query (%s)", type(rows).__name__)
+    # Each query gets its own clock, and the batch stops at the deadline with whatever already
+    # arrived. A single batch-wide timeout used to throw away the answers that had come back
+    # quickly because one slow engine never finished.
+    tasks = [asyncio.create_task(asyncio.to_thread(search, query)) for query in queries[:8]]
+    done, pending = await asyncio.wait(tasks, timeout=INTERNET_SEARCH_DEADLINE_SECONDS)
+    for task in pending:
+        task.cancel()
+    if pending:
+        logger.info("Internet search returned with %d of %d queries unfinished", len(pending), len(tasks))
+    # Keep each row paired with the query that produced it, so a result can report every keyword
+    # group that reached it.
+    accepted: list[tuple[str, dict[str, Any]]] = []
+    for query, task in zip(queries[:8], tasks):
+        if task not in done:
             continue
-        for row in rows:
-            url = str(row.get("href") or row.get("url") or "")
-            title = str(row.get("title") or "")[:240]
-            if not url or not title or not await asyncio.to_thread(_is_public_internet_url, url):
-                continue
-            key = _canonical_url(url)
-            page = pages.setdefault(
-                key,
-                {"title": title, "url": url, "snippet": str(row.get("body") or "")[:800], "matched_queries": []},
-            )
+        try:
+            rows = task.result()
+        except Exception as error:  # noqa: BLE001
+            logger.info("Internet search skipped a query (%s)", type(error).__name__)
+            continue
+        accepted.extend((query, row) for row in rows)
+    checks = await asyncio.gather(
+        *(asyncio.to_thread(_is_public_internet_url, str(row.get("href") or row.get("url") or "")) for _, row in accepted)
+    )
+    pages: OrderedDict[str, dict[str, Any]] = OrderedDict()
+    for (query, row), keep in zip(accepted, checks):
+        url = str(row.get("href") or row.get("url") or "")
+        title = str(row.get("title") or "")[:240]
+        if not keep or not url or not title:
+            continue
+        key = _canonical_url(url)
+        page = pages.setdefault(
+            key,
+            {"title": title, "url": url, "snippet": str(row.get("body") or "")[:800], "matched_queries": []},
+        )
+        if query not in page["matched_queries"]:
             page["matched_queries"].append(query)
     return list(pages.values())[: max(1, min(limit * max(1, min(len(queries), 4)), 40))]
 
@@ -1359,7 +1372,7 @@ async def chat_stream(request: ChatRequest = Depends(chat_request)) -> Streaming
 
 
 @app.exception_handler(RequestValidationError)
-async def rejected_request(_request: Request, exc: RequestValidationError) -> JSONResponse:
+async def rejected_request(_request: HttpRequest, exc: RequestValidationError) -> JSONResponse:
     """Name the real cause of a rejected turn instead of an opaque 422 body.
 
     The web client can only distinguish a bad request from an upstream failure when the

@@ -3,13 +3,18 @@ from __future__ import annotations
 
 import asyncio
 import faulthandler
+import inspect
 import json
 import os
 import socket
 import sqlite3
+import sys
 import tempfile
+import time
+import types
 import unittest
 from contextlib import closing
+from email.message import Message
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
@@ -36,6 +41,8 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
             connection.commit()
         self.patch(h, "corpus_path", self.db)
         self.patch(h, "run_slots", asyncio.Semaphore(4))
+        # Both network legs are stubbed so a tool test never reaches the internet. `InternetSearch`
+        # below exercises the search itself and installs its own stubs instead of inheriting these.
         self.patch(h, "_search_campus_pages", AsyncMock(return_value=[]))
         self.patch(h, "_search_internet_pages", AsyncMock(return_value=[]))
         self.patch(h, "_resolve_via_doh", Mock(return_value=()))
@@ -136,30 +143,45 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
         await h.search_all_sources(fresh, ["scholarship"])
         self.assertEqual(h._search_calls_used(fresh_deps), 1)
 
-    async def test_internet_search_returns_under_one_batch_deadline(self):
-        # The per-query timeout used to be the only bound, so eight keyword groups each spent their
-        # own; one whole-batch deadline is what keeps a slow provider from owning the turn.
-        import sys
-        import time
-        import types
+    async def test_the_web_reading_path_is_reachable(self):
+        # Regression: FastAPI's `Request` shadowed urllib's, so every page read and the
+        # DNS-over-HTTPS fallback raised TypeError and the whole web branch returned nothing.
+        # A mocked network never noticed, so assert the branch actually constructs and runs.
+        self.assertEqual(h.Request.__module__, "urllib.request")
+        opened: list[str] = []
 
-        slow_ddgs = types.ModuleType("ddgs")
+        class FakeResponse:
+            def __init__(self, url):
+                self._url = url
+                self.headers = Message()
+                self.headers["Content-Type"] = "text/html; charset=utf-8"
 
-        class SlowDDGS:
-            def __init__(self, timeout=None):
-                self.timeout = timeout
+            def __enter__(self):
+                return self
 
-            def text(self, *_args, **_kwargs):
-                time.sleep(0.4)
-                return []
+            def __exit__(self, *_args):
+                return False
 
-        slow_ddgs.DDGS = SlowDDGS
-        started = time.perf_counter()
-        with patch.dict(sys.modules, {"ddgs": slow_ddgs}), patch.object(h, "INTERNET_SEARCH_DEADLINE_SECONDS", 0.05):
-            pages = await h._search_internet_pages(["a", "b", "c"], 3)
-        elapsed = time.perf_counter() - started
-        self.assertEqual(pages, [])
-        self.assertLess(elapsed, 0.35)
+            def read(self, *_args, **_kwargs):
+                return "<html><title>奖学金</title><body><p>评定办法</p></body></html>".encode()
+
+            def geturl(self):
+                return self._url
+
+        class FakeOpener:
+            def open(self, request, timeout=None):
+                opened.append(request.full_url)
+                return FakeResponse(request.full_url)
+
+        with patch.object(h, "_public_opener", return_value=FakeOpener()):
+            page = h._fetch_campus_page("https://xgc.xidian.edu.cn/info/1049/10743.htm")
+        self.assertEqual(opened, ["https://xgc.xidian.edu.cn/info/1049/10743.htm"])
+        self.assertIn("奖学金", page["text"])
+
+    def test_page_readers_still_build_requests_with_a_user_agent(self):
+        # The same TypeError class of bug: both builders must accept a headers keyword.
+        source = inspect.getsource(h._fetch_campus_page) + inspect.getsource(h._fetch_internet_page)
+        self.assertEqual(source.count("headers={"), 2)
 
     async def test_document_revision_is_visible_without_restart(self):
         self.update(content="updated scholarship instructions")
@@ -631,6 +653,67 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
             self.assertFalse(h._is_public_internet_url("https://example.com/"))
             with self.assertRaises(OSError):
                 h._create_public_connection(("example.com", 443))
+
+
+class InternetSearchTests(unittest.IsolatedAsyncioTestCase):
+    """The search itself, with the engines faked and no inherited network stubs.
+
+    These call `_search_internet_pages` directly, so the class must not stub it the way the tool
+    tests do; a stub here would make the test assert against the stub.
+    """
+
+    @staticmethod
+    def fake_engines(delays: dict[str, float], results: dict[str, list[dict]]):
+        module = types.ModuleType("ddgs")
+
+        class FakeDDGS:
+            def __init__(self, timeout=None):
+                self.timeout = timeout
+
+            def text(self, query, *_args, **_kwargs):
+                time.sleep(delays.get(query, 0.01))
+                return results.get(query, [])
+
+        module.DDGS = FakeDDGS
+        return module
+
+    async def test_a_batch_stops_at_the_deadline(self):
+        # Eight keyword groups may not each spend their own budget: one deadline bounds the batch.
+        engines = self.fake_engines({}, {})
+        started = time.perf_counter()
+        with patch.dict(sys.modules, {"ddgs": engines}), patch.object(h, "INTERNET_SEARCH_DEADLINE_SECONDS", 0.05):
+            pages = await h._search_internet_pages(["a", "b", "c"], 3)
+        self.assertEqual(pages, [])
+        self.assertLess(time.perf_counter() - started, 0.35)
+
+    async def test_a_slow_query_no_longer_discards_the_fast_answers(self):
+        # A batch-wide timeout used to drop results that had already arrived; the deadline now only
+        # stops the queries that are still running.
+        engines = self.fake_engines(
+            {"slow": 0.4, "fast": 0.01},
+            {"fast": [{"href": "https://example.com/hit", "title": "hit", "body": "body"}]},
+        )
+        with patch.dict(sys.modules, {"ddgs": engines}), patch.object(
+            h, "INTERNET_SEARCH_DEADLINE_SECONDS", 0.2
+        ), patch.object(h, "_is_public_internet_url", return_value=True):
+            pages = await h._search_internet_pages(["fast", "slow"], 3)
+        self.assertEqual([page["url"] for page in pages], ["https://example.com/hit"])
+        self.assertEqual(pages[0]["matched_queries"], ["fast"])
+
+    async def test_every_keyword_group_that_reached_a_page_is_recorded(self):
+        engines = self.fake_engines(
+            {},
+            {
+                "one": [{"href": "https://example.com/same", "title": "same", "body": "b"}],
+                "two": [{"href": "https://example.com/same", "title": "same", "body": "b"}],
+            },
+        )
+        with patch.dict(sys.modules, {"ddgs": engines}), patch.object(
+            h, "_is_public_internet_url", return_value=True
+        ):
+            pages = await h._search_internet_pages(["one", "two"], 3)
+        self.assertEqual(len(pages), 1)
+        self.assertEqual(sorted(pages[0]["matched_queries"]), ["one", "two"])
 
 
 class ChatRequestValidationTests(unittest.TestCase):
