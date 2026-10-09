@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { createAgentPrincipalToken } from '@/lib/ai/harnessPrincipal';
 import { buildHarnessHistory } from '@/lib/ai/harnessHistory';
+import { harnessUIContext, validateUI } from '@/lib/ai/ui';
 import prisma from '@/lib/prisma/prisma';
 
 export type AgentSource = {
@@ -24,6 +25,8 @@ type ToolTrace = {
 type HarnessReply = {
   answer?: unknown;
   sources?: AgentSource[];
+  ui?: unknown;
+  uiErrors?: unknown;
   toolTrace?: ToolTrace[];
   model?: string;
   provider?: string;
@@ -53,6 +56,7 @@ export async function answerWithAgentHarness(
   question: string,
   language: 'zh' | 'en' = 'zh',
   signal?: AbortSignal,
+  uiVersion?: 1,
 ) {
   const historyRows = await prisma.aiMessage.findMany({
     where: { conversationId, id: { not: userMessageId }, role: { in: ['USER', 'ASSISTANT'] } },
@@ -83,6 +87,7 @@ export async function answerWithAgentHarness(
           history,
           principal_token: createAgentPrincipalToken(userId),
           trace_id: traceId,
+          ...harnessUIContext(uiVersion),
         }),
         signal: abortController.signal,
       });
@@ -117,6 +122,7 @@ export async function answerWithAgentHarness(
     }
 
     const sources = Array.isArray(payload.sources) ? payload.sources : [];
+    const presentation = validateUI(uiVersion === 1 ? payload.ui : null, sources);
     const toolTrace = Array.isArray(payload.toolTrace) ? payload.toolTrace : [];
     const durationMs = Date.now() - startedAt;
     const model = payload.model || process.env.AGENT_HARNESS_MODEL || 'deepseek-v4-flash';
@@ -128,6 +134,7 @@ export async function answerWithAgentHarness(
           role: 'ASSISTANT',
           content: payload.answer as string,
           sources: sources as Prisma.InputJsonValue,
+          ...(presentation.ui ? { ui: presentation.ui as Prisma.InputJsonValue } : {}),
         },
       });
       await tx.aiTrace.create({
@@ -147,6 +154,11 @@ export async function answerWithAgentHarness(
             usage: (payload.usage || {}) as Prisma.InputJsonValue,
             toolTrace: toolTrace as Prisma.InputJsonValue,
             sourceIds: sources.map((source) => source.documentId),
+            uiCards: presentation.ui?.cards.length || 0,
+            uiErrors: [
+              ...(Array.isArray(payload.uiErrors) ? payload.uiErrors.filter((item) => typeof item === 'string') : []),
+              ...presentation.errors,
+            ],
           },
         },
       });

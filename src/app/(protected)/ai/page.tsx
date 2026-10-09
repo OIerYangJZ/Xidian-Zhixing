@@ -1,6 +1,7 @@
 import { getServerUser } from '@/lib/getServerUser';
 import prisma from '@/lib/prisma/prisma';
 import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+import { getAIUIServices, validateUI } from '@/lib/ai/ui';
 import { AIChat, type AIConversationData, type AgentTraceEvent } from './AIChat';
 
 export async function generateMetadata() {
@@ -13,7 +14,7 @@ export default async function Page() {
     ? await prisma.aiConversation.findMany({
         where: { userId: user.id },
         orderBy: { updatedAt: 'desc' },
-        include: { messages: { orderBy: { createdAt: 'asc' }, take: 40 } },
+        include: { messages: { orderBy: { createdAt: 'desc' }, take: 40 } },
       })
     : [];
   const traces = user?.id
@@ -39,18 +40,24 @@ export default async function Page() {
     id: conversation.id,
     title: conversation.title,
     updatedAt: conversation.updatedAt.toISOString(),
-    messages: conversation.messages.map((message) => ({
+    messages: conversation.messages.reverse().map((message) => ({
       id: message.id,
       role: message.role,
       content: message.content,
       sources: Array.isArray(message.sources)
         ? (message.sources as unknown as AIConversationData['messages'][number]['sources'])
         : [],
+      ui: validateUI(
+        message.ui,
+        Array.isArray(message.sources)
+          ? (message.sources as unknown as AIConversationData['messages'][number]['sources'])
+          : [],
+      ).ui,
       trace: traceByMessageId.get(message.id)?.trace,
       durationMs: traceByMessageId.get(message.id)?.durationMs,
       createdAt: message.createdAt.toISOString(),
     })),
   }));
 
-  return <AIChat initialConversations={initialConversations} />;
+  return <AIChat initialConversations={initialConversations} services={getAIUIServices()} />;
 }

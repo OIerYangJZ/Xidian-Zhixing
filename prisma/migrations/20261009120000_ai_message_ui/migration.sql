@@ -1,0 +1,1 @@
+ALTER TABLE "AiMessage" ADD COLUMN "ui" JSONB;

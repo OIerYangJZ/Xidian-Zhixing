@@ -22,11 +22,13 @@ function load(path, dependencies = {}, globals = {}) {
 }
 
 const historyModule = load('src/lib/ai/harnessHistory.ts');
+const uiModule = load('src/lib/ai/ui.ts', { '@/lib/campus/catalog': load('src/lib/campus/catalog.ts') });
 const source = { citation: 1, title: 'Scholarship', documentId: 'doc', source: 'https://example.com/doc' };
 
 function fixture(
   events,
-  { holdOpen = false, status = 200, fragment = false, afterTransaction, mockTimeout = false } = {},
+  { holdOpen = false, status = 200, fragment = false, afterTransaction, mockTimeout = false,
+    uiVersion, authorized = true, ownsConversation = true } = {},
 ) {
   const messages = [],
     traces = [];
@@ -40,7 +42,7 @@ function fixture(
     notifyFailure = resolve;
   });
   const prisma = {
-    aiConversation: { findFirst: async () => ({ id: 'conversation', title: 'existing' }), update: async () => ({}) },
+    aiConversation: { findFirst: async () => ownsConversation ? ({ id: 'conversation', title: 'existing' }) : null, update: async () => ({}) },
     aiMessage: {
       create: async ({ data }) => {
         const row = { ...data, id: data.role === 'USER' ? 'user-message' : 'assistant-message', createdAt: new Date() };
@@ -92,15 +94,16 @@ function fixture(
     '@/lib/apiResponse': {
       apiError: (message, code, data) => new Response(JSON.stringify({ message, data }), { status: code }),
     },
-    '@/lib/getServerUser': { getServerUser: async () => [{ id: 'user' }] },
+    '@/lib/getServerUser': { getServerUser: async () => [authorized ? { id: 'user' } : null] },
     '@/lib/ai/harnessPrincipal': { createAgentPrincipalToken: () => 'signed-test-principal' },
     '@/lib/ai/harnessHistory': historyModule,
+    '@/lib/ai/ui': uiModule,
     '@/lib/prisma/prisma': { default: prisma },
     'server-only': {},
   };
   const request = new Request('http://localhost/api/ai/chat/stream', {
     method: 'POST',
-    body: JSON.stringify({ content: 'question', conversationId: 'conversation' }),
+    body: JSON.stringify({ content: 'question', conversationId: 'conversation', uiVersion }),
     signal: requestAbort.signal,
   });
   const route = load('src/app/api/ai/chat/stream/route.ts', dependencies, {
@@ -325,4 +328,79 @@ test('non-streaming budget rejection records the tokens consumed before failure'
   assert.equal(f.traces[0].promptTokens, 150);
   assert.equal(f.traces[0].completionTokens, 30);
   assert.equal(f.traces[0].metadata.outcome, 'ai_budget_exceeded');
+});
+
+const presentation = { version: 1, cards: [{ type: 'source_list', citations: [1] },
+  { type: 'service_links', serviceIds: ['ehall'] }] };
+
+test('opted-in fragmented stream saves validated cards with the answer and returns them only at done', async () => {
+  const f = fixture([
+    { type: 'tool_result', tool: 'present_ui', toolCallId: 'ui', result: { accepted: true } },
+    { type: 'answer_delta', text: 'answer' },
+    { type: 'complete', answer: 'answer', sources: [source], ui: presentation },
+  ], { uiVersion: 1, fragment: true });
+  const events = frames(await (await f.route.POST(f.request)).text());
+  assert.deepEqual(events.at(-1).message.ui, presentation);
+  assert.deepEqual(f.messages.at(-1).ui, presentation);
+  assert.equal(f.traces[0].metadata.uiCards, 2);
+  assert.equal(f.fetchBody.uiVersion, 1);
+  assert.equal(f.fetchBody.uiServices.find((item) => item.id === 'ehall').name, '一站式服务大厅');
+  assert.equal(events.slice(0, -1).some((event) => 'ui' in event), false);
+});
+
+test('invalid cards fall back to text and record rejection without losing valid cards', async () => {
+  const ui = { version: 1, cards: [{ type: 'source_list', citations: [99] }, presentation.cards[1]] };
+  const f = fixture([{ type: 'complete', answer: 'answer', sources: [source], ui }], { uiVersion: 1 });
+  const events = frames(await (await f.route.POST(f.request)).text());
+  assert.deepEqual(events.at(-1).message.ui.cards, [presentation.cards[1]]);
+  assert.deepEqual(f.traces[0].metadata.uiErrors, ['card_0:invalid_source']);
+  const unknown = fixture([{ type: 'complete', answer: 'answer', sources: [], ui: { version: 2, cards: [] } }], { uiVersion: 1 });
+  const fallback = frames(await (await unknown.route.POST(unknown.request)).text()).at(-1).message;
+  assert.equal(fallback.content, 'answer');
+  assert.equal(fallback.ui, null);
+  assert.equal(unknown.messages.at(-1).ui, undefined);
+});
+
+test('legacy clients never request or persist cards', async () => {
+  const f = fixture([{ type: 'complete', answer: 'answer', sources: [source], ui: presentation }]);
+  const done = frames(await (await f.route.POST(f.request)).text()).at(-1);
+  assert.equal(f.fetchBody.uiVersion, undefined);
+  assert.equal(f.fetchBody.uiServices, undefined);
+  assert.equal(done.message.ui, null);
+  assert.equal(f.messages.at(-1).ui, undefined);
+});
+
+test('a failed card turn never persists a presentation', async () => {
+  const f = fixture([
+    { type: 'tool_result', tool: 'present_ui', toolCallId: 'ui', result: { accepted: true } },
+    { type: 'error', code: 'ai_timeout' },
+  ], { uiVersion: 1 });
+  const events = frames(await (await f.route.POST(f.request)).text());
+  assert.equal(events.at(-1).type, 'error');
+  assert.equal(f.messages.length, 0);
+  assert.equal(f.traces[0].metadata.outcome, 'ai_timeout');
+});
+
+test('unauthenticated users and other users conversations cannot reach the harness', async () => {
+  for (const [options, status] of [[{ authorized: false }, 401], [{ ownsConversation: false }, 404]]) {
+    const f = fixture([], { ...options, uiVersion: 1 });
+    assert.equal((await f.route.POST(f.request)).status, status);
+    assert.equal(f.fetchBody, undefined);
+    assert.equal(f.messages.length, 0);
+  }
+});
+
+test('non-streaming harness uses the same card validation and persistence', async () => {
+  const f = fixture([]);
+  let requestBody;
+  const helper = load('src/lib/ai/harness.ts', f.dependencies, {
+    fetch: async (_url, options) => {
+      requestBody = JSON.parse(options.body);
+      return new Response(JSON.stringify({ answer: 'answer', sources: [source], ui: presentation }));
+    },
+  });
+  const result = await helper.answerWithAgentHarness('user', 'conversation', 'new-question', 'question', 'zh', undefined, 1);
+  assert.deepEqual(result.message.ui, presentation);
+  assert.equal(requestBody.uiVersion, 1);
+  assert.equal(f.traces[0].metadata.uiCards, 2);
 });

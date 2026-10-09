@@ -102,6 +102,149 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["usage"]["requests"], 3)
         self.assertEqual(result["usage"]["toolCalls"], 2)
 
+    def ui_request(self):
+        return h.ChatRequest(question='scholarship instructions', uiVersion=1,
+                             uiServices=[{'id': 'ehall', 'name': '服务大厅', 'description': '打开官方入口。'}])
+
+    async def test_card_only_citations_are_preserved_in_final_sources(self):
+        calls = 0
+
+        def model(messages, info):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                return ModelResponse(parts=[ToolCallPart('read_files', {'file_ids': ['doc']})])
+            if calls == 2:
+                return ModelResponse(parts=[ToolCallPart('present_ui', {'ui': {'version': 1, 'cards': [
+                    {'type': 'source_list', 'citations': [1]},
+                    {'type': 'guide', 'title': '申请说明', 'steps': [
+                        {'title': '准备材料', 'detail': '阅读申请通知。', 'citations': [1]}]},
+                    {'type': 'service_links', 'serviceIds': ['ehall']}]}})])
+            return ModelResponse(parts=[TextPart('Read the application notice and prepare the required documents.')])
+
+        with h.agent.override(model=FunctionModel(model)):
+            result = await h.chat(self.ui_request())
+        self.assertEqual(len(result['ui']['cards']), 3)
+        self.assertEqual(result['sources'][0]['documentId'], 'doc')
+        self.assertEqual(result['usage']['requests'], 3)
+        self.assertEqual(result['uiErrors'], [])
+
+    async def test_unregistered_service_falls_back_to_text(self):
+        calls = 0
+
+        def model(messages, info):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                return ModelResponse(parts=[ToolCallPart('present_ui', {'ui': {'version': 1, 'cards': [
+                    {'type': 'service_links', 'serviceIds': ['personal-grades']}]}})])
+            return ModelResponse(parts=[TextPart('Personal data is not connected.')])
+
+        with h.agent.override(model=FunctionModel(model)):
+            result = await h.chat(self.ui_request())
+        self.assertIsNone(result['ui'])
+        self.assertIn('unknown_service', result['uiErrors'][0])
+        self.assertEqual(result['answer'], 'Personal data is not connected.')
+
+    async def test_malformed_presentation_falls_back_without_tool_validation_retry(self):
+        calls = 0
+
+        def model(messages, info):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                schema = next(tool.parameters_json_schema for tool in info.function_tools if tool.name == 'present_ui')
+                self.assertIn('cards', schema['properties']['ui']['properties'])
+                return ModelResponse(parts=[ToolCallPart('present_ui', {'ui': {'version': 1, 'cards': [
+                    {'type': 'html', 'html': '<script>alert(1)</script>'}]}})])
+            return ModelResponse(parts=[TextPart('Plain answer after invalid presentation.')])
+
+        with h.agent.override(model=FunctionModel(model)):
+            result = await h.chat(self.ui_request())
+        self.assertIsNone(result['ui'])
+        self.assertIn('invalid_schema', result['uiErrors'][0])
+        self.assertEqual(calls, 2)
+
+    async def test_ui_is_hidden_from_legacy_client_model(self):
+        def model(messages, info):
+            self.assertNotIn('present_ui', [tool.name for tool in info.function_tools])
+            return ModelResponse(parts=[TextPart('Plain answer.')])
+
+        with h.agent.override(model=FunctionModel(model)):
+            result = await h.chat(self.request)
+        self.assertIsNone(result['ui'])
+
+    async def test_archived_card_source_drops_card_without_breaking_text(self):
+        calls = 0
+
+        def model(messages, info):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                return ModelResponse(parts=[ToolCallPart('read_files', {'file_ids': ['doc']})])
+            if calls == 2:
+                return ModelResponse(parts=[ToolCallPart('present_ui', {'ui': {'version': 1, 'cards': [
+                    {'type': 'source_list', 'citations': [1]}, {'type': 'service_links', 'serviceIds': ['ehall']}]}})])
+            self.update(status='archived')
+            return ModelResponse(parts=[TextPart('Open the official service for current information.')])
+
+        with h.agent.override(model=FunctionModel(model)):
+            result = await h.chat(self.ui_request())
+        self.assertEqual(result['ui']['cards'], [{'type': 'service_links', 'serviceIds': ['ehall']}])
+        self.assertEqual(result['sources'], [])
+        self.assertIn('invalid_source', result['uiErrors'][0])
+
+    async def test_ui_latest_valid_submission_wins_and_retry_does_not_show_draft(self):
+        calls = 0
+
+        async def model(messages, info):
+            nonlocal calls
+            calls += 1
+            if calls in (1, 2):
+                ids = ['ehall'] if calls == 1 else ['ehall', 'schoolnet']
+                yield {0: DeltaToolCall(name='present_ui', json_args=json.dumps({'ui': {'version': 1,
+                    'cards': [{'type': 'service_links', 'serviceIds': ids}]}}), tool_call_id=f'ui-{calls}')}
+            elif calls == 3:
+                yield 'Unsupported [99]'
+            else:
+                yield 'Use the official service.'
+
+        request = self.ui_request()
+        request.uiServices.append(h.UIService(id='schoolnet', name='校园网', description='校园网入口。'))
+        with h.agent.override(model=FunctionModel(stream_function=model)):
+            events = await self.collect(request)
+        complete = events[-1]
+        self.assertEqual(complete['type'], 'complete')
+        self.assertEqual(complete['ui']['cards'][0]['serviceIds'], ['ehall', 'schoolnet'])
+        self.assertEqual(complete['answer'], 'Use the official service.')
+        self.assertFalse(any('ui' in event for event in events[:-1]))
+
+    async def test_cancelled_presentation_has_no_complete_event(self):
+        calls = 0
+        waiting = asyncio.Event()
+        stopped = asyncio.Event()
+
+        async def model(messages, info):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                yield {0: DeltaToolCall(name='present_ui', json_args=json.dumps({'ui': {'version': 1,
+                    'cards': [{'type': 'service_links', 'serviceIds': ['ehall']}]}}), tool_call_id='ui')}
+            else:
+                waiting.set()
+                try:
+                    await asyncio.sleep(10)
+                finally:
+                    stopped.set()
+
+        with h.agent.override(model=FunctionModel(stream_function=model)):
+            pending = asyncio.create_task(self.collect(self.ui_request()))
+            await asyncio.wait_for(waiting.wait(), 1)
+            pending.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await pending
+            await asyncio.wait_for(stopped.wait(), 1)
+
     async def test_invalid_citation_triggers_real_model_retry(self):
         calls = 0
 

@@ -14,7 +14,7 @@ import socket
 import time
 from collections import OrderedDict
 from contextlib import asynccontextmanager, closing
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from html.parser import HTMLParser
@@ -30,6 +30,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext
+from pydantic_ai.tools import ToolDefinition
 from pydantic_ai.exceptions import UsageLimitExceeded
 from pydantic_ai.usage import RunUsage, UsageLimits
 from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, UserPromptPart
@@ -37,6 +38,7 @@ from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.providers.deepseek import DeepSeekProvider
 from .campus_connectors import CampusPrincipal, campus_connectors
+from .ui import UIEnvelope, UIService, card_citations, validate_ui
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -466,6 +468,10 @@ class AgentContext:
     used_web_pages: OrderedDict[str, dict[str, Any]] = field(default_factory=OrderedDict)
     citations: OrderedDict[str, dict[str, Any]] = field(default_factory=OrderedDict)
     tool_trace: list[dict[str, Any]] = field(default_factory=list)
+    ui_enabled: bool = False
+    ui_services: list[UIService] = field(default_factory=list)
+    pending_ui: UIEnvelope | None = None
+    ui_errors: list[str] = field(default_factory=list)
 
     def cite(self, document: Document) -> int:
         self.used_documents[document.id] = document
@@ -587,6 +593,8 @@ class ChatRequest(BaseModel):
     history: list[HistoryMessage] = Field(default_factory=list, max_length=24)
     principal_token: str | None = Field(default=None, max_length=2_000)
     trace_id: str | None = Field(default=None, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    uiVersion: Literal[1] | None = None
+    uiServices: list[UIService] = Field(default_factory=list, max_length=20)
 
 
 def _normalize(text: str) -> str:
@@ -682,7 +690,29 @@ async def _prepare_chat(request: ChatRequest) -> tuple[AgentContext, list[ModelR
         current_corpus = await asyncio.to_thread(CampusCorpus, corpus_path)
     except Exception as exc:
         raise HTTPException(status_code=503, detail={"code": "corpus_not_configured"}) from exc
-    return AgentContext(corpus=current_corpus, principal=principal), _build_history(request)
+    return AgentContext(corpus=current_corpus, principal=principal, ui_enabled=request.uiVersion == 1,
+                        ui_services=request.uiServices), _build_history(request)
+
+
+async def _finish_presentation(deps: AgentContext, answer: str):
+    value = deps.pending_ui.model_dump() if deps.ui_enabled and deps.pending_ui else None
+    stale = set()
+    if value:
+        try:
+            current = await asyncio.to_thread(CampusCorpus, deps.corpus.path)
+            for source in deps.sources():
+                file_id = source['documentId']
+                if not file_id.startswith('web:') and current.by_id.get(file_id) != deps.used_documents.get(file_id):
+                    stale.add(source['citation'])
+        except Exception:
+            deps.ui_errors.append('corpus_validation_failed')
+            value = None
+    ui, errors = validate_ui(value, deps.sources(), {service.id for service in deps.ui_services}, stale)
+    deps.ui_errors.extend(errors)
+    references = _reference_numbers(answer)
+    if ui:
+        references.update(number for card in ui.cards for number in card_citations(card))
+    return [source for source in deps.sources() if source['citation'] in references], ui.model_dump() if ui else None
 
 
 @asynccontextmanager
@@ -731,6 +761,7 @@ def _tool_progress_message(tool: str, language: str, finished: bool = False) -> 
         "list_campus_api_capabilities": "我在确认当前用户已授权的校园接口。",
         "call_campus_api": "我在查询已授权的校园接口。",
         "get_current_datetime": "我在确认当前北京时间。",
+        "present_ui": "我在整理可交互的资料与办事步骤。",
     }
     en = {
         "find_files": "I’m searching local materials with grouped keywords.",
@@ -741,6 +772,7 @@ def _tool_progress_message(tool: str, language: str, finished: bool = False) -> 
         "list_campus_api_capabilities": "I’m checking this user’s authorized campus APIs.",
         "call_campus_api": "I’m querying an authorized campus API.",
         "get_current_datetime": "I’m checking the current Beijing time.",
+        "present_ui": "I’m preparing interactive sources and steps.",
     }
     if finished:
         return "这一批结果已返回，我在核对原文。" if language == "zh" else "This batch is back; I’m checking the source text."
@@ -800,6 +832,46 @@ if api_key and model_name:
     def current_beijing_time() -> str:
         now = datetime.now(timezone(timedelta(hours=8), name="Asia/Shanghai"))
         return f"当前北京时间：{now:%Y年%m月%d日 %H:%M}。回答‘今天、近期、本周、未来一周’等问题时以此为准。"
+
+    @agent.instructions
+    def presentation_instructions(ctx: RunContext[AgentContext]) -> str:
+        if not ctx.deps.ui_enabled:
+            return ''
+        return ('本轮支持交互卡片。普通问答用文字；来源列表、办事步骤、服务入口有帮助时，在最终回答前调用 '
+                'present_ui，最多三张卡片。指南每步和来源列表只用本轮实际读取资料的引用编号。'
+                '服务入口和目录说明已经由应用提供，入口导航问题直接使用目录并展示 service_links，无需网页检索。'
+                '个人查询仍须在服务页由用户登录，不能把展示入口说成已经查询。其他办事细节须读取原文核实。'
+                '查询个人课表、成绩等数据时先检查已授权能力；没有对应能力就直接说明尚未接入，可提供目录中的官方入口，'
+                '不要为了未接入的个人查询继续搜索公开网页或猜测上游接口。'
+                '服务目录只表示跳转入口，不表示 Agent 已接入这些查询。不能告诉用户在本应用授权尚未接入的接口，'
+                '也不能编造官方入口里的子菜单、认证方式、移动应用或办理步骤；操作细节必须有已读原文依据。'
+                '不要生成 HTML、脚本、样式或链接；服务入口只用以下目录的 ID。'
+                '卡片提交失败时仍给出文字回答。最终文字需独立可读，包含卡片的关键步骤，不假装操作已完成。'
+                '历史资料必须重新核实。当前语言适用于卡片。服务目录：' +
+                json.dumps([service.model_dump() for service in ctx.deps.ui_services], ensure_ascii=False))
+
+    async def prepare_presentation(ctx: RunContext[AgentContext], definition: ToolDefinition):
+        if not ctx.deps.ui_enabled:
+            return None
+        schema = UIEnvelope.model_json_schema()
+        definitions = schema.pop('$defs', {})
+        return replace(definition, parameters_json_schema={
+            'type': 'object', 'properties': {'ui': schema}, 'required': ['ui'],
+            'additionalProperties': False, '$defs': definitions,
+        })
+
+    @agent.tool(prepare=prepare_presentation)
+    def present_ui(ctx: RunContext[AgentContext], ui: Any) -> dict[str, Any]:
+        """提交最终回答的交互卡片描述；只展示资料，不执行操作。最后一次有效提交替换之前的卡片。"""
+        if not ctx.deps.ui_enabled:
+            return {'error': '客户端不支持卡片，请继续文字回答。'}
+        # Validate inside the tool so malformed presentation never exhausts tool retries and loses the answer.
+        validated, errors = validate_ui(ui, ctx.deps.sources(), {s.id for s in ctx.deps.ui_services})
+        ctx.deps.ui_errors.extend(errors)
+        if validated:
+            ctx.deps.pending_ui = validated
+        ctx.deps.tool_trace.append({'tool': 'present_ui', 'cards': len(validated.cards) if validated else 0, 'errors': errors})
+        return {'accepted': validated is not None, 'errors': errors, 'message': '继续生成独立可读的文字回答。'}
 
     @agent.tool
     def get_current_datetime(ctx: RunContext[AgentContext]) -> dict[str, str]:
@@ -1003,9 +1075,11 @@ async def chat(request: ChatRequest) -> dict[str, Any]:
         detail["usage"] = _usage_data(usage)
         raise HTTPException(status_code=detail["httpStatus"] or 502, detail=detail) from exc
 
-    sources = deps.sources(result.output)
+    sources, ui = await _finish_presentation(deps, result.output)
     return {
         "answer": result.output,
+        "ui": ui,
+        "uiErrors": deps.ui_errors,
         "sources": sources,
         "toolTrace": deps.tool_trace,
         "model": model_name,
@@ -1090,11 +1164,13 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
             if result is None:
                 raise RuntimeError("Agent stream ended without a final result")
 
-            sources = deps.sources(result.output)
+            sources, ui = await _finish_presentation(deps, result.output)
             yield _sse(
                 {
                     "type": "complete",
                     "answer": result.output,
+                    "ui": ui,
+                    "uiErrors": deps.ui_errors,
                     "sources": sources,
                     "toolTrace": deps.tool_trace,
                     "model": model_name,

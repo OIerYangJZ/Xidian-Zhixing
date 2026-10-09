@@ -21,7 +21,7 @@ export async function POST(request: Request, props: { params: Promise<{ conversa
   const [user] = await getServerUser();
   if (!user?.id) return apiError('请先登录。', 401, { code: 'unauthorized' });
 
-  const body = (await request.json().catch(() => null)) as { content?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as { content?: unknown; uiVersion?: unknown } | null;
   const content = typeof body?.content === 'string' ? body.content.trim() : '';
   if (!content || content.length > 12_000) {
     return apiError('问题不能为空，且最多 12000 字。', 400, { code: 'invalid_message' });
@@ -51,6 +51,7 @@ export async function POST(request: Request, props: { params: Promise<{ conversa
       content,
       'zh',
       request.signal,
+      body?.uiVersion === 1 ? 1 : undefined,
     );
     return apiSuccess({ userMessage, ...result });
   } catch (error) {

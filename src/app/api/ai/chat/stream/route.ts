@@ -4,6 +4,7 @@ import { apiError } from '@/lib/apiResponse';
 import { getServerUser } from '@/lib/getServerUser';
 import { createAgentPrincipalToken } from '@/lib/ai/harnessPrincipal';
 import { buildHarnessHistory } from '@/lib/ai/harnessHistory';
+import { harnessUIContext, validateUI } from '@/lib/ai/ui';
 import prisma from '@/lib/prisma/prisma';
 
 type HarnessEvent = {
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
     content?: unknown;
     conversationId?: unknown;
     language?: unknown;
+    uiVersion?: unknown;
   } | null;
   const question = typeof body?.content === 'string' ? body.content.trim() : '';
   if (!question || question.length > 12_000) {
@@ -140,6 +142,7 @@ export async function POST(request: Request) {
         history,
         principal_token: createAgentPrincipalToken(user.id),
         trace_id: traceId,
+        ...harnessUIContext(body?.uiVersion),
       }),
       signal: abortController.signal,
     });
@@ -204,6 +207,7 @@ export async function POST(request: Request) {
         });
 
         while (!cancelled) {
+          // eslint-disable-next-line no-await-in-loop -- Read stream chunks in order and preserve backpressure.
           const { value, done } = await reader.read();
           if (done) break;
           pending += decoder.decode(value, { stream: true });
@@ -231,9 +235,11 @@ export async function POST(request: Request) {
               const answer = typeof event.answer === 'string' ? event.answer : '';
               if (!answer.trim()) throw new Error('Agent returned an empty answer');
               const sources = Array.isArray(event.sources) ? event.sources : [];
+              const presentation = validateUI(body?.uiVersion === 1 ? event.ui : null, sources);
               const usage =
                 event.usage && typeof event.usage === 'object' ? (event.usage as Record<string, unknown>) : {};
               failureUsage = usage;
+              // eslint-disable-next-line no-await-in-loop -- Commit the completed answer before sending done.
               const message = await prisma.$transaction(async (tx) => {
                 const assistantMessage = await tx.aiMessage.create({
                   data: {
@@ -241,6 +247,7 @@ export async function POST(request: Request) {
                     role: 'ASSISTANT',
                     content: answer,
                     sources: sources as Prisma.InputJsonValue,
+                    ...(presentation.ui ? { ui: presentation.ui as Prisma.InputJsonValue } : {}),
                   },
                 });
                 await tx.aiTrace.create({
@@ -260,6 +267,13 @@ export async function POST(request: Request) {
                       assistantMessageId: assistantMessage.id,
                       toolTrace: (Array.isArray(event.toolTrace) ? event.toolTrace : []) as Prisma.InputJsonValue,
                       agentEvents: agentEvents as Prisma.InputJsonValue,
+                      uiCards: presentation.ui?.cards.length || 0,
+                      uiErrors: [
+                        ...(Array.isArray(event.uiErrors)
+                          ? event.uiErrors.filter((item) => typeof item === 'string')
+                          : []),
+                        ...presentation.errors,
+                      ],
                     },
                   },
                 });
@@ -278,6 +292,7 @@ export async function POST(request: Request) {
                   role: message.role,
                   content: message.content,
                   sources,
+                  ui: presentation.ui,
                   createdAt: message.createdAt.toISOString(),
                 },
                 traceId,
