@@ -5,6 +5,8 @@ import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
+import { safeSourceURL, type UIEnvelope, type UIService } from '@/lib/ai/ui';
+import { UICards } from './UICards';
 
 type AISource = { citation: number; title: string; source: string | null; documentId: string };
 export type AgentTraceEvent = {
@@ -22,6 +24,7 @@ type AIMessageData = {
   role: 'USER' | 'ASSISTANT' | 'SYSTEM';
   content: string;
   sources: AISource[];
+  ui?: UIEnvelope | null;
   createdAt: string;
   trace?: AgentTraceEvent[];
   durationMs?: number;
@@ -95,6 +98,7 @@ function toolLabel(tool: string, language: string) {
     read_web_pages: ['批量读取网页原文', 'Read public web pages'],
     list_campus_api_capabilities: ['查看已授权校园接口', 'List campus API access'],
     call_campus_api: ['调用校园功能接口', 'Call campus API'],
+    present_ui: ['整理交互卡片', 'Prepare interactive cards'],
   };
   return labels[tool]?.[language === 'zh' ? 0 : 1] || tool;
 }
@@ -185,7 +189,13 @@ function AgentTrace({ message, language }: { message: AIMessageData; language: s
   );
 }
 
-export function AIChat({ initialConversations }: { initialConversations: AIConversationData[] }) {
+export function AIChat({
+  initialConversations,
+  services,
+}: {
+  initialConversations: AIConversationData[];
+  services: UIService[];
+}) {
   const { t, language } = useLanguage();
   const starterQuestions =
     language === 'zh'
@@ -217,6 +227,7 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
     lastMessage?.content.length,
     lastMessage?.trace?.length,
     lastMessage?.status,
+    lastMessage?.ui,
     sending,
   ]);
 
@@ -316,7 +327,7 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
       const response = await fetch('/api/ai/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, conversationId: activeId || undefined, language }),
+        body: JSON.stringify({ content, conversationId: activeId || undefined, language, uiVersion: 1 }),
         signal: requestAbort.signal,
       });
 
@@ -580,14 +591,24 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
                     </div>
                   )}
                 </div>
+                {message.role === 'ASSISTANT' && !message.streaming && message.ui && (
+                  <UICards
+                    value={message.ui}
+                    sources={message.sources}
+                    services={services}
+                    language={language}
+                    disabled={sending}
+                    onFollowUp={(prompt) => sendMessage(undefined, prompt)}
+                  />
+                )}
                 {message.sources.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {message.sources.map((source) => (
                       <a
                         key={`${message.id}-${source.citation}`}
-                        href={source.source || undefined}
-                        target={source.source ? '_blank' : undefined}
-                        rel={source.source ? 'noreferrer' : undefined}
+                        href={safeSourceURL(source.source)}
+                        target={safeSourceURL(source.source) ? '_blank' : undefined}
+                        rel={safeSourceURL(source.source) ? 'noreferrer' : undefined}
                         className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
                         [{source.citation}] {source.title}
                       </a>

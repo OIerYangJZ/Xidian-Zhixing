@@ -10,11 +10,16 @@ export async function GET() {
     where: { userId: user.id },
     orderBy: { updatedAt: 'desc' },
     include: {
-      messages: { orderBy: { createdAt: 'asc' }, take: 40 },
+      messages: { orderBy: { createdAt: 'desc' }, take: 40 },
     },
   });
 
-  return NextResponse.json(conversations);
+  return NextResponse.json(
+    conversations.map((conversation) => ({
+      ...conversation,
+      messages: conversation.messages.reverse(),
+    })),
+  );
 }
 
 export async function POST() {

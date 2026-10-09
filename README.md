@@ -41,6 +41,8 @@ python -m uvicorn agent_harness.app:app --host 127.0.0.1 --port 8002
 
 本机默认模型为 `deepseek-v4-flash`，密钥只放在本机环境文件中。聊天页面继续通过已登录的 Next.js API 调用本地 Harness。
 
+网页 AI 支持资料列表、办事步骤和校园服务入口交互卡片；需要先应用新增消息字段的数据库迁移，再更新 Harness 与 Web。协议、回归检查、发布顺序和真实模型验收题集见 [Intelligent UI 说明](docs/intelligent-ui.md)。小程序继续使用原有文字模式。
+
 `npm run prisma:seed` 会运行 `prisma migrate reset` 并重建演示数据，执行前会清空目标数据库；不要对含有需要保留数据的数据库运行。
 
 ## 主题与主要页面

@@ -1,0 +1,146 @@
+{
+  "sources": [
+    {
+      "citation": 1,
+      "title": "奖学金申请通知",
+      "source": "https://news.xidian.edu.cn/info/example.htm",
+      "documentId": "doc"
+    },
+    { "citation": 2, "title": "本地办事说明", "source": null, "documentId": "local" },
+    { "citation": 3, "title": "非法链接", "source": "javascript:alert(1)", "documentId": "bad" }
+  ],
+  "cases": [
+    {
+      "name": "three valid cards including a local source",
+      "value": {
+        "version": 1,
+        "cards": [
+          { "type": "source_list", "citations": [1, 2] },
+          {
+            "type": "guide",
+            "title": "申请奖学金",
+            "steps": [{ "title": "准备材料", "detail": "按照通知准备申请表。", "citations": [1] }]
+          },
+          { "type": "service_links", "serviceIds": ["ehall", "campus-network-usage"] }
+        ]
+      },
+      "cards": 3,
+      "errors": []
+    },
+    { "name": "old message", "value": null, "cards": 0, "errors": [] },
+    { "name": "unknown version", "value": { "version": 2, "cards": [] }, "cards": 0, "errors": ["invalid_envelope"] },
+    {
+      "name": "boolean version",
+      "value": { "version": true, "cards": [{ "type": "service_links", "serviceIds": ["ehall"] }] },
+      "cards": 0,
+      "errors": ["invalid_envelope"]
+    },
+    {
+      "name": "unknown type",
+      "value": { "version": 1, "cards": [{ "type": "html", "html": "<script>alert(1)</script>" }] },
+      "cards": 0,
+      "errors": ["card_0:invalid_schema"]
+    },
+    {
+      "name": "too many cards",
+      "value": {
+        "version": 1,
+        "cards": [
+          { "type": "source_list", "citations": [1] },
+          { "type": "source_list", "citations": [1] },
+          { "type": "source_list", "citations": [1] },
+          { "type": "source_list", "citations": [1] }
+        ]
+      },
+      "cards": 0,
+      "errors": ["invalid_envelope"]
+    },
+    {
+      "name": "too many references",
+      "value": { "version": 1, "cards": [{ "type": "source_list", "citations": [1, 1, 1, 1, 1, 1, 1, 1, 1] }] },
+      "cards": 0,
+      "errors": ["card_0:invalid_schema"]
+    },
+    {
+      "name": "invented citation",
+      "value": { "version": 1, "cards": [{ "type": "source_list", "citations": [99] }] },
+      "cards": 0,
+      "errors": ["card_0:invalid_source"]
+    },
+    {
+      "name": "string citation",
+      "value": { "version": 1, "cards": [{ "type": "source_list", "citations": ["1"] }] },
+      "cards": 0,
+      "errors": ["card_0:invalid_schema"]
+    },
+    {
+      "name": "boolean citation",
+      "value": { "version": 1, "cards": [{ "type": "source_list", "citations": [true] }] },
+      "cards": 0,
+      "errors": ["card_0:invalid_schema"]
+    },
+    {
+      "name": "unsafe URL",
+      "value": { "version": 1, "cards": [{ "type": "source_list", "citations": [3] }] },
+      "cards": 0,
+      "errors": ["card_0:invalid_source"]
+    },
+    {
+      "name": "guide markup",
+      "value": {
+        "version": 1,
+        "cards": [
+          {
+            "type": "guide",
+            "title": "申请说明",
+            "steps": [{ "title": "材料", "detail": "<img src=x onerror=alert(1)>", "citations": [1] }]
+          }
+        ]
+      },
+      "cards": 0,
+      "errors": ["card_0:invalid_schema"]
+    },
+    {
+      "name": "unsupported service",
+      "value": { "version": 1, "cards": [{ "type": "service_links", "serviceIds": ["personal-grades"] }] },
+      "cards": 0,
+      "errors": ["card_0:unknown_service"]
+    },
+    {
+      "name": "model-supplied destination",
+      "value": {
+        "version": 1,
+        "cards": [{ "type": "service_links", "serviceIds": ["ehall"], "url": "https://example.com" }]
+      },
+      "cards": 0,
+      "errors": ["card_0:invalid_schema"]
+    },
+    {
+      "name": "guide without evidence",
+      "value": {
+        "version": 1,
+        "cards": [
+          {
+            "type": "guide",
+            "title": "申请说明",
+            "steps": [{ "title": "材料", "detail": "准备申请表。", "citations": [] }]
+          }
+        ]
+      },
+      "cards": 0,
+      "errors": ["card_0:invalid_schema"]
+    },
+    {
+      "name": "keep valid card when another is invalid",
+      "value": {
+        "version": 1,
+        "cards": [
+          { "type": "source_list", "citations": [99] },
+          { "type": "service_links", "serviceIds": ["ehall"] }
+        ]
+      },
+      "cards": 1,
+      "errors": ["card_0:invalid_source"]
+    }
+  ]
+}

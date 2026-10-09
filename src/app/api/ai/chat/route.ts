@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     question?: unknown;
     conversationId?: unknown;
     language?: unknown;
+    uiVersion?: unknown;
   } | null;
   const question =
     typeof body?.content === 'string'
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
       question,
       body?.language === 'en' ? 'en' : 'zh',
       request.signal,
+      body?.uiVersion === 1 ? 1 : undefined,
     );
     return apiSuccess({
       conversationId: conversation.id,
