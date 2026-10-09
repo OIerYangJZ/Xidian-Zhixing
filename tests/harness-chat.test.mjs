@@ -28,8 +28,16 @@ const source = { citation: 1, title: 'Scholarship', documentId: 'doc', source: '
 
 function fixture(
   events,
-  { holdOpen = false, status = 200, fragment = false, afterTransaction, mockTimeout = false,
-    uiVersion, authorized = true, ownsConversation = true } = {},
+  {
+    holdOpen = false,
+    status = 200,
+    fragment = false,
+    afterTransaction,
+    mockTimeout = false,
+    uiVersion,
+    authorized = true,
+    ownsConversation = true,
+  } = {},
 ) {
   const messages = [],
     traces = [];
@@ -43,7 +51,10 @@ function fixture(
     notifyFailure = resolve;
   });
   const prisma = {
-    aiConversation: { findFirst: async () => ownsConversation ? ({ id: 'conversation', title: 'existing' }) : null, update: async () => ({}) },
+    aiConversation: {
+      findFirst: async () => (ownsConversation ? { id: 'conversation', title: 'existing' } : null),
+      update: async () => ({}),
+    },
     aiMessage: {
       create: async ({ data }) => {
         const row = { ...data, id: data.role === 'USER' ? 'user-message' : 'assistant-message', createdAt: new Date() };
@@ -152,14 +163,77 @@ function frames(text) {
 test('history retains source mappings, bounds long replies and excludes unfinished questions', () => {
   const result = historyModule.buildHarnessHistory([
     { role: 'USER', content: 'failed question', sources: [] },
-    { role: 'ASSISTANT', content: 'x'.repeat(13_000), sources: [source, null, { title: 'invalid' }] },
+    { role: 'ASSISTANT', content: 'x'.repeat(30_000), sources: [source, null, { title: 'invalid' }] },
     { role: 'USER', content: 'previous question', sources: [] },
   ]);
-  assert.equal(result.length, 2);
-  assert.equal(result[1].content.length, 12_000);
-  assert.deepEqual(result[1].sources, [source]);
-  assert.equal(result[0].content, 'previous question');
-  assert.deepEqual(historyModule.buildHarnessHistory([{ role: 'USER', content: 'unanswered', sources: [] }]), []);
+  assert.equal(result.history.length, 2);
+  assert.equal(result.history[1].content.length, historyModule.HISTORY_MESSAGE_MAX_CHARS);
+  assert.deepEqual(result.history[1].sources, [source]);
+  assert.equal(result.history[0].content, 'previous question');
+  assert.equal(result.truncated, true);
+  const unfinished = historyModule.buildHarnessHistory([{ role: 'USER', content: 'unanswered', sources: [] }]);
+  assert.deepEqual(unfinished.history, []);
+  assert.equal(unfinished.truncated, true);
+});
+
+test('history keeps a long reply instead of dropping the turn, and reports the cut', () => {
+  const long = 'y'.repeat(40_000);
+  // Rows arrive newest first; the result is chronological for `message_history`.
+  const { history, truncated } = historyModule.buildHarnessHistory(
+    [
+      { role: 'USER', content: 'question two', sources: [] },
+      { role: 'ASSISTANT', content: long, sources: [] },
+      { role: 'USER', content: 'question one', sources: [] },
+    ],
+    5_000,
+    4_000,
+  );
+  assert.equal(truncated, true);
+  // The oldest turn is kept whole and the long reply behind it is trimmed to what remains,
+  // rather than the reply being dropped and the turn lost with it.
+  assert.equal(history.length, 2);
+  assert.equal(history[0].content, 'question one');
+  assert.equal(history[1].role, 'assistant');
+  assert.equal(history[1].content.length, 4_000);
+  assert.equal(history[1].content, long.slice(0, 4_000));
+});
+
+test('history never exceeds the budget even when every reply fits the per-message cap', () => {
+  const { history, truncated } = historyModule.buildHarnessHistory(
+    [
+      { role: 'USER', content: 'newest question', sources: [] },
+      { role: 'ASSISTANT', content: 'd'.repeat(4_000), sources: [] },
+      { role: 'USER', content: 'c'.repeat(4_000), sources: [] },
+      { role: 'ASSISTANT', content: 'b'.repeat(4_000), sources: [] },
+      { role: 'USER', content: 'a'.repeat(4_000), sources: [] },
+    ],
+    10_000,
+    4_000,
+  );
+  const total = history.reduce((sum, message) => sum + message.content.length, 0);
+  assert.equal(truncated, true);
+  assert.ok(total <= 10_000, `history used ${total} characters`);
+  // Two whole turns fit. The next entry is a question that would have to be clipped, and a clipped
+  // question changes what the model answers, so the walk stops there rather than sending one.
+  assert.deepEqual(
+    history.map((message) => [message.role, message.content.length]),
+    [
+      ['user', 4_000],
+      ['assistant', 4_000],
+    ],
+  );
+});
+
+test('history leaves complete turns untouched while the budget holds', () => {
+  const { history, truncated } = historyModule.buildHarnessHistory([
+    { role: 'ASSISTANT', content: 'answer', sources: [] },
+    { role: 'USER', content: 'question', sources: [] },
+  ]);
+  assert.equal(truncated, false);
+  assert.deepEqual(
+    history.map((message) => message.content),
+    ['question', 'answer'],
+  );
 });
 
 test('successful fragmented SSE persists answer, source map, trace and token usage', async () => {
@@ -332,22 +406,33 @@ test('non-streaming budget rejection records the tokens consumed before failure'
   assert.equal(f.traces[0].metadata.outcome, 'ai_budget_exceeded');
 });
 
-const presentation = { version: 1, cards: [{ type: 'source_list', citations: [1] },
-  { type: 'service_links', serviceIds: ['ehall'] }] };
+const presentation = {
+  version: 1,
+  cards: [
+    { type: 'source_list', citations: [1] },
+    { type: 'service_links', serviceIds: ['ehall'] },
+  ],
+};
 
 test('opted-in fragmented stream saves validated cards with the answer and returns them only at done', async () => {
-  const f = fixture([
-    { type: 'tool_result', tool: 'present_ui', toolCallId: 'ui', result: { accepted: true } },
-    { type: 'answer_delta', text: 'answer' },
-    { type: 'complete', answer: 'answer', sources: [source], ui: presentation },
-  ], { uiVersion: 1, fragment: true });
+  const f = fixture(
+    [
+      { type: 'tool_result', tool: 'present_ui', toolCallId: 'ui', result: { accepted: true } },
+      { type: 'answer_delta', text: 'answer' },
+      { type: 'complete', answer: 'answer', sources: [source], ui: presentation },
+    ],
+    { uiVersion: 1, fragment: true },
+  );
   const events = frames(await (await f.route.POST(f.request)).text());
   assert.deepEqual(events.at(-1).message.ui, presentation);
   assert.deepEqual(f.messages.at(-1).ui, presentation);
   assert.equal(f.traces[0].metadata.uiCards, 2);
   assert.equal(f.fetchBody.uiVersion, 1);
   assert.equal(f.fetchBody.uiServices.find((item) => item.id === 'ehall').name, '一站式服务大厅');
-  assert.equal(events.slice(0, -1).some((event) => 'ui' in event), false);
+  assert.equal(
+    events.slice(0, -1).some((event) => 'ui' in event),
+    false,
+  );
 });
 
 test('invalid cards fall back to text and record rejection without losing valid cards', async () => {
@@ -356,7 +441,9 @@ test('invalid cards fall back to text and record rejection without losing valid 
   const events = frames(await (await f.route.POST(f.request)).text());
   assert.deepEqual(events.at(-1).message.ui.cards, [presentation.cards[1]]);
   assert.deepEqual(f.traces[0].metadata.uiErrors, ['card_0:invalid_source']);
-  const unknown = fixture([{ type: 'complete', answer: 'answer', sources: [], ui: { version: 2, cards: [] } }], { uiVersion: 1 });
+  const unknown = fixture([{ type: 'complete', answer: 'answer', sources: [], ui: { version: 2, cards: [] } }], {
+    uiVersion: 1,
+  });
   const fallback = frames(await (await unknown.route.POST(unknown.request)).text()).at(-1).message;
   assert.equal(fallback.content, 'answer');
   assert.equal(fallback.ui, null);
@@ -373,10 +460,13 @@ test('legacy clients never request or persist cards', async () => {
 });
 
 test('a failed card turn never persists a presentation', async () => {
-  const f = fixture([
-    { type: 'tool_result', tool: 'present_ui', toolCallId: 'ui', result: { accepted: true } },
-    { type: 'error', code: 'ai_timeout' },
-  ], { uiVersion: 1 });
+  const f = fixture(
+    [
+      { type: 'tool_result', tool: 'present_ui', toolCallId: 'ui', result: { accepted: true } },
+      { type: 'error', code: 'ai_timeout' },
+    ],
+    { uiVersion: 1 },
+  );
   const events = frames(await (await f.route.POST(f.request)).text());
   assert.equal(events.at(-1).type, 'error');
   assert.equal(f.messages.length, 0);
@@ -384,7 +474,10 @@ test('a failed card turn never persists a presentation', async () => {
 });
 
 test('unauthenticated users and other users conversations cannot reach the harness', async () => {
-  for (const [options, status] of [[{ authorized: false }, 401], [{ ownsConversation: false }, 404]]) {
+  for (const [options, status] of [
+    [{ authorized: false }, 401],
+    [{ ownsConversation: false }, 404],
+  ]) {
     const f = fixture([], { ...options, uiVersion: 1 });
     assert.equal((await f.route.POST(f.request)).status, status);
     assert.equal(f.fetchBody, undefined);
@@ -401,7 +494,15 @@ test('non-streaming harness uses the same card validation and persistence', asyn
       return new Response(JSON.stringify({ answer: 'answer', sources: [source], ui: presentation }));
     },
   });
-  const result = await helper.answerWithAgentHarness('user', 'conversation', 'new-question', 'question', 'zh', undefined, 1);
+  const result = await helper.answerWithAgentHarness(
+    'user',
+    'conversation',
+    'new-question',
+    'question',
+    'zh',
+    undefined,
+    1,
+  );
   assert.deepEqual(result.message.ui, presentation);
   assert.equal(requestBody.uiVersion, 1);
   assert.equal(f.traces[0].metadata.uiCards, 2);

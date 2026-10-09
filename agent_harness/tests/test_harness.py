@@ -405,14 +405,103 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
 
     def test_history_preserves_source_map_and_limits_total_size(self):
         source = {"citation": 1, "title": "old source", "source": self.row["sourceUrl"], "documentId": "doc"}
+        # `ChatRequest.history` arrives newest first; `_build_history` returns chronological order
+        # for `message_history`, so the newest message is the last element.
         request = h.ChatRequest(question="follow up", history=[
-            {"role": "user", "content": "previous question"},
             {"role": "assistant", "content": "previous answer [1]", "sources": [source]},
+            {"role": "user", "content": "previous question"},
         ])
-        history = h._build_history(request)
+        history, truncated = h._build_history(request)
+        self.assertEqual(history[0].parts[0].content, "previous question")
         self.assertIn(self.row["sourceUrl"], history[-1].parts[0].content)
+        self.assertFalse(truncated)
         request.history *= 8
-        self.assertLessEqual(sum(len(message.parts[0].content) for message in h._build_history(request)), h.MAX_HISTORY_CHARS)
+        grown, grown_truncated = h._build_history(request)
+        self.assertLessEqual(sum(len(message.parts[0].content) for message in grown), h.MAX_HISTORY_CHARS + 1)
+        self.assertFalse(grown_truncated)
+
+    def test_history_cuts_a_long_reply_instead_of_dropping_the_turn(self):
+        request = h.ChatRequest(question="follow up", history=[
+            {"role": "assistant", "content": "长" * h.MAX_HISTORY_MESSAGE_CHARS},
+            {"role": "user", "content": "previous question"},
+            {"role": "assistant", "content": "older answer"},
+            {"role": "user", "content": "older question"},
+        ])
+        history, truncated = h._build_history(request)
+        # The long reply is kept with a bounded body, so the older turns still fit behind it.
+        self.assertEqual(len(history), 4)
+        self.assertEqual(history[-1].parts[0].content, "长" * h.MAX_HISTORY_MESSAGE_CHARS)
+        self.assertEqual(history[0].parts[0].content, "older question")
+        self.assertFalse(truncated)
+
+    def test_history_keeps_every_turn_while_the_budget_holds(self):
+        request = h.ChatRequest(question="follow up", history=[
+            {"role": "assistant", "content": "previous answer [1]"},
+            {"role": "user", "content": "previous question"},
+        ])
+        history, truncated = h._build_history(request)
+        self.assertFalse(truncated)
+        self.assertEqual(
+            [message.parts[0].content for message in history],
+            ["previous question", "previous answer [1]"],
+        )
+
+    def test_history_keeps_a_reply_that_is_cut_to_the_remaining_budget(self):
+        request = h.ChatRequest(question="follow up", history=[
+            {"role": "assistant", "content": "长" * h.MAX_HISTORY_MESSAGE_CHARS},
+            {"role": "user", "content": "previous question"},
+        ])
+        history, truncated = h._build_history(request)
+        self.assertEqual(history[0].parts[0].content, "previous question")
+        self.assertEqual(history[1].parts[0].content, "长" * h.MAX_HISTORY_MESSAGE_CHARS)
+        self.assertFalse(truncated)
+
+    def test_history_drops_a_question_whose_reply_left_the_window(self):
+        # The oldest question of the three-turn set is what the budget cuts, so the walk stops on
+        # it and the history ends on the reply that still has its question.
+        request = h.ChatRequest(question="follow up", history=[
+            {"role": "user", "content": "newest question"},
+            {"role": "assistant", "content": "n" * h.MAX_HISTORY_MESSAGE_CHARS},
+            {"role": "user", "content": "q" * h.MAX_HISTORY_MESSAGE_CHARS},
+            {"role": "assistant", "content": "o" * h.MAX_HISTORY_MESSAGE_CHARS},
+            {"role": "user", "content": "p" * h.MAX_HISTORY_MESSAGE_CHARS},
+            {"role": "assistant", "content": "a" * h.MAX_HISTORY_MESSAGE_CHARS},
+        ])
+        history, truncated = h._build_history(request)
+        self.assertTrue(truncated)
+        self.assertEqual(
+            [(type(message).__name__, len(message.parts[0].content)) for message in history],
+            [
+                ("ModelResponse", h.MAX_HISTORY_MESSAGE_CHARS),
+                ("ModelRequest", h.MAX_HISTORY_MESSAGE_CHARS),
+                ("ModelResponse", h.MAX_HISTORY_MESSAGE_CHARS),
+            ],
+        )
+
+    def test_history_reports_dropped_turns_and_trims_the_oldest_body(self):
+        # `ChatRequest.history` arrives newest first; `_build_history` returns chronological order.
+        # Every full turn costs 24_001 characters, so a 96k budget keeps four of these five and the
+        # boundary turn is trimmed, while the newest turn is the first thing the budget drops.
+        request = h.ChatRequest(question="follow up", history=[
+            {"role": "user", "content": "newest question"},
+            {"role": "assistant", "content": "newest answer"},
+            {"role": "user", "content": "e" * h.MAX_HISTORY_MESSAGE_CHARS},
+            {"role": "assistant", "content": "d" * h.MAX_HISTORY_MESSAGE_CHARS},
+            {"role": "user", "content": "c" * h.MAX_HISTORY_MESSAGE_CHARS},
+            {"role": "assistant", "content": "b" * h.MAX_HISTORY_MESSAGE_CHARS},
+            {"role": "user", "content": "a" * h.MAX_HISTORY_MESSAGE_CHARS},
+        ])
+        history, truncated = h._build_history(request)
+        self.assertTrue(truncated)
+        self.assertLessEqual(sum(len(message.parts[0].content) for message in history), h.MAX_HISTORY_CHARS + 1)
+        # The oldest messages survive whole; the newest ones are what an over-long history loses.
+        self.assertEqual(history[0].parts[0].content, "a" * h.MAX_HISTORY_MESSAGE_CHARS)
+        self.assertEqual(history[1].parts[0].content, "b" * h.MAX_HISTORY_MESSAGE_CHARS)
+        self.assertEqual(history[2].parts[0].content, "c" * h.MAX_HISTORY_MESSAGE_CHARS)
+        # The boundary reply is trimmed to what remains, and its question is still present.
+        self.assertTrue(history[3].parts[0].content.startswith("d"))
+        self.assertLess(len(history[3].parts[0].content), h.MAX_HISTORY_MESSAGE_CHARS)
+        self.assertGreater(len(history[3].parts[0].content), 0)
 
     def test_corpus_read_connection_is_closed(self):
         h.CampusCorpus(self.db)
@@ -484,7 +573,7 @@ class ChatRequestValidationTests(unittest.TestCase):
             "/chat",
             json={
                 "question": "奖学金怎么申请",
-                "history": [{"role": "assistant", "content": "x" * 12_001}],
+                "history": [{"role": "assistant", "content": "x" * (h.MAX_HISTORY_MESSAGE_CHARS + 1)}],
             },
         )
         self.assertEqual(response.status_code, 413)

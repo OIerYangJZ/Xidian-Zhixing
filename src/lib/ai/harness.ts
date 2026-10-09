@@ -2,7 +2,7 @@ import 'server-only';
 import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { createAgentPrincipalToken } from '@/lib/ai/harnessPrincipal';
-import { buildHarnessHistory } from '@/lib/ai/harnessHistory';
+import { buildHarnessHistory, HISTORY_MAX_TURNS } from '@/lib/ai/harnessHistory';
 import { harnessErrorMessage } from '@/lib/ai/errors';
 import { harnessUIContext, validateUI } from '@/lib/ai/ui';
 import prisma from '@/lib/prisma/prisma';
@@ -67,10 +67,10 @@ export async function answerWithAgentHarness(
   const historyRows = await prisma.aiMessage.findMany({
     where: { conversationId, id: { not: userMessageId }, role: { in: ['USER', 'ASSISTANT'] } },
     orderBy: { createdAt: 'desc' },
-    take: 16,
+    take: HISTORY_MAX_TURNS,
     select: { role: true, content: true, sources: true },
   });
-  const history = buildHarnessHistory(historyRows);
+  const { history, truncated: historyTruncated } = buildHarnessHistory(historyRows);
   const traceId = randomUUID();
   const startedAt = Date.now();
   const harnessUrl = (process.env.AGENT_HARNESS_URL?.trim() || 'http://127.0.0.1:8002').replace(/\/+$/, '');
@@ -167,6 +167,7 @@ export async function answerWithAgentHarness(
             usage: (payload.usage || {}) as Prisma.InputJsonValue,
             toolTrace: toolTrace as Prisma.InputJsonValue,
             sourceIds: sources.map((source) => source.documentId),
+            historyTruncated,
             uiCards: presentation.ui?.cards.length || 0,
             uiErrors: [
               ...(Array.isArray(payload.uiErrors) ? payload.uiErrors.filter((item) => typeof item === 'string') : []),
@@ -195,6 +196,7 @@ export async function answerWithAgentHarness(
           conversationId,
           userMessageId,
           usage: (usage || {}) as Prisma.InputJsonValue,
+          historyTruncated,
           outcome: signal?.aborted
             ? 'cancelled'
             : error instanceof AgentHarnessError

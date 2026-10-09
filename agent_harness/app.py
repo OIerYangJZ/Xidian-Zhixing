@@ -51,7 +51,14 @@ SNAPSHOT = ROOT / "artifacts" / "knowledge-recovery" / "knowledge.db"
 DEPLOYMENT_SNAPSHOT = ROOT / "deploy" / "knowledge" / "data" / "knowledge.db"
 DEFAULT_DB = SNAPSHOT if SNAPSHOT.is_file() else DEPLOYMENT_SNAPSHOT
 RUN_TIMEOUT_SECONDS = 120
-MAX_HISTORY_CHARS = 24_000
+# Cross-turn history limits, mirrored by src/lib/ai/harnessHistory.ts and the ChatRequest schema.
+MAX_HISTORY_CHARS = 96_000
+MAX_HISTORY_MESSAGES = 40
+MAX_HISTORY_MESSAGE_CHARS = 24_000
+# A trimmed user message is only worth keeping when a useful part survives, because a clipped
+# question changes what the model answers. An assistant reply is trimmed as far as needed
+# instead: keeping part of it preserves the turn, dropping it would orphan its question.
+MAX_HISTORY_MIN_USER_CHARS = 500
 MAX_REQUEST_BYTES = 4 * 1024 * 1024
 RUN_LIMITS = UsageLimits(request_limit=12, tool_calls_limit=24, input_tokens_limit=180_000,
                         output_tokens_limit=12_000, per_request_input_tokens_limit=50_000)
@@ -630,14 +637,14 @@ class HistorySource(BaseModel):
 
 class HistoryMessage(BaseModel):
     role: Literal["user", "assistant", "USER", "ASSISTANT"]
-    content: str = Field(max_length=12_000)
+    content: str = Field(max_length=MAX_HISTORY_MESSAGE_CHARS)
     sources: list[HistorySource] = Field(default_factory=list, max_length=40)
 
 
 class ChatRequest(BaseModel):
     question: str = Field(min_length=1, max_length=12_000)
     language: Literal["zh", "en"] = "zh"
-    history: list[HistoryMessage] = Field(default_factory=list, max_length=40)
+    history: list[HistoryMessage] = Field(default_factory=list, max_length=MAX_HISTORY_MESSAGES)
     principal_token: str | None = Field(default=None, max_length=2_000)
     trace_id: str | None = Field(default=None, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     uiVersion: Literal[1] | None = None
@@ -704,30 +711,75 @@ def _reference_numbers(answer: str) -> set[int]:
     return {int(value) for value in re.findall(r"(?<!\\)\[(\d+)\](?!\()", answer)}
 
 
-def _build_history(request: ChatRequest) -> list[ModelRequest | ModelResponse]:
-    history = []
+HISTORY_SOURCES_PREFIX = "\n历史引用映射（仅供重新查证，不是本轮引用）："
+
+
+def _history_entry_size(content: str, sources: list[dict[str, Any]], role: str) -> int:
+    """Characters one history entry costs, mirroring the web client's own accounting."""
+    mapping = (
+        len(HISTORY_SOURCES_PREFIX) + len(json.dumps(sources, ensure_ascii=False))
+        if role == "assistant" and sources
+        else 0
+    )
+    return len(content) + 1 + mapping
+
+
+def _build_history(request: ChatRequest) -> tuple[list[ModelRequest | ModelResponse], bool]:
+    """Keep as much earlier conversation as the budget allows, cutting rather than dropping.
+
+    `ChatRequest.history` arrives newest first, which is the order the web client displays. The
+    budget walks it oldest first so an over-long conversation loses its beginning rather than its
+    end, and the collected entries come out in chronological order, which is what
+    `message_history` needs.
+
+    A long reply used to fall out of the window whole, which lost the turn and, once it also
+    exceeded the request schema's per-message bound, failed the whole request. Now the newest
+    turns survive with a bounded body and the caller learns that older context was left out.
+    """
+    ordered = list(request.history[-MAX_HISTORY_MESSAGES:])
+    ordered.reverse()
+    history: list[ModelRequest | ModelResponse] = []
     remaining = MAX_HISTORY_CHARS
-    for message in reversed(request.history[-16:]):
+    truncated = len(request.history) > MAX_HISTORY_MESSAGES
+    pending_user = False
+    for message in ordered:
+        sources = [source.model_dump() for source in message.sources] if message.sources else []
+        role = "user" if message.role.lower() == "user" else "assistant"
         content = message.content
-        if message.role.lower() == "assistant" and message.sources:
-            sources = [source.model_dump() for source in message.sources]
-            content += "\n历史引用映射（仅供重新查证，不是本轮引用）：" + json.dumps(sources, ensure_ascii=False)
-        if len(content) > remaining:
+        if role == "assistant" and sources:
+            content += HISTORY_SOURCES_PREFIX + json.dumps(sources, ensure_ascii=False)
+        # `remaining` is the hard cap: a reply is trimmed to whatever is left, and a turn that no
+        # longer fits at all is dropped rather than added past the budget.
+        overhead = _history_entry_size("", sources, role)
+        wanted = min(MAX_HISTORY_MESSAGE_CHARS, max(0, remaining - overhead))
+        if wanted <= 0 or (role == "user" and len(message.content) > wanted):
+            # Cutting a question short changes what the model would answer, so a question only
+            # enters the history whole. A reply may be trimmed, because its question frames it.
+            truncated = True
             break
-        remaining -= len(content)
+        if len(content) > wanted:
+            truncated = True
+            content = content[:wanted]
+        remaining -= _history_entry_size(content, sources, role)
         history.append(
             ModelRequest(parts=[UserPromptPart(content=content)])
-            if message.role.lower() == "user"
+            if role == "user"
             else ModelResponse(parts=[TextPart(content=content)])
         )
-    history.reverse()
-    # Dropping the oldest turn can leave an assistant response without its question.
-    if history and isinstance(history[0], ModelResponse):
-        history.pop(0)
-    return history
+        pending_user = role == "user"
+    if len(history) < len(ordered):
+        truncated = True
+    # A question whose reply the budget cut is dropped with it: an unanswered prompt must not be
+    # sent to the model on its own.
+    if pending_user and history:
+        history.pop()
+        truncated = True
+    return history, truncated
 
 
-async def _prepare_chat(request: ChatRequest) -> tuple[AgentContext, list[ModelRequest | ModelResponse]]:
+async def _prepare_chat(
+    request: ChatRequest,
+) -> tuple[AgentContext, list[ModelRequest | ModelResponse], bool]:
     if agent is None:
         raise HTTPException(status_code=503, detail={"code": "ai_not_configured"})
     principal = _verify_principal(request.principal_token)
@@ -737,8 +789,13 @@ async def _prepare_chat(request: ChatRequest) -> tuple[AgentContext, list[ModelR
         current_corpus = await asyncio.to_thread(CampusCorpus, corpus_path)
     except Exception as exc:
         raise HTTPException(status_code=503, detail={"code": "corpus_not_configured"}) from exc
-    return AgentContext(corpus=current_corpus, principal=principal, ui_enabled=request.uiVersion == 1,
-                        ui_services=request.uiServices), _build_history(request)
+    history, history_truncated = _build_history(request)
+    return (
+        AgentContext(corpus=current_corpus, principal=principal, ui_enabled=request.uiVersion == 1,
+                     ui_services=request.uiServices),
+        history,
+        history_truncated,
+    )
 
 
 async def _finish_presentation(deps: AgentContext, answer: str):
@@ -1118,7 +1175,7 @@ def health() -> dict[str, Any]:
 
 @app.post("/chat")
 async def chat(request: ChatRequest = Depends(chat_request)) -> dict[str, Any]:
-    deps, history = await _prepare_chat(request)
+    deps, history, history_truncated = await _prepare_chat(request)
 
     started = time.perf_counter()
     usage = RunUsage()
@@ -1142,6 +1199,7 @@ async def chat(request: ChatRequest = Depends(chat_request)) -> dict[str, Any]:
         "uiErrors": deps.ui_errors,
         "sources": sources,
         "toolTrace": deps.tool_trace,
+        "historyTruncated": history_truncated,
         "model": model_name,
         "provider": "deepseek" if urlsplit(base_url).hostname == "api.deepseek.com" else "openai-compatible",
         "durationMs": round((time.perf_counter() - started) * 1000),
@@ -1151,7 +1209,7 @@ async def chat(request: ChatRequest = Depends(chat_request)) -> dict[str, Any]:
 
 @app.post("/chat/stream")
 async def chat_stream(request: ChatRequest = Depends(chat_request)) -> StreamingResponse:
-    deps, history = await _prepare_chat(request)
+    deps, history, history_truncated = await _prepare_chat(request)
 
     async def events():
         started = time.perf_counter()
@@ -1233,6 +1291,7 @@ async def chat_stream(request: ChatRequest = Depends(chat_request)) -> Streaming
                     "uiErrors": deps.ui_errors,
                     "sources": sources,
                     "toolTrace": deps.tool_trace,
+                    "historyTruncated": history_truncated,
                     "model": model_name,
                     "provider": "deepseek" if urlsplit(base_url).hostname == "api.deepseek.com" else "openai-compatible",
                     "durationMs": round((time.perf_counter() - started) * 1000),

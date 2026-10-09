@@ -4,7 +4,7 @@ import { apiError } from '@/lib/apiResponse';
 import { harnessErrorMessage } from '@/lib/ai/errors';
 import { getServerUser } from '@/lib/getServerUser';
 import { createAgentPrincipalToken } from '@/lib/ai/harnessPrincipal';
-import { buildHarnessHistory } from '@/lib/ai/harnessHistory';
+import { buildHarnessHistory, HISTORY_MAX_TURNS } from '@/lib/ai/harnessHistory';
 import { harnessUIContext, validateUI } from '@/lib/ai/ui';
 import prisma from '@/lib/prisma/prisma';
 
@@ -81,10 +81,10 @@ export async function POST(request: Request) {
   const historyRows = await prisma.aiMessage.findMany({
     where: { conversationId: conversation.id, id: { not: userMessage.id }, role: { in: ['USER', 'ASSISTANT'] } },
     orderBy: { createdAt: 'desc' },
-    take: 16,
+    take: HISTORY_MAX_TURNS,
     select: { role: true, content: true, sources: true },
   });
-  const history = buildHarnessHistory(historyRows);
+  const { history, truncated: historyTruncated } = buildHarnessHistory(historyRows);
 
   const harnessUrl = (process.env.AGENT_HARNESS_URL?.trim() || 'http://127.0.0.1:8002').replace(/\/+$/, '');
   const traceId = randomUUID();
@@ -200,6 +200,7 @@ export async function POST(request: Request) {
             sources: [],
             createdAt: userMessage.createdAt.toISOString(),
           },
+          historyTruncated,
         });
 
         while (!cancelled) {
@@ -263,6 +264,7 @@ export async function POST(request: Request) {
                       assistantMessageId: assistantMessage.id,
                       toolTrace: (Array.isArray(event.toolTrace) ? event.toolTrace : []) as Prisma.InputJsonValue,
                       agentEvents: agentEvents as Prisma.InputJsonValue,
+                      historyTruncated,
                       uiCards: presentation.ui?.cards.length || 0,
                       uiErrors: [
                         ...(Array.isArray(event.uiErrors)
