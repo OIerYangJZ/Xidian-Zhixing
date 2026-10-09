@@ -208,6 +208,46 @@
     outline-color: rgb(var(--accent-brand));
   }
 
+  /* Answer settling. Streamed text arrives at a slightly smaller size, the finished answer fades in
+     as Markdown, and cards follow one beat later; these classes drive those steps. Durations are
+     injected as inline custom properties by the chat component so the two stay in step. */
+  .ai-answer {
+    font-size: var(--ai-answer-em, 1em);
+    transition: font-size var(--ai-answer-settle, 200ms) ease-out;
+  }
+
+  .ai-answer[data-phase='streaming'] {
+    --ai-answer-em: 0.94em;
+  }
+
+  .ai-answer-text {
+    animation: ai-answer-settle var(--ai-answer-settle, 200ms) ease-out both;
+  }
+
+  .ai-answer-cards {
+    animation: ai-cards-arrive var(--ai-answer-settle, 200ms) ease-out both;
+  }
+
+  @keyframes ai-answer-settle {
+    from {
+      opacity: 0.55;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes ai-cards-arrive {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

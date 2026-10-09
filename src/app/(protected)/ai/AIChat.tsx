@@ -1,12 +1,13 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
 import { harnessErrorMessage, usageSummary, type HarnessUsage } from '@/lib/ai/errors';
 import { createCoalescedWriter } from '@/lib/ai/streamBuffer';
+import { CARD_DELAY_MS, SETTLE_MS, messagePhase, phaseShowsCards } from '@/lib/ai/messagePhase';
 import { safeSourceURL, type UIEnvelope, type UIService } from '@/lib/ai/ui';
 import { UICards } from './UICards';
 
@@ -43,6 +44,11 @@ export type AIConversationData = {
 // Distance from the bottom that still counts as following the stream. A reader who
 // scrolls further up than this keeps their position while the answer keeps arriving.
 const FOLLOW_THRESHOLD_PX = 80;
+/**
+ * Durations the settle animations read, handed to CSS as custom properties. Declared once at module
+ * scope so the two elements that use it do not build a fresh object on every render.
+ */
+const SETTLE_STYLE = { '--ai-answer-settle': `${SETTLE_MS}ms` } as CSSProperties;
 
 /** A failed turn: what went wrong, and what it had already spent. */
 type TurnFailure = { message: string; code?: string; usage?: HarnessUsage };
@@ -238,6 +244,11 @@ export function AIChat({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<TurnFailure | null>(null);
   const [atBottom, setAtBottom] = useState(true);
+  // Ids of messages inside their settling window: the stream just ended, and the answer is turning
+  // into Markdown before any cards appear. A transcript loaded from the server is never in here, so
+  // reopening an old conversation shows its answers already settled.
+  const [settling, setSettling] = useState<ReadonlySet<string>>(() => new Set());
+  const settlingTimerRef = useRef<number | null>(null);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
   // Autoscroll follows the stream only while the reader is already at the bottom. A manual
   // scroll up releases it, and scrolling back to the bottom re-arms it.
@@ -250,6 +261,25 @@ export function AIChat({
   );
   const lastMessage = activeConversation?.messages[activeConversation.messages.length - 1];
   const anchorKey = `${activeId}:${activeConversation?.messages.length ?? 0}:${lastMessage?.status ?? ''}`;
+
+  const settleMessage = useCallback((messageId: string) => {
+    setSettling((current) => new Set(current).add(messageId));
+    if (settlingTimerRef.current !== null) window.clearTimeout(settlingTimerRef.current);
+    settlingTimerRef.current = window.setTimeout(() => {
+      settlingTimerRef.current = null;
+      setSettling((current) => {
+        const next = new Set(current);
+        next.delete(messageId);
+        return next;
+      });
+    }, SETTLE_MS + CARD_DELAY_MS);
+  }, []);
+  useEffect(
+    () => () => {
+      if (settlingTimerRef.current !== null) window.clearTimeout(settlingTimerRef.current);
+    },
+    [],
+  );
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
     const container = scrollContainerRef.current;
@@ -549,6 +579,9 @@ export function AIChat({
                 : conversation,
             ),
           );
+          // The answer is complete: hold it in its settling phase so the text grows to full size and
+          // the cards wait one beat before they appear.
+          settleMessage(pendingAssistantId);
           setSending(false);
         } else if (payload.type === 'error') {
           terminalEventReceived = true;
@@ -685,15 +718,21 @@ export function AIChat({
                   {message.role === 'USER' ? (
                     message.content
                   ) : (
-                    <div className="break-words">
-                      {/* While tokens are still arriving the text is rendered as-is: parsing
-                          half-finished Markdown on every frame costs more than it shows. */}
+                    // Three phases: the answer streams as plain text a little smaller than final,
+                    // settles into the Markdown answer, and only then lets its cards appear.
+                    <div
+                      className="ai-answer break-words"
+                      data-phase={messagePhase(Boolean(message.streaming), settling.has(message.id))}
+                      style={SETTLE_STYLE}>
+                      {/* Parsing half-finished Markdown on every frame costs more than it shows. */}
                       {message.streaming ? (
                         <span className="whitespace-pre-wrap">{message.content}</span>
                       ) : (
-                        <ReactMarkdown remarkPlugins={markdownPlugins} components={markdownComponents}>
-                          {message.content}
-                        </ReactMarkdown>
+                        <div className="ai-answer-text">
+                          <ReactMarkdown remarkPlugins={markdownPlugins} components={markdownComponents}>
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
                       )}
                       {message.streaming && (
                         <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
@@ -706,16 +745,20 @@ export function AIChat({
                     </div>
                   )}
                 </div>
-                {message.role === 'ASSISTANT' && !message.streaming && message.ui && (
-                  <UICards
-                    value={message.ui}
-                    sources={message.sources}
-                    services={services}
-                    language={language}
-                    disabled={sending}
-                    onFollowUp={(prompt) => sendMessage(undefined, prompt)}
-                  />
-                )}
+                {message.role === 'ASSISTANT' &&
+                  message.ui &&
+                  phaseShowsCards(messagePhase(Boolean(message.streaming), settling.has(message.id))) && (
+                    <div className="ai-answer-cards" style={SETTLE_STYLE}>
+                      <UICards
+                        value={message.ui}
+                        sources={message.sources}
+                        services={services}
+                        language={language}
+                        disabled={sending}
+                        onFollowUp={(prompt) => sendMessage(undefined, prompt)}
+                      />
+                    </div>
+                  )}
                 {message.sources.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {message.sources.map((source) => (

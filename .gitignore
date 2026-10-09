@@ -45,6 +45,8 @@ next-env.d.ts
 /.codex-*.log
 /.pglite-*.log
 /.qdrant-initialized
+# The harness writes its rotating log here at runtime.
+/output/agent-harness.log*
 __pycache__/
 *.pyc
 miniprogram*/project.private.config.json

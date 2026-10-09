@@ -19,6 +19,7 @@ function load(path) {
 }
 
 const { createCoalescedWriter } = load('src/lib/ai/streamBuffer.ts');
+const phases = load('src/lib/ai/messagePhase.ts');
 
 /** A scheduler the test drives by hand, so "one write per frame" is observable. */
 function manualScheduler() {
@@ -105,4 +106,38 @@ test('cancel drops a frame that belongs to a turn about to be discarded', () => 
   writer.append('next turn');
   clock.frame();
   assert.deepEqual(writes, ['next turn']);
+});
+
+test('a message settles through streaming, landed and final', () => {
+  // While tokens arrive the answer is streaming, and its cards stay hidden.
+  const streaming = phases.messagePhase(true, false);
+  assert.equal(streaming, 'streaming');
+  assert.equal(phases.phaseShowsCards(streaming), false);
+
+  // The stream ended: the text is settling into the Markdown answer, still without cards.
+  const landed = phases.messagePhase(false, true);
+  assert.equal(landed, 'landed');
+  assert.equal(phases.phaseShowsCards(landed), false);
+
+  // The settling window is over: the answer is final and its cards may appear.
+  const settled = phases.messagePhase(false, false);
+  assert.equal(settled, 'final');
+  assert.equal(phases.phaseShowsCards(settled), true);
+});
+
+test('a streaming message ignores a stale settling flag', () => {
+  // A second answer in the same conversation must not inherit the previous message's window.
+  assert.equal(phases.messagePhase(true, true), 'streaming');
+});
+
+test('a transcript loaded from the server is final immediately', () => {
+  // Nothing sets the settling flag for old messages, so opening a conversation plays no animation.
+  assert.equal(phases.messagePhase(false, false), 'final');
+});
+
+test('the settle window stays short enough to read as one motion', () => {
+  assert.ok(phases.SETTLE_MS > 0);
+  assert.ok(phases.CARD_DELAY_MS > 0);
+  // Text then cards; a window longer than about half a second reads as lag, not as a sequence.
+  assert.ok(phases.SETTLE_MS + phases.CARD_DELAY_MS <= 500);
 });
