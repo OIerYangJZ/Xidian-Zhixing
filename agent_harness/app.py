@@ -51,6 +51,10 @@ SNAPSHOT = ROOT / "artifacts" / "knowledge-recovery" / "knowledge.db"
 DEPLOYMENT_SNAPSHOT = ROOT / "deploy" / "knowledge" / "data" / "knowledge.db"
 DEFAULT_DB = SNAPSHOT if SNAPSHOT.is_file() else DEPLOYMENT_SNAPSHOT
 RUN_TIMEOUT_SECONDS = 120
+# Per-tool payload caps. A single `read_files` or `read_web_pages` call is re-sent with every later
+# request in the turn, so an oversized batch inflates the whole remainder of the turn.
+READ_FILES_CHARS = 3_000
+READ_WEB_PAGES_CHARS = 4_000
 # Cross-turn history limits, mirrored by src/lib/ai/harnessHistory.ts and the ChatRequest schema.
 MAX_HISTORY_CHARS = 96_000
 MAX_HISTORY_MESSAGES = 40
@@ -1036,9 +1040,9 @@ if api_key and model_name:
 
     @agent.tool
     def read_files(
-        ctx: RunContext[AgentContext], file_ids: Annotated[list[str], Field(min_length=1, max_length=6)], start: int = 0, max_chars_each: int = 6_000
+        ctx: RunContext[AgentContext], file_ids: Annotated[list[str], Field(min_length=1, max_length=6)], start: int = 0, max_chars_each: int = READ_FILES_CHARS
     ) -> list[dict[str, Any]]:
-        """一次读取多份已发布文件的原文片段，每份有独立引用编号；单次最多读取 6 份。"""
+        """一次读取多份已发布文件的原文片段，每份有独立引用编号；单次最多读取 6 份。返回 has_more 为真时可用 start 继续读取后续片段。"""
         results = []
         ctx.deps.corpus.refresh()
         for file_id in file_ids[:6]:
@@ -1125,9 +1129,9 @@ if api_key and model_name:
 
     @agent.tool
     async def read_web_pages(
-        ctx: RunContext[AgentContext], urls: Annotated[list[str], Field(min_length=1, max_length=5)], start: int = 0, max_chars_each: int = 8_000
+        ctx: RunContext[AgentContext], urls: Annotated[list[str], Field(min_length=1, max_length=5)], start: int = 0, max_chars_each: int = READ_WEB_PAGES_CHARS
     ) -> list[dict[str, Any]]:
-        """一次并行读取多篇刚刚搜索到的校方或互联网公开网页原文，最多 5 篇；每篇返回独立引用编号。"""
+        """一次并行读取多篇刚刚搜索到的校方或互联网公开网页原文，最多 5 篇；每篇返回独立引用编号。返回 has_more 为真时可用 start 继续读取后续片段。"""
         pages = await asyncio.gather(
             *(_read_web_page(ctx.deps, url, start=start, max_chars=max_chars_each) for url in urls[:5])
         )

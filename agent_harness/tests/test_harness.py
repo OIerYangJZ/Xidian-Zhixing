@@ -80,6 +80,23 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["local_documents"], [])
         self.assertIn("error", h.read_files(self.ctx, ["doc"])[0])
 
+    async def test_read_tools_state_their_payload_cap_in_the_schema(self):
+        # These defaults are what keep one tool call from inflating every later request in the turn.
+        for tool_name, expected in (("read_files", h.READ_FILES_CHARS), ("read_web_pages", h.READ_WEB_PAGES_CHARS)):
+            entry = next(t for t in h.agent._function_toolset.tools.values() if t.name == tool_name)
+            schema = entry.function_schema.json_schema
+            self.assertEqual(schema["properties"]["max_chars_each"]["default"], expected, tool_name)
+            self.assertIn("has_more", entry.description)
+
+    async def test_read_files_clamps_a_larger_request_to_its_ceiling(self):
+        # Even an explicit oversized request is bounded, and the cut is visible in has_more.
+        self.row["content"] = "scholarship " * 5_000
+        self.update()
+        result = h.read_files(self.ctx, ["doc"], max_chars_each=h.READ_FILES_CHARS * 10)[0]
+        self.assertLessEqual(result["end"] - result["start"], 10_000)
+        self.assertGreater(result["end"] - result["start"], h.READ_FILES_CHARS)
+        self.assertTrue(result["has_more"])
+
     async def test_document_revision_is_visible_without_restart(self):
         self.update(content="updated scholarship instructions")
         result = h.read_files(self.ctx, ["doc"])
