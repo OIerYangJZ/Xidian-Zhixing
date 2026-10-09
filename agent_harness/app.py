@@ -7,6 +7,7 @@ import hmac
 import ipaddress
 import json
 import logging
+import logging.handlers
 import os
 import re
 import sqlite3
@@ -46,6 +47,27 @@ ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env.local", override=False)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("xidian-agent-harness")
+
+
+def _log_file_handler() -> logging.Handler | None:
+    """Keep a bounded log next to the repository so a failure stays diagnosable afterwards.
+
+    Console output is gone the moment the process restarts, which is exactly when someone asks why
+    a turn failed an hour ago.
+    """
+    path = Path(os.environ.get("AGENT_HARNESS_LOG", str(ROOT / "output" / "agent-harness.log")))
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        handler = logging.handlers.RotatingFileHandler(path, maxBytes=2_000_000, backupCount=3, encoding="utf-8")
+    except OSError:
+        return None
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
+    return handler
+
+
+_file_handler = _log_file_handler()
+if _file_handler is not None:
+    logger.addHandler(_file_handler)
 
 SNAPSHOT = ROOT / "artifacts" / "knowledge-recovery" / "knowledge.db"
 DEPLOYMENT_SNAPSHOT = ROOT / "deploy" / "knowledge" / "data" / "knowledge.db"
@@ -887,6 +909,49 @@ async def _stream_run(request, deps, history, usage):
             yield events
 
 
+def _upstream_status(exc: BaseException) -> int | None:
+    """Find the HTTP status a provider reported, however deeply it is wrapped."""
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        status = getattr(current, "status_code", None)
+        if isinstance(status, int):
+            return status
+        response = getattr(current, "response", None)
+        status = getattr(response, "status_code", None)
+        if isinstance(status, int):
+            return status
+        current = current.__cause__ or current.__context__
+    return None
+
+
+def _upstream_reason(exc: BaseException) -> str:
+    """The provider's own words about a failure, bounded and single-line.
+
+    Without this a provider rejection such as "HTTP 402 insufficient balance" reached the trace as
+    a bare `ai_upstream_error`, which names nothing the operator can act on. The innermost cause is
+    preferred: wrappers around a provider error say less than the error itself.
+    """
+    chain: list[BaseException] = []
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        chain.append(current)
+        current = current.__cause__ or current.__context__
+    for candidate in reversed(chain):
+        body = getattr(candidate, "body", None)
+        text = body if isinstance(body, str) else json.dumps(body, ensure_ascii=False) if isinstance(body, dict) else ""
+        if text.strip():
+            return " ".join(text.split())[:500]
+    for candidate in reversed(chain):
+        message = " ".join(str(candidate).split())
+        if message:
+            return f"{type(candidate).__name__}: {message}"[:500]
+    return type(exc).__name__
+
+
 def _error_details(exc: Exception) -> dict[str, Any]:
     if isinstance(exc, TimeoutError):
         return {"code": "ai_timeout", "httpStatus": 504}
@@ -894,7 +959,12 @@ def _error_details(exc: Exception) -> dict[str, Any]:
         return {"code": "ai_budget_exceeded", "httpStatus": 429}
     if isinstance(exc, HTTPException):
         return {**exc.detail, "httpStatus": exc.status_code}
-    return {"code": "ai_upstream_error", "httpStatus": getattr(exc, "status_code", None)}
+    return {
+        "code": "ai_upstream_error",
+        "httpStatus": _upstream_status(exc),
+        "reason": _upstream_reason(exc),
+        "exception": type(exc).__name__,
+    }
 
 
 def _usage_data(usage) -> dict[str, int]:
@@ -1241,8 +1311,8 @@ async def chat(request: ChatRequest = Depends(chat_request)) -> dict[str, Any]:
                 instructions="本轮请使用中文回答。" if request.language == "zh" else "Answer this turn in English.",
             )
     except Exception as exc:
-        logger.error("Agent run %s failed (%s)", request.trace_id, type(exc).__name__)
         detail = _error_details(exc)
+        logger.error("Agent run %s failed (%s): %s", request.trace_id, type(exc).__name__, detail.get("reason"))
         detail["usage"] = _usage_data(usage)
         raise HTTPException(status_code=detail["httpStatus"] or 502, detail=detail) from exc
 
@@ -1353,16 +1423,11 @@ async def chat_stream(request: ChatRequest = Depends(chat_request)) -> Streaming
                 }
             )
         except Exception as exc:
+            detail = _error_details(exc)
             # `logger.exception` keeps the traceback: this handler sees failures raised inside the
             # stream generator, where the type alone is not enough to locate the fault.
-            logger.exception("Agent stream %s failed (%s)", request.trace_id, type(exc).__name__)
-            yield _sse(
-                {
-                    "type": "error",
-                    **_error_details(exc),
-                    "usage": _usage_data(usage),
-                }
-            )
+            logger.exception("Agent stream %s failed (%s): %s", request.trace_id, type(exc).__name__, detail.get("reason"))
+            yield _sse({"type": "error", **detail, "usage": _usage_data(usage)})
 
     return StreamingResponse(
         events(),
