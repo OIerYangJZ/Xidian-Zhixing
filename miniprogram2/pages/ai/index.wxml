@@ -52,7 +52,7 @@
         </view>
       </block>
       <block wx:else>
-        <view class="ai-delete-confirm">删除后无法恢复这段会话。</view>
+        <view class="ai-delete-confirm">删除后无法恢复这段会话，服务器上的回答记录也会一并移除。</view>
         <view class="ai-menu-buttons">
           <button bindtap="closeConversationMenu">取消</button>
           <button class="danger-solid" bindtap="confirmDeleteConversation">确认删除</button>

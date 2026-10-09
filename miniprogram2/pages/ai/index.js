@@ -1,5 +1,5 @@
 import { enterPage, retainLayerExit, cancelLayerExit, clearLayerMotion } from '../../utils/motion';
-import { fetchAiModels, sendAiMessage } from '../../api/ai';
+import { fetchAiModels, sendAiMessage, deleteAiConversation } from '../../api/ai';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { formatTime, truncate } from '../../utils/format';
 import { openAppTarget } from '../../utils/navigation';
@@ -296,9 +296,24 @@ Page({
     this.setData({ conversationMenuMode: 'delete' });
   },
 
-  confirmDeleteConversation() {
+  async confirmDeleteConversation() {
     const id = this.data.selectedConversationId;
     if (!id) return;
+    const conversation = this.data.conversations.find((item) => item.id === id);
+    // The local list is only a cache: the answer history lives in the server conversation that
+    // `backendId` points at, so dropping the cache alone would leave it there forever.
+    const backendId = conversation ? conversation.backendId : '';
+    if (backendId) {
+      wx.showLoading({ title: '正在删除', mask: true });
+      try {
+        await deleteAiConversation(backendId);
+      } catch (error) {
+        wx.hideLoading();
+        wx.showToast({ title: '服务器删除失败，请重试', icon: 'none' });
+        return;
+      }
+      wx.hideLoading();
+    }
     const conversations = this.data.conversations.filter((item) => item.id !== id);
     wx.setStorageSync(CONVERSATIONS_KEY, conversations);
     if (id === this.data.activeConversationId) {
