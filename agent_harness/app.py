@@ -13,20 +13,25 @@ import sqlite3
 import socket
 import time
 from collections import OrderedDict
+from contextlib import asynccontextmanager, closing
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 from html.parser import HTMLParser
+from http.client import HTTPConnection, HTTPSConnection
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
-from urllib.request import HTTPRedirectHandler, Request, build_opener
+from urllib.request import HTTPHandler, HTTPSHandler, HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
 from dotenv import load_dotenv
 from fastapi.encoders import jsonable_encoder
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from pydantic_ai import Agent, RunContext
+from pydantic_ai import Agent, ModelRetry, RunContext
+from pydantic_ai.exceptions import UsageLimitExceeded
+from pydantic_ai.usage import RunUsage, UsageLimits
 from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, UserPromptPart
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
@@ -42,6 +47,12 @@ logger = logging.getLogger("xidian-agent-harness")
 SNAPSHOT = ROOT / "artifacts" / "knowledge-recovery" / "knowledge.db"
 DEPLOYMENT_SNAPSHOT = ROOT / "deploy" / "knowledge" / "data" / "knowledge.db"
 DEFAULT_DB = SNAPSHOT if SNAPSHOT.is_file() else DEPLOYMENT_SNAPSHOT
+RUN_TIMEOUT_SECONDS = 120
+MAX_HISTORY_CHARS = 24_000
+RUN_LIMITS = UsageLimits(request_limit=12, tool_calls_limit=24, input_tokens_limit=180_000,
+                        output_tokens_limit=12_000, per_request_input_tokens_limit=50_000)
+run_slots = asyncio.Semaphore(4)
+SearchQueries = Annotated[list[Annotated[str, Field(min_length=1, max_length=200)]], Field(min_length=1, max_length=8)]
 
 SYSTEM_PROMPT = """你叫“小电”，是西安电子科技大学的校园 Agent 助手。学校位于陕西省西安市，是以电子与信息学科为特色的全国重点大学；校训是“厚德、求真、砺学、笃行”。长安校区常称南校区，雁塔校区常称北校区。学校官网 https://www.xidian.edu.cn/，校园地图 https://gis.xidian.edu.cn/。
 
@@ -89,8 +100,11 @@ class _PageParser(HTMLParser):
 
 
 def _allowed_url(url: str) -> bool:
-    parsed = urlsplit(url)
-    return parsed.scheme == "https" and parsed.hostname in ALLOWED_HOSTS and parsed.port in {None, 443}
+    try:
+        parsed = urlsplit(url)
+        return parsed.scheme == "https" and parsed.hostname in ALLOWED_HOSTS and not parsed.username and not parsed.password and parsed.port in {None, 443}
+    except ValueError:
+        return False
 
 
 class _CampusRedirectHandler(HTTPRedirectHandler):
@@ -104,7 +118,7 @@ def _fetch_campus_page(url: str) -> dict[str, Any]:
     if not _allowed_url(url):
         raise ValueError("仅允许读取配置中的校方公开站点")
     request = Request(url, headers={"User-Agent": "Xidian-Zhixing-Campus-Agent/1.0"})
-    opener = build_opener(_CampusRedirectHandler())
+    opener = _public_opener(_CampusRedirectHandler())
     with opener.open(request, timeout=12) as response:
         final_url = response.geturl()
         if not _allowed_url(final_url):
@@ -189,21 +203,94 @@ def _canonical_url(url: str) -> str:
 
 
 def _is_public_internet_url(url: str) -> bool:
-    parsed = urlsplit(url)
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.port not in {None, 80, 443}:
-        return False
     try:
-        addresses = socket.getaddrinfo(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80))
-        # Some managed desktops route DNS through a proxy and return RFC 2544
-        # benchmarking addresses; the HTTP client still connects through that proxy.
-        proxy_dns = ipaddress.ip_network("198.18.0.0/15")
-        return bool(addresses) and all(
-            ipaddress.ip_address(item[4][0]).is_global
-            or ipaddress.ip_address(item[4][0]) in proxy_dns
-            for item in addresses
-        )
+        parsed = urlsplit(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password or parsed.port not in {None, 80, 443}:
+            return False
+        addresses = _resolve_public_addresses(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80))
+        return bool(addresses) and all(ipaddress.ip_address(item[4][0]).is_global for item in addresses)
     except (OSError, ValueError):
         return False
+
+
+class _NoDNSRedirect(HTTPRedirectHandler):
+    def redirect_request(self, request, response, code, message, headers, new_url):
+        raise ValueError("DNS 服务不允许重定向")
+
+
+@lru_cache(maxsize=128)
+def _resolve_via_doh(host: str, time_bucket: int) -> tuple[str, ...]:
+    # Only the public hostname is sent; the fixed HTTPS endpoint uses a public numeric IP.
+    request = Request("https://1.1.1.1/dns-query?" + urlencode({"name": host, "type": "A"}),
+                      headers={"Accept": "application/dns-json"})
+    with build_opener(ProxyHandler({}), _NoDNSRedirect()).open(request, timeout=5) as response:
+        payload = json.loads(response.read(16_384))
+    if payload.get("Status") != 0:
+        return ()
+    addresses = tuple(row["data"] for row in payload.get("Answer", []) if row.get("type") == 1)
+    if any(not ipaddress.ip_address(address).is_global for address in addresses):
+        return ()
+    return addresses
+
+
+def _resolve_public_addresses(host: str, port: int):
+    addresses = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    proxy_dns = ipaddress.ip_network("198.18.0.0/15")
+    if addresses and all(ipaddress.ip_address(item[4][0]) in proxy_dns for item in addresses):
+        try:
+            ipaddress.ip_address(host)
+            return []  # Literal reserved IPs never receive a DNS fallback.
+        except ValueError:
+            return [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (address, port))
+                    for address in _resolve_via_doh(host, int(time.time()) // 30)]
+    return addresses
+
+
+def _create_public_connection(address, timeout=12, source_address=None):
+    # Connect to the checked numeric address; HTTP Host and TLS SNI keep the original hostname.
+    addresses = _resolve_public_addresses(*address)
+    if not addresses or any(not ipaddress.ip_address(item[4][0]).is_global for item in addresses):
+        raise ValueError("网页连接目标不是公开互联网地址")
+    last_error = None
+    for family, kind, proto, _, sockaddr in addresses:
+        connection = socket.socket(family, kind, proto)
+        try:
+            connection.settimeout(timeout)
+            if source_address:
+                connection.bind(source_address)
+            connection.connect(sockaddr)
+            return connection
+        except OSError as exc:
+            last_error = exc
+            connection.close()
+    raise last_error or OSError("No public address could be reached")
+
+
+class _PublicHTTPConnection(HTTPConnection):
+    def connect(self):
+        self._create_connection = _create_public_connection
+        super().connect()
+
+
+class _PublicHTTPSConnection(HTTPSConnection):
+    def connect(self):
+        self._create_connection = _create_public_connection
+        super().connect()
+
+
+class _PublicHTTPHandler(HTTPHandler):
+    def http_open(self, request):
+        return self.do_open(_PublicHTTPConnection, request)
+
+
+class _PublicHTTPSHandler(HTTPSHandler):
+    def https_open(self, request):
+        return self.do_open(_PublicHTTPSConnection, request, context=self._context)
+
+
+def _public_opener(redirect_handler):
+    # Environment proxies must not bypass destination validation.
+    return build_opener(ProxyHandler({}), _PublicHTTPHandler(), _PublicHTTPSHandler(), redirect_handler)
 
 
 class _PublicInternetRedirectHandler(HTTPRedirectHandler):
@@ -217,7 +304,7 @@ def _fetch_internet_page(url: str) -> dict[str, Any]:
     if not _is_public_internet_url(url):
         raise ValueError("仅允许读取公开互联网网页")
     request = Request(url, headers={"User-Agent": "Xidian-Zhixing-Campus-Agent/1.0"})
-    with build_opener(_PublicInternetRedirectHandler()).open(request, timeout=12) as response:
+    with _public_opener(_PublicInternetRedirectHandler()).open(request, timeout=12) as response:
         final_url = response.geturl()
         if not _is_public_internet_url(final_url):
             raise ValueError("网页重定向目标不是公开互联网地址")
@@ -255,7 +342,7 @@ async def _search_internet_pages(queries: list[str], limit: int) -> list[dict[st
         for row in rows:
             url = str(row.get("href") or row.get("url") or "")
             title = str(row.get("title") or "")[:240]
-            if not url or not title or not _is_public_internet_url(url):
+            if not url or not title or not await asyncio.to_thread(_is_public_internet_url, url):
                 continue
             key = _canonical_url(url)
             page = pages.setdefault(
@@ -283,8 +370,11 @@ class Document:
 class CampusCorpus:
     def __init__(self, path: Path):
         self.path = path.resolve()
+        self.refresh()
+
+    def refresh(self):
         uri = f"{self.path.as_uri()}?mode=ro"
-        with sqlite3.connect(uri, uri=True) as connection:
+        with closing(sqlite3.connect(uri, uri=True)) as connection:
             rows = connection.execute(
                 "SELECT data FROM documents WHERE json_extract(data, '$.status') = 'published'"
             ).fetchall()
@@ -308,6 +398,7 @@ class CampusCorpus:
         self.by_id = {document.id: document for document in self.documents}
 
     def find_files(self, query: str, limit: int = 12) -> list[Document]:
+        limit = max(1, min(limit, 30))
         terms = _terms(query)
         if not terms:
             return []
@@ -323,6 +414,7 @@ class CampusCorpus:
         return [document for _, document in found[:limit]]
 
     def search_docs(self, query: str, file: str | None = None, limit: int = 8) -> list[dict[str, Any]]:
+        limit = max(1, min(limit, 24))
         terms = _terms(query)
         if not terms:
             return []
@@ -376,11 +468,8 @@ class AgentContext:
     tool_trace: list[dict[str, Any]] = field(default_factory=list)
 
     def cite(self, document: Document) -> int:
-        self.used_documents.setdefault(document.id, document)
-        self.citations.setdefault(
-            f"file:{document.id}",
-            {"title": document.title, "source": document.source_url, "documentId": document.id},
-        )
+        self.used_documents[document.id] = document
+        self.citations[f"file:{document.id}"] = {"title": document.title, "source": document.source_url, "documentId": document.id}
         return list(self.citations).index(f"file:{document.id}") + 1
 
     def cite_web(self, url: str, title: str) -> int:
@@ -388,10 +477,12 @@ class AgentContext:
         self.citations.setdefault(f"web:{url}", {"title": title, "source": url, "documentId": f"web:{url}"})
         return list(self.citations).index(f"web:{url}") + 1
 
-    def sources(self) -> list[dict[str, Any]]:
+    def sources(self, answer: str | None = None) -> list[dict[str, Any]]:
+        references = None if answer is None else _reference_numbers(answer)
         return [
             {"citation": index, **source}
             for index, source in enumerate(self.citations.values(), start=1)
+            if references is None or index in references
         ]
 
 
@@ -477,9 +568,17 @@ async def _read_web_page(deps: AgentContext, url: str, start: int = 0, max_chars
     }
 
 
+class HistorySource(BaseModel):
+    citation: int = Field(ge=1)
+    title: str = Field(max_length=240)
+    source: str | None = Field(default=None, max_length=2_000)
+    documentId: str = Field(max_length=2_000)
+
+
 class HistoryMessage(BaseModel):
     role: Literal["user", "assistant", "USER", "ASSISTANT"]
     content: str = Field(max_length=12_000)
+    sources: list[HistorySource] = Field(default_factory=list, max_length=40)
 
 
 class ChatRequest(BaseModel):
@@ -487,6 +586,7 @@ class ChatRequest(BaseModel):
     language: Literal["zh", "en"] = "zh"
     history: list[HistoryMessage] = Field(default_factory=list, max_length=24)
     principal_token: str | None = Field(default=None, max_length=2_000)
+    trace_id: str | None = Field(default=None, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
 
 
 def _normalize(text: str) -> str:
@@ -545,6 +645,82 @@ def _sse(payload: dict[str, Any]) -> str:
     return f"data: {json.dumps(jsonable_encoder(payload), ensure_ascii=False, default=str)}\n\n"
 
 
+def _reference_numbers(answer: str) -> set[int]:
+    return {int(value) for value in re.findall(r"(?<!\\)\[(\d+)\](?!\()", answer)}
+
+
+def _build_history(request: ChatRequest) -> list[ModelRequest | ModelResponse]:
+    history = []
+    remaining = MAX_HISTORY_CHARS
+    for message in reversed(request.history[-16:]):
+        content = message.content
+        if message.role.lower() == "assistant" and message.sources:
+            sources = [source.model_dump() for source in message.sources]
+            content += "\n历史引用映射（仅供重新查证，不是本轮引用）：" + json.dumps(sources, ensure_ascii=False)
+        if len(content) > remaining:
+            break
+        remaining -= len(content)
+        history.append(
+            ModelRequest(parts=[UserPromptPart(content=content)])
+            if message.role.lower() == "user"
+            else ModelResponse(parts=[TextPart(content=content)])
+        )
+    history.reverse()
+    # Dropping the oldest turn can leave an assistant response without its question.
+    if history and isinstance(history[0], ModelResponse):
+        history.pop(0)
+    return history
+
+
+async def _prepare_chat(request: ChatRequest) -> tuple[AgentContext, list[ModelRequest | ModelResponse]]:
+    if agent is None:
+        raise HTTPException(status_code=503, detail={"code": "ai_not_configured"})
+    principal = _verify_principal(request.principal_token)
+    if request.principal_token and principal is None:
+        raise HTTPException(status_code=401, detail={"code": "invalid_principal_token"})
+    try:
+        current_corpus = await asyncio.to_thread(CampusCorpus, corpus_path)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail={"code": "corpus_not_configured"}) from exc
+    return AgentContext(corpus=current_corpus, principal=principal), _build_history(request)
+
+
+@asynccontextmanager
+async def _run_slot():
+    if run_slots.locked():
+        raise HTTPException(status_code=429, detail={"code": "ai_busy"})
+    async with run_slots:
+        async with asyncio.timeout(RUN_TIMEOUT_SECONDS):
+            yield
+
+
+@asynccontextmanager
+async def _stream_run(request, deps, history, usage):
+    async with _run_slot():
+        async with agent.run_stream_events(
+            request.question, deps=deps, message_history=history,
+            instructions="本轮请使用中文回答。" if request.language == "zh" else "Answer this turn in English.",
+            usage_limits=RUN_LIMITS,
+            usage=usage,
+        ) as events:
+            yield events
+
+
+def _error_details(exc: Exception) -> dict[str, Any]:
+    if isinstance(exc, TimeoutError):
+        return {"code": "ai_timeout", "httpStatus": 504}
+    if isinstance(exc, UsageLimitExceeded):
+        return {"code": "ai_budget_exceeded", "httpStatus": 429}
+    if isinstance(exc, HTTPException):
+        return {**exc.detail, "httpStatus": exc.status_code}
+    return {"code": "ai_upstream_error", "httpStatus": getattr(exc, "status_code", None)}
+
+
+def _usage_data(usage) -> dict[str, int]:
+    return {"inputTokens": usage.input_tokens, "outputTokens": usage.output_tokens,
+            "requests": usage.requests, "toolCalls": usage.tool_calls}
+
+
 def _tool_progress_message(tool: str, language: str, finished: bool = False) -> str:
     zh = {
         "find_files": "我把相关关键词合并后查找本地资料。",
@@ -572,14 +748,7 @@ def _tool_progress_message(tool: str, language: str, finished: bool = False) -> 
     return messages.get(tool, "我在处理这一批资料。" if language == "zh" else "I’m processing this batch.")
 
 
-corpus_path = Path(os.environ.get("AGENT_HARNESS_DB", str(DEFAULT_DB)))
-try:
-    corpus = CampusCorpus(corpus_path)
-    corpus_error: str | None = None
-except Exception as exc:
-    corpus = None
-    corpus_error = type(exc).__name__
-    logger.error("Local corpus could not be loaded (%s)", corpus_error)
+corpus_path = Path(os.environ.get("AGENT_HARNESS_DB", "").strip() or DEFAULT_DB)
 
 explicit_base_url = os.environ.get("AGENT_HARNESS_BASE_URL", "").strip()
 legacy_base_url = os.environ.get("BACKEND_AI_BASE_URL", "").strip()
@@ -606,7 +775,26 @@ if api_key and model_name:
         output_type=str,
         instructions=SYSTEM_PROMPT,
         retries=1,
+        model_settings={"max_tokens": 4_096, "timeout": 45},
+        tool_timeout=25,
     )
+
+    @agent.output_validator
+    async def validate_answer(ctx: RunContext[AgentContext], answer: str) -> str:
+        if not answer.strip():
+            raise ModelRetry("请生成非空回答。")
+        references = _reference_numbers(answer)
+        sources = {source["citation"]: source for source in ctx.deps.sources()}
+        if references - sources.keys():
+            raise ModelRetry("引用编号不存在。请重新读取原文，使用工具返回的本轮 reference；不能沿用历史引用。")
+        file_ids = {sources[number]["documentId"] for number in references if not sources[number]["documentId"].startswith("web:")}
+        if file_ids:
+            await asyncio.to_thread(ctx.deps.corpus.refresh)
+            for file_id in file_ids:
+                current = ctx.deps.corpus.by_id.get(file_id)
+                if current != ctx.deps.used_documents[file_id]:
+                    raise ModelRetry("引用的资料已下架或修改。请重新检索和读取当前已发布原文后回答。")
+        return answer
 
     @agent.instructions
     def current_beijing_time() -> str:
@@ -622,9 +810,10 @@ if api_key and model_name:
         return {"timezone": "Asia/Shanghai", "datetime": value, "date": now.date().isoformat()}
 
     @agent.tool
-    def find_files(ctx: RunContext[AgentContext], queries: list[str], limit: int = 12) -> list[dict[str, Any]]:
+    def find_files(ctx: RunContext[AgentContext], queries: SearchQueries, limit: Annotated[int, Field(ge=1, le=12)] = 12) -> list[dict[str, Any]]:
         """一次用多个关键词并行查找文件标题和来源名，按相关性合并去重后返回文件 ID。"""
         matches: OrderedDict[str, dict[str, Any]] = OrderedDict()
+        ctx.deps.corpus.refresh()
         for query in queries[:8]:
             for document in ctx.deps.corpus.find_files(query, limit=limit):
                 row = matches.setdefault(document.id, {**_metadata(document), "matched_queries": []})
@@ -637,10 +826,11 @@ if api_key and model_name:
 
     @agent.tool
     def search_docs(
-        ctx: RunContext[AgentContext], queries: list[str], file: str | None = None, limit: int = 8
+        ctx: RunContext[AgentContext], queries: SearchQueries, file: str | None = None, limit: Annotated[int, Field(ge=1, le=12)] = 8
     ) -> list[dict[str, Any]]:
         """一次在已发布资料正文中搜索多组原文关键词，合并去重返回命中片段；可用 file_id 或标题限定单份文件。"""
         matches: OrderedDict[str, dict[str, Any]] = OrderedDict()
+        ctx.deps.corpus.refresh()
         for query in queries[:8]:
             for result in ctx.deps.corpus.search_docs(query, file=file, limit=limit):
                 row = matches.setdefault(result["file_id"], {**result, "matched_queries": []})
@@ -657,10 +847,11 @@ if api_key and model_name:
 
     @agent.tool
     def read_files(
-        ctx: RunContext[AgentContext], file_ids: list[str], start: int = 0, max_chars_each: int = 6_000
+        ctx: RunContext[AgentContext], file_ids: Annotated[list[str], Field(min_length=1, max_length=6)], start: int = 0, max_chars_each: int = 6_000
     ) -> list[dict[str, Any]]:
         """一次读取多份已发布文件的原文片段，每份有独立引用编号；单次最多读取 6 份。"""
         results = []
+        ctx.deps.corpus.refresh()
         for file_id in file_ids[:6]:
             document = ctx.deps.corpus.by_id.get(file_id)
             if document is None:
@@ -687,18 +878,20 @@ if api_key and model_name:
 
     @agent.tool
     async def search_all_sources(
-        ctx: RunContext[AgentContext], queries: list[str], limit: int = 8
+        ctx: RunContext[AgentContext], queries: SearchQueries, limit: Annotated[int, Field(ge=1, le=12)] = 8
     ) -> dict[str, list[dict[str, Any]]]:
         """一次批量检索本地已发布资料、校方公开网页和互联网网页；合并关键词结果并去重。"""
         query_batch = list(dict.fromkeys(query.strip() for query in queries[:8] if query.strip()))
+        limit = max(1, min(limit, 12))
         campus_task = _search_campus_pages(query_batch, limit)
         internet_task = _search_internet_pages(query_batch, limit)
 
         def search_local() -> list[dict[str, Any]]:
+            ctx.deps.corpus.refresh()
             found: OrderedDict[str, dict[str, Any]] = OrderedDict()
             for query in query_batch:
                 for document in ctx.deps.corpus.find_files(query, limit=limit):
-                    found.setdefault(document.id, {**_metadata(document), "matched_queries": []})["matched_queries"].append(query)
+                    found.setdefault(document.id, {**_metadata(document), "matched_queries": [], "excerpts": []})["matched_queries"].append(query)
                 for result in ctx.deps.corpus.search_docs(query, limit=limit):
                     row = found.setdefault(result["file_id"], {**result, "matched_queries": [], "excerpts": []})
                     row["matched_queries"].append(query)
@@ -712,9 +905,9 @@ if api_key and model_name:
             asyncio.to_thread(search_local), campus_task, internet_task
         )
         duplicate_urls = {
-            _canonical_url(document.source_url)
-            for document in ctx.deps.corpus.documents
-            if document.source_url and document.source_url.startswith(("http://", "https://"))
+            _canonical_url(document["source_url"])
+            for document in local_pages
+            if document.get("source_url") and document["source_url"].startswith(("http://", "https://"))
         }
         duplicate_urls.update(_canonical_url(page["url"]) for page in campus_pages)
         unique_internet = []
@@ -727,6 +920,10 @@ if api_key and model_name:
             unique_internet.append(page)
         for page in [*campus_pages, *unique_internet]:
             ctx.deps.discovered_pages[page["url"]] = page
+        for document in local_pages:
+            url = document.get("source_url")
+            if url and url.startswith(("http://", "https://")):
+                ctx.deps.discovered_pages.setdefault(url, {"title": document["title"], "url": url})
         result = {
             "local_documents": local_pages,
             "campus_pages": campus_pages,
@@ -739,7 +936,7 @@ if api_key and model_name:
 
     @agent.tool
     async def read_web_pages(
-        ctx: RunContext[AgentContext], urls: list[str], start: int = 0, max_chars_each: int = 8_000
+        ctx: RunContext[AgentContext], urls: Annotated[list[str], Field(min_length=1, max_length=5)], start: int = 0, max_chars_each: int = 8_000
     ) -> list[dict[str, Any]]:
         """一次并行读取多篇刚刚搜索到的校方或互联网公开网页原文，最多 5 篇；每篇返回独立引用编号。"""
         pages = await asyncio.gather(
@@ -772,10 +969,16 @@ app = FastAPI(title="Xidian Agent Harness", docs_url=None, redoc_url=None)
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    try:
+        current_corpus = CampusCorpus(corpus_path)
+        error = None
+    except Exception as exc:
+        current_corpus = None
+        error = type(exc).__name__
     return {
-        "ok": True,
-        "corpus_documents": len(corpus.documents) if corpus else 0,
-        "corpus_error": corpus_error,
+        "ok": current_corpus is not None and agent is not None,
+        "corpus_documents": len(current_corpus.documents) if current_corpus else 0,
+        "corpus_error": error,
         "model_configured": agent is not None,
         "model": model_name,
     }
@@ -783,30 +986,24 @@ def health() -> dict[str, Any]:
 
 @app.post("/chat")
 async def chat(request: ChatRequest) -> dict[str, Any]:
-    if corpus is None:
-        raise HTTPException(status_code=503, detail={"code": "corpus_not_configured"})
-    if agent is None:
-        raise HTTPException(status_code=503, detail={"code": "ai_not_configured"})
-
-    principal = _verify_principal(request.principal_token)
-    if request.principal_token and principal is None:
-        raise HTTPException(status_code=401, detail={"code": "invalid_principal_token"})
-    deps = AgentContext(corpus=corpus, principal=principal)
-    history = []
-    for message in request.history[-16:]:
-        if message.role.lower() == "user":
-            history.append(ModelRequest(parts=[UserPromptPart(content=message.content)]))
-        else:
-            history.append(ModelResponse(parts=[TextPart(content=message.content)]))
+    deps, history = await _prepare_chat(request)
 
     started = time.perf_counter()
+    usage = RunUsage()
     try:
-        result = await agent.run(request.question, deps=deps, message_history=history)
+        async with _run_slot():
+            result = await agent.run(
+                request.question, deps=deps, message_history=history, usage_limits=RUN_LIMITS,
+                usage=usage,
+                instructions="本轮请使用中文回答。" if request.language == "zh" else "Answer this turn in English.",
+            )
     except Exception as exc:
-        logger.error("Agent run failed (%s)", type(exc).__name__)
-        raise HTTPException(status_code=502, detail={"code": "ai_upstream_error"}) from exc
+        logger.error("Agent run %s failed (%s)", request.trace_id, type(exc).__name__)
+        detail = _error_details(exc)
+        detail["usage"] = _usage_data(usage)
+        raise HTTPException(status_code=detail["httpStatus"] or 502, detail=detail) from exc
 
-    sources = deps.sources()
+    sources = deps.sources(result.output)
     return {
         "answer": result.output,
         "sources": sources,
@@ -814,40 +1011,24 @@ async def chat(request: ChatRequest) -> dict[str, Any]:
         "model": model_name,
         "provider": "deepseek" if urlsplit(base_url).hostname == "api.deepseek.com" else "openai-compatible",
         "durationMs": round((time.perf_counter() - started) * 1000),
+        "usage": _usage_data(result.usage),
     }
 
 
 @app.post("/chat/stream")
 async def chat_stream(request: ChatRequest) -> StreamingResponse:
-    if corpus is None:
-        raise HTTPException(status_code=503, detail={"code": "corpus_not_configured"})
-    if agent is None:
-        raise HTTPException(status_code=503, detail={"code": "ai_not_configured"})
-
-    principal = _verify_principal(request.principal_token)
-    if request.principal_token and principal is None:
-        raise HTTPException(status_code=401, detail={"code": "invalid_principal_token"})
-    deps = AgentContext(corpus=corpus, principal=principal)
-    history = []
-    for message in request.history[-16:]:
-        if message.role.lower() == "user":
-            history.append(ModelRequest(parts=[UserPromptPart(content=message.content)]))
-        else:
-            history.append(ModelResponse(parts=[TextPart(content=message.content)]))
+    deps, history = await _prepare_chat(request)
 
     async def events():
         started = time.perf_counter()
+        usage = RunUsage()
         result = None
         answer_started = False
         buffered_text = ""
         tool_started_at: dict[str, float] = {}
         yield _sse({"type": "status", "stage": "thinking", "message": "我先判断需要查哪些资料。" if request.language == "zh" else "I’m deciding which sources to check."})
         try:
-            async with agent.run_stream_events(
-                request.question,
-                deps=deps,
-                message_history=history,
-            ) as run_events:
+            async with _stream_run(request, deps, history, usage) as run_events:
                 async for event in run_events:
                     kind = getattr(event, "event_kind", "")
                     if kind == "function_tool_call":
@@ -883,6 +1064,10 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
                         yield _sse({"type": "status", "stage": "thinking", "message": _tool_progress_message(part.tool_name, request.language, finished=True)})
                     elif kind == "part_start":
                         part = event.part
+                        if event.index == 0:
+                            answer_started = False
+                            buffered_text = ""
+                            yield _sse({"type": "answer_reset"})
                         if getattr(part, "part_kind", None) == "text":
                             buffered_text += part.content
                     elif kind == "part_delta":
@@ -905,7 +1090,7 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
             if result is None:
                 raise RuntimeError("Agent stream ended without a final result")
 
-            sources = deps.sources()
+            sources = deps.sources(result.output)
             yield _sse(
                 {
                     "type": "complete",
@@ -915,15 +1100,16 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
                     "model": model_name,
                     "provider": "deepseek" if urlsplit(base_url).hostname == "api.deepseek.com" else "openai-compatible",
                     "durationMs": round((time.perf_counter() - started) * 1000),
+                    "usage": _usage_data(result.usage),
                 }
             )
         except Exception as exc:
-            logger.error("Agent stream failed (%s)", type(exc).__name__)
+            logger.error("Agent stream %s failed (%s)", request.trace_id, type(exc).__name__)
             yield _sse(
                 {
                     "type": "error",
-                    "code": "ai_upstream_error",
-                    "httpStatus": getattr(exc, "status_code", None),
+                    **_error_details(exc),
+                    "usage": _usage_data(usage),
                 }
             )
 

@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { apiError } from '@/lib/apiResponse';
 import { getServerUser } from '@/lib/getServerUser';
 import { createAgentPrincipalToken } from '@/lib/ai/harnessPrincipal';
+import { buildHarnessHistory } from '@/lib/ai/harnessHistory';
 import prisma from '@/lib/prisma/prisma';
 
 type HarnessEvent = {
@@ -78,14 +79,56 @@ export async function POST(request: Request) {
     where: { conversationId: conversation.id, id: { not: userMessage.id }, role: { in: ['USER', 'ASSISTANT'] } },
     orderBy: { createdAt: 'desc' },
     take: 16,
-    select: { role: true, content: true },
+    select: { role: true, content: true, sources: true },
   });
-  const history = historyRows.reverse().map((message) => ({
-    role: message.role === 'USER' ? 'user' : 'assistant',
-    content: message.content,
-  }));
+  const history = buildHarnessHistory(historyRows);
 
   const harnessUrl = (process.env.AGENT_HARNESS_URL?.trim() || 'http://127.0.0.1:8002').replace(/\/+$/, '');
+  const traceId = randomUUID();
+  const startedAt = Date.now();
+  const abortController = new AbortController();
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  let cancelled = false;
+  let responseCancelled = false;
+  const onAbort = () => {
+    cancelled = true;
+    abortController.abort();
+    reader?.cancel().catch(() => undefined);
+  };
+  const timeout = setTimeout(() => {
+    abortController.abort();
+    reader?.cancel().catch(() => undefined);
+  }, 150_000);
+  const cleanup = () => {
+    clearTimeout(timeout);
+    request.signal.removeEventListener('abort', onAbort);
+  };
+  request.signal.addEventListener('abort', onAbort, { once: true });
+  if (request.signal.aborted) onAbort();
+  const recordFailure = async (code: string, agentEvents: HarnessEvent[] = [], usage: Record<string, unknown> = {}) => {
+    await prisma.$transaction(async (tx) => {
+      await tx.aiMessage.deleteMany({ where: { id: userMessage.id } });
+      await tx.aiTrace.create({
+        data: {
+          userId: user.id,
+          provider: 'openai-compatible',
+          model: process.env.AGENT_HARNESS_MODEL || 'deepseek-v4-flash',
+          requestId: traceId,
+          durationMs: Date.now() - startedAt,
+          promptTokens: typeof usage.inputTokens === 'number' ? usage.inputTokens : undefined,
+          completionTokens: typeof usage.outputTokens === 'number' ? usage.outputTokens : undefined,
+          metadata: {
+            mode: 'pydantic_ai_file_tools',
+            conversationId: conversation!.id,
+            userMessageId: userMessage.id,
+            outcome: code,
+            usage: usage as Prisma.InputJsonValue,
+            agentEvents: agentEvents as Prisma.InputJsonValue,
+          },
+        },
+      });
+    });
+  };
   let upstream: Response;
   try {
     upstream = await fetch(`${harnessUrl}/chat/stream`, {
@@ -96,20 +139,36 @@ export async function POST(request: Request) {
         language: body?.language === 'en' ? 'en' : 'zh',
         history,
         principal_token: createAgentPrincipalToken(user.id),
+        trace_id: traceId,
       }),
-      signal: AbortSignal.timeout(300_000),
+      signal: abortController.signal,
     });
   } catch {
-    await prisma.aiMessage.delete({ where: { id: userMessage.id } });
-    return apiError('AI Agent 服务暂时无法连接。', 503, { code: 'harness_unavailable' });
+    cleanup();
+    const code = abortController.signal.aborted && !cancelled ? 'ai_timeout' : 'harness_unavailable';
+    await recordFailure(cancelled ? 'cancelled' : code);
+    return apiError(
+      code === 'ai_timeout' ? '本轮回答超时，请稍后重试。' : 'AI Agent 服务暂时无法连接。',
+      code === 'ai_timeout' ? 504 : 503,
+      { code },
+    );
   }
 
   if (!upstream.ok || !upstream.body) {
-    const detail = (await upstream.json().catch(() => null)) as { detail?: { code?: string } } | null;
-    await prisma.aiMessage.delete({ where: { id: userMessage.id } });
+    const detail = (await upstream.json().catch(() => null)) as {
+      detail?: { code?: string; usage?: Record<string, unknown> };
+    } | null;
     const code = detail?.detail?.code || 'ai_upstream_error';
+    cleanup();
+    await recordFailure(code, [], detail?.detail?.usage);
     const message =
-      code === 'corpus_not_configured'
+      code === 'ai_busy'
+        ? 'AI 服务繁忙，请稍后重试。'
+        : code === 'ai_timeout'
+        ? '本轮回答超时，请缩小问题范围后重试。'
+        : code === 'ai_budget_exceeded'
+        ? '本轮检索已达到上限，请缩小问题范围后重试。'
+        : code === 'corpus_not_configured'
         ? '本地校园资料库尚未配置。'
         : code === 'ai_not_configured'
         ? 'DeepSeek API 尚未配置。'
@@ -117,18 +176,22 @@ export async function POST(request: Request) {
     return apiError(message, upstream.status, { code });
   }
 
-  const traceId = randomUUID();
   const responseBody = new ReadableStream<Uint8Array>({
     async start(controller) {
       const decoder = new TextDecoder();
-      const reader = upstream.body!.getReader();
+      reader = upstream.body!.getReader();
       const agentEvents: HarnessEvent[] = [];
       let pending = '';
       let completed = false;
-      let upstreamFailed = false;
+      let failureCode: string | undefined;
+      let failureUsage: Record<string, unknown> = {};
+      const send = (event: HarnessEvent) => {
+        if (!cancelled) controller.enqueue(encodeEvent(event));
+      };
 
-      controller.enqueue(
-        encodeEvent({
+      try {
+        if (cancelled) return;
+        send({
           type: 'start',
           conversationId: conversation!.id,
           userMessage: {
@@ -138,14 +201,13 @@ export async function POST(request: Request) {
             sources: [],
             createdAt: userMessage.createdAt.toISOString(),
           },
-        }),
-      );
+        });
 
-      try {
-        while (true) {
+        while (!cancelled) {
           const { value, done } = await reader.read();
           if (done) break;
           pending += decoder.decode(value, { stream: true });
+          if (pending.length > 1_000_000) throw new Error('Agent stream frame is too large');
           let boundary = pending.indexOf('\n\n');
           while (boundary >= 0) {
             const frame = pending.slice(0, boundary);
@@ -157,15 +219,21 @@ export async function POST(request: Request) {
             }
 
             if (event.type === 'tool_call' || event.type === 'tool_result') {
-              agentEvents.push(event);
-              controller.enqueue(encodeEvent(event));
+              agentEvents.push(limitStoredEvent(event));
+              send(event);
             } else if (event.type === 'error') {
-              upstreamFailed = true;
-              controller.enqueue(encodeEvent(event));
+              failureCode = typeof event.code === 'string' ? event.code : 'ai_upstream_error';
+              failureUsage =
+                event.usage && typeof event.usage === 'object' ? (event.usage as Record<string, unknown>) : {};
+              send(event);
+              break;
             } else if (event.type === 'complete') {
               const answer = typeof event.answer === 'string' ? event.answer : '';
               if (!answer.trim()) throw new Error('Agent returned an empty answer');
               const sources = Array.isArray(event.sources) ? event.sources : [];
+              const usage =
+                event.usage && typeof event.usage === 'object' ? (event.usage as Record<string, unknown>) : {};
+              failureUsage = usage;
               const message = await prisma.$transaction(async (tx) => {
                 const assistantMessage = await tx.aiMessage.create({
                   data: {
@@ -182,12 +250,16 @@ export async function POST(request: Request) {
                     model: typeof event.model === 'string' ? event.model : 'deepseek-v4-flash',
                     requestId: traceId,
                     durationMs: typeof event.durationMs === 'number' ? event.durationMs : undefined,
+                    promptTokens: typeof usage.inputTokens === 'number' ? usage.inputTokens : undefined,
+                    completionTokens: typeof usage.outputTokens === 'number' ? usage.outputTokens : undefined,
                     metadata: {
                       mode: 'pydantic_ai_file_tools',
+                      outcome: 'complete',
+                      usage: usage as Prisma.InputJsonValue,
                       conversationId: conversation!.id,
                       assistantMessageId: assistantMessage.id,
                       toolTrace: (Array.isArray(event.toolTrace) ? event.toolTrace : []) as Prisma.InputJsonValue,
-                      agentEvents: agentEvents.map(limitStoredEvent) as Prisma.InputJsonValue,
+                      agentEvents: agentEvents as Prisma.InputJsonValue,
                     },
                   },
                 });
@@ -197,39 +269,54 @@ export async function POST(request: Request) {
                 });
                 return assistantMessage;
               });
-              controller.enqueue(
-                encodeEvent({
-                  type: 'done',
-                  conversationId: conversation!.id,
-                  message: {
-                    id: message.id,
-                    role: message.role,
-                    content: message.content,
-                    sources,
-                    createdAt: message.createdAt.toISOString(),
-                  },
-                  traceId,
-                  durationMs: typeof event.durationMs === 'number' ? event.durationMs : undefined,
-                }),
-              );
               completed = true;
+              send({
+                type: 'done',
+                conversationId: conversation!.id,
+                message: {
+                  id: message.id,
+                  role: message.role,
+                  content: message.content,
+                  sources,
+                  createdAt: message.createdAt.toISOString(),
+                },
+                traceId,
+                durationMs: typeof event.durationMs === 'number' ? event.durationMs : undefined,
+              });
               break;
             } else {
-              controller.enqueue(encodeEvent(event));
+              send(event);
             }
             boundary = pending.indexOf('\n\n');
           }
-          if (completed) break;
+          if (completed || failureCode) break;
         }
-        if (!completed && !upstreamFailed) {
-          controller.enqueue(encodeEvent({ type: 'error', code: 'ai_upstream_error' }));
+        if (!completed && !failureCode && !cancelled) {
+          failureCode = abortController.signal.aborted ? 'ai_timeout' : 'ai_upstream_error';
+          send({ type: 'error', code: failureCode });
         }
       } catch {
-        controller.enqueue(encodeEvent({ type: 'error', code: 'ai_upstream_error' }));
+        failureCode = abortController.signal.aborted && !cancelled ? 'ai_timeout' : 'ai_upstream_error';
+        send({ type: 'error', code: failureCode });
       } finally {
+        cleanup();
+        await reader.cancel().catch(() => undefined);
         reader.releaseLock();
-        controller.close();
+        try {
+          if (!completed)
+            await recordFailure(
+              cancelled ? 'cancelled' : failureCode || 'ai_upstream_error',
+              agentEvents,
+              failureUsage,
+            );
+        } finally {
+          if (!responseCancelled) controller.close();
+        }
       }
+    },
+    cancel() {
+      responseCancelled = true;
+      onAbort();
     },
   });
 

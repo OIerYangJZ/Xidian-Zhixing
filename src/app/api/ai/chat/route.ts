@@ -49,6 +49,7 @@ export async function POST(request: Request) {
       userMessage.id,
       question,
       body?.language === 'en' ? 'en' : 'zh',
+      request.signal,
     );
     return apiSuccess({
       conversationId: conversation.id,
@@ -63,9 +64,22 @@ export async function POST(request: Request) {
   } catch (error) {
     await prisma.aiMessage.delete({ where: { id: userMessage.id } });
     if (error instanceof AgentHarnessError) {
-      const status = error.code.endsWith('not_configured') ? 503 : 502;
+      const status =
+        error.code === 'ai_busy' || error.code === 'ai_budget_exceeded'
+          ? 429
+          : error.code === 'ai_timeout'
+          ? 504
+          : error.code.endsWith('not_configured')
+          ? 503
+          : 502;
       const message =
-        error.code === 'corpus_not_configured'
+        error.code === 'ai_busy'
+          ? 'AI 服务繁忙，请稍后重试。'
+          : error.code === 'ai_timeout'
+          ? '本轮回答超时，请缩小问题范围后重试。'
+          : error.code === 'ai_budget_exceeded'
+          ? '本轮检索已达到上限，请缩小问题范围后重试。'
+          : error.code === 'corpus_not_configured'
           ? '本地校园资料库尚未配置。'
           : error.code === 'ai_not_configured'
           ? 'DeepSeek API 尚未配置。'

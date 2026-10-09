@@ -201,6 +201,8 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const requestAbortRef = useRef<AbortController | null>(null);
+  useEffect(() => () => requestAbortRef.current?.abort(), []);
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeId),
     [activeId, conversations],
@@ -294,12 +296,28 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
         ),
       );
     };
+    let persistedUserId = pendingUserId;
+    const discardFailedTurn = () => {
+      setConversations((items) =>
+        items.map((conversation) => ({
+          ...conversation,
+          messages: conversation.messages.filter(
+            (message) =>
+              message.id !== persistedUserId && message.id !== pendingUserId && message.id !== pendingAssistantId,
+          ),
+        })),
+      );
+    };
+    const requestAbort = new AbortController();
+    requestAbortRef.current = requestAbort;
+    let responseReader: ReadableStreamDefaultReader<Uint8Array> | undefined;
 
     try {
       const response = await fetch('/api/ai/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, conversationId: activeId || undefined, language }),
+        signal: requestAbort.signal,
       });
 
       if (!response.ok || !response.body) {
@@ -337,6 +355,7 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
       }
 
       const reader = response.body.getReader();
+      responseReader = reader;
       const decoder = new TextDecoder();
       let pending = '';
       let terminalEventReceived = false;
@@ -344,6 +363,7 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
         if (payload.type === 'start') {
           const conversationId = String(payload.conversationId || localConversationId);
           const startedUser = payload.userMessage as AIMessageData | undefined;
+          if (startedUser) persistedUserId = startedUser.id;
           setActiveId(conversationId);
           setConversations((items) =>
             items.map((conversation) =>
@@ -379,6 +399,8 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
                 : conversation,
             ),
           );
+        } else if (payload.type === 'answer_reset') {
+          updateAssistant({ content: '' });
         } else if (payload.type === 'answer_delta' && typeof payload.text === 'string') {
           setConversations((items) =>
             items.map((conversation) =>
@@ -424,7 +446,16 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
           terminalEventReceived = true;
           const httpStatus = typeof payload.httpStatus === 'number' ? payload.httpStatus : undefined;
           setError(
-            httpStatus === 402
+            payload.code === 'ai_busy'
+              ? t('AI 服务繁忙，请稍后重试。', 'The AI service is busy. Please retry shortly.')
+              : payload.code === 'ai_timeout'
+              ? t('本轮回答超时，请缩小问题范围后重试。', 'This turn timed out. Please narrow the question and retry.')
+              : payload.code === 'ai_budget_exceeded'
+              ? t(
+                  '本轮检索已达到上限，请缩小问题范围后重试。',
+                  'This turn reached its search budget. Please narrow the question and retry.',
+                )
+              : httpStatus === 402
               ? t(
                   'DeepSeek 返回 HTTP 402，请检查 API 账户额度和计费状态。',
                   'DeepSeek returned HTTP 402. Check API balance and billing status.',
@@ -436,7 +467,7 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
                   'DeepSeek could not complete the request. Please retry later.',
                 ),
           );
-          updateAssistant({ status: t('请求失败', 'Request failed'), streaming: false });
+          discardFailedTurn();
           setDraft(content);
           setSending(false);
         }
@@ -467,15 +498,19 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
       }
       if (!terminalEventReceived) {
         setError(t('响应流意外中断，请重试。', 'The response stream ended unexpectedly. Please retry.'));
-        updateAssistant({ status: t('连接中断', 'Connection interrupted'), streaming: false });
+        discardFailedTurn();
         setDraft(content);
         setSending(false);
       }
     } catch {
       setError(t('AI Agent 服务暂时无法连接。', 'The AI Agent service is unavailable.'));
-      updateAssistant({ status: t('连接失败', 'Connection failed'), streaming: false });
+      discardFailedTurn();
       setDraft(content);
       setSending(false);
+    } finally {
+      await responseReader?.cancel().catch(() => undefined);
+      responseReader?.releaseLock();
+      if (requestAbortRef.current === requestAbort) requestAbortRef.current = null;
     }
   }
 
