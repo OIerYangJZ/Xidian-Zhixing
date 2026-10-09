@@ -41,16 +41,18 @@ export async function GET(request: Request, props: { params: Promise<{ userId: s
     },
   });
 
-  return NextResponse.json(reports.map((report) => ({
-    id: report.id,
-    reason: report.reason,
-    description: report.details || '',
-    createdAt: report.createdAt,
-    handledAt: report.case?.resolvedAt || null,
-    result: actionText(report.case?.action),
-    status: statusText(report.case?.status),
-    targetType: report.postId ? 'post' : 'comment',
-    targetId: String(report.postId || report.commentId || ''),
-    targetTitle: (report.post?.content || report.comment?.content || '').split('\n')[0].slice(0, 100),
-  })));
+  return NextResponse.json(
+    reports.map((report) => ({
+      id: report.id,
+      reason: report.reason,
+      description: report.details || '',
+      createdAt: report.createdAt,
+      handledAt: report.case?.resolvedAt || null,
+      result: actionText(report.case?.action),
+      status: statusText(report.case?.status),
+      targetType: report.postId ? 'post' : 'comment',
+      targetId: String(report.postId || report.commentId || ''),
+      targetTitle: (report.post?.content || report.comment?.content || '').split('\n')[0].slice(0, 100),
+    })),
+  );
 }

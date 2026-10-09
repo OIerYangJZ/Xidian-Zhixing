@@ -109,10 +109,7 @@ export async function GET(request: Request) {
   });
   if (!approved) return loginError(origin, 'account');
 
-  const target = new URL(
-    attempt.callbackUrl === '/miniprogram-auth' ? '/miniprogram-auth' : '/login',
-    origin,
-  );
+  const target = new URL(attempt.callbackUrl === '/miniprogram-auth' ? '/miniprogram-auth' : '/login', origin);
   target.searchParams.set('attempt', attempt.id);
   return NextResponse.redirect(target);
 }

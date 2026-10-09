@@ -47,11 +47,13 @@ export async function GET(request: Request) {
     .sort((a, b) => b.hotScore - a.hotScore || b.post.createdAt.getTime() - a.post.createdAt.getTime());
 
   const page = ranked.slice(offset, offset + limit);
-  const items = await Promise.all(page.map(async ({ post, hotScore }, index) => ({
-    ...(await toGetPost(post, user.id)),
-    hotScore,
-    feedCursor: String(offset + index + 1),
-  })));
+  const items = await Promise.all(
+    page.map(async ({ post, hotScore }, index) => ({
+      ...(await toGetPost(post, user.id)),
+      hotScore,
+      feedCursor: String(offset + index + 1),
+    })),
+  );
 
   return NextResponse.json({ items, hasMore: offset + items.length < ranked.length });
 }

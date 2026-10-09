@@ -21,8 +21,10 @@ export async function GET(_request: Request, props: { params: Promise<{ userId: 
     },
   });
 
-  return NextResponse.json(comments.map(({ post, ...comment }) => ({
-    ...comment,
-    postTitle: (post.content || '').split('\n')[0].slice(0, 80) || '原帖',
-  })));
+  return NextResponse.json(
+    comments.map(({ post, ...comment }) => ({
+      ...comment,
+      postTitle: (post.content || '').split('\n')[0].slice(0, 80) || '原帖',
+    })),
+  );
 }

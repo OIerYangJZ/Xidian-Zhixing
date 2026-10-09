@@ -3,9 +3,11 @@ import { apiError, apiSuccess } from '@/lib/apiResponse';
 export async function GET() {
   const explicitBaseUrl = process.env.AGENT_HARNESS_BASE_URL?.trim();
   const legacyBaseUrl = process.env.BACKEND_AI_BASE_URL?.trim();
-  const legacyIsDeepSeek =
-    legacyBaseUrl && new URL(legacyBaseUrl).hostname === 'api.deepseek.com';
-  const model = process.env.AGENT_HARNESS_MODEL?.trim() || (legacyIsDeepSeek ? process.env.BACKEND_AI_MODEL?.trim() : '') || 'deepseek-v4-flash';
+  const legacyIsDeepSeek = legacyBaseUrl && new URL(legacyBaseUrl).hostname === 'api.deepseek.com';
+  const model =
+    process.env.AGENT_HARNESS_MODEL?.trim() ||
+    (legacyIsDeepSeek ? process.env.BACKEND_AI_MODEL?.trim() : '') ||
+    'deepseek-v4-flash';
   const key =
     process.env.AGENT_HARNESS_API_KEY ||
     process.env.DEEPSEEK_API_KEY ||

@@ -38,18 +38,33 @@ export type AIConversationData = {
   messages: AIMessageData[];
 };
 
+const markdownPlugins = [remarkGfm];
 const markdownComponents: Components = {
-  h1: ({ node: _node, ...props }) => <h1 className="mb-3 mt-5 text-xl font-semibold first:mt-0" {...props} />,
-  h2: ({ node: _node, ...props }) => <h2 className="mb-2 mt-5 text-lg font-semibold first:mt-0" {...props} />,
-  h3: ({ node: _node, ...props }) => <h3 className="mb-2 mt-4 text-base font-semibold first:mt-0" {...props} />,
+  h1: ({ node: _node, children, ...props }) => (
+    <h1 className="mb-3 mt-5 text-xl font-semibold first:mt-0" {...props}>
+      {children}
+    </h1>
+  ),
+  h2: ({ node: _node, children, ...props }) => (
+    <h2 className="mb-2 mt-5 text-lg font-semibold first:mt-0" {...props}>
+      {children}
+    </h2>
+  ),
+  h3: ({ node: _node, children, ...props }) => (
+    <h3 className="mb-2 mt-4 text-base font-semibold first:mt-0" {...props}>
+      {children}
+    </h3>
+  ),
   p: ({ node: _node, ...props }) => <p className="mb-3 last:mb-0" {...props} />,
   ul: ({ node: _node, ...props }) => <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0" {...props} />,
   ol: ({ node: _node, ...props }) => <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0" {...props} />,
   blockquote: ({ node: _node, ...props }) => (
     <blockquote className="my-3 border-l-2 border-primary/50 pl-3 text-muted-foreground" {...props} />
   ),
-  a: ({ node: _node, ...props }) => (
-    <a className="text-primary underline underline-offset-2" target="_blank" rel="noreferrer" {...props} />
+  a: ({ node: _node, children, ...props }) => (
+    <a className="text-primary underline underline-offset-2" target="_blank" rel="noreferrer" {...props}>
+      {children}
+    </a>
   ),
   table: ({ node: _node, ...props }) => (
     <div className="my-3 max-w-full overflow-x-auto">
@@ -129,8 +144,12 @@ function AgentTrace({ message, language }: { message: AIMessageData; language: s
       ? `正在执行 · ${calls.length} 次工具调用`
       : `Working · ${calls.length} tool calls`
     : language === 'zh'
-      ? `${message.durationMs === undefined ? '执行完成' : `工作了 ${formatDuration(message.durationMs, language)}`} · ${calls.length} 次工具调用`
-      : `${message.durationMs === undefined ? 'Complete' : `Worked for ${formatDuration(message.durationMs, language)}`} · ${calls.length} tool calls`;
+    ? `${message.durationMs === undefined ? '执行完成' : `工作了 ${formatDuration(message.durationMs, language)}`} · ${
+        calls.length
+      } 次工具调用`
+    : `${
+        message.durationMs === undefined ? 'Complete' : `Worked for ${formatDuration(message.durationMs, language)}`
+      } · ${calls.length} tool calls`;
 
   return (
     <details className="mb-2 overflow-hidden rounded-lg border border-border/80 bg-background/50 text-xs">
@@ -484,7 +503,9 @@ export function AIChat({
         }
       };
 
+      // eslint-disable-next-line no-constant-condition -- The reader's done flag ends the stream loop.
       while (true) {
+        // eslint-disable-next-line no-await-in-loop -- Read stream chunks in order and preserve backpressure.
         const { value, done } = await reader.read();
         if (done) break;
         pending += decoder.decode(value, { stream: true });
@@ -577,7 +598,7 @@ export function AIChat({
                     message.content
                   ) : (
                     <div className="break-words">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                      <ReactMarkdown remarkPlugins={markdownPlugins} components={markdownComponents}>
                         {message.content}
                       </ReactMarkdown>
                       {message.streaming && (

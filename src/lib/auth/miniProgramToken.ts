@@ -57,7 +57,8 @@ export function getMiniProgramTokenUserId(value: string) {
       !payload.sub ||
       typeof payload.exp !== 'number' ||
       payload.exp <= Math.floor(Date.now() / 1000)
-    ) return null;
+    )
+      return null;
 
     return payload.sub;
   } catch {

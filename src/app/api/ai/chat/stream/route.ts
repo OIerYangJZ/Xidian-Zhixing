@@ -207,6 +207,7 @@ export async function POST(request: Request) {
         });
 
         while (!cancelled) {
+          // eslint-disable-next-line no-await-in-loop -- Read stream chunks in order and preserve backpressure.
           const { value, done } = await reader.read();
           if (done) break;
           pending += decoder.decode(value, { stream: true });
@@ -238,6 +239,7 @@ export async function POST(request: Request) {
               const usage =
                 event.usage && typeof event.usage === 'object' ? (event.usage as Record<string, unknown>) : {};
               failureUsage = usage;
+              // eslint-disable-next-line no-await-in-loop -- Commit the completed answer before sending done.
               const message = await prisma.$transaction(async (tx) => {
                 const assistantMessage = await tx.aiMessage.create({
                   data: {

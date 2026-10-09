@@ -204,9 +204,9 @@ export async function searchCampusKnowledge(
       method: 'POST',
       body: JSON.stringify({
         query,
-        queries: Array.from(new Set([query, ...(options.queries || [])]
-          .map((text) => text.trim())
-          .filter(Boolean))).slice(0, 3),
+        queries: Array.from(
+          new Set([query, ...(options.queries || [])].map((text) => text.trim()).filter(Boolean)),
+        ).slice(0, 3),
         filters: {
           campus: options.campus || null,
           educationLevel: options.educationLevel || null,
@@ -453,17 +453,17 @@ function contextText(items: KnowledgeItem[]) {
       item.authority === 'community'
         ? '学生经验/社区资料（非官方）'
         : item.authority === 'curated'
-          ? '校内整理资料'
-          : item.authority === 'verified'
-            ? '已核实资料'
-            : item.authority === 'official'
-              ? '学校官方资料'
-              : '校园资料';
+        ? '校内整理资料'
+        : item.authority === 'verified'
+        ? '已核实资料'
+        : item.authority === 'official'
+        ? '学校官方资料'
+        : '校园资料';
     const retrievalLabel = item.retrievalRole === 'neighbor' ? '相邻上下文' : '直接命中';
     parts.push(
-      `[S${number}] ${retrievalLabel} ${authorityLabel}《${item.title}》 原文日期:${item.publishedAt || '未标明'} 来源:${item.sourceUrl || item.sourceName || '校园知识库'}\n${
-        item.content
-      }`,
+      `[S${number}] ${retrievalLabel} ${authorityLabel}《${item.title}》 原文日期:${
+        item.publishedAt || '未标明'
+      } 来源:${item.sourceUrl || item.sourceName || '校园知识库'}\n${item.content}`,
     );
   }
   return parts.join('\n\n') || '暂无可用校园检索资料。';
