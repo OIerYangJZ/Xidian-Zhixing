@@ -108,7 +108,12 @@ export async function POST(request: Request) {
   };
   request.signal.addEventListener('abort', onAbort, { once: true });
   if (request.signal.aborted) onAbort();
-  const recordFailure = async (code: string, agentEvents: HarnessEvent[] = [], usage: Record<string, unknown> = {}) => {
+  const recordFailure = async (
+    code: string,
+    agentEvents: HarnessEvent[] = [],
+    usage: Record<string, unknown> = {},
+    reason?: string,
+  ) => {
     await prisma.$transaction(async (tx) => {
       await tx.aiMessage.deleteMany({ where: { id: userMessage.id } });
       await tx.aiTrace.create({
@@ -127,6 +132,8 @@ export async function POST(request: Request) {
             outcome: code,
             usage: usage as Prisma.InputJsonValue,
             agentEvents: agentEvents as Prisma.InputJsonValue,
+            // Kept so a provider rejection stays diagnosable after the console output is gone.
+            ...(reason ? { failureReason: reason } : {}),
           },
         },
       });
@@ -166,7 +173,7 @@ export async function POST(request: Request) {
     } | null;
     const code = detail?.detail?.code || 'ai_upstream_error';
     cleanup();
-    await recordFailure(code, [], detail?.detail?.usage);
+    await recordFailure(code, [], detail?.detail?.usage, detail?.detail?.reason);
     const message = harnessErrorMessage(code, {
       status: upstream.status,
       reason: detail?.detail?.reason,
@@ -184,6 +191,7 @@ export async function POST(request: Request) {
       let completed = false;
       let failureCode: string | undefined;
       let failureUsage: Record<string, unknown> = {};
+      let failureReason: string | undefined;
       const send = (event: HarnessEvent) => {
         if (!cancelled) controller.enqueue(encodeEvent(event));
       };
@@ -226,6 +234,7 @@ export async function POST(request: Request) {
               failureCode = typeof event.code === 'string' ? event.code : 'ai_upstream_error';
               failureUsage =
                 event.usage && typeof event.usage === 'object' ? (event.usage as Record<string, unknown>) : {};
+              failureReason = typeof event.reason === 'string' ? event.reason : undefined;
               send(event);
               break;
             } else if (event.type === 'complete') {
@@ -321,6 +330,7 @@ export async function POST(request: Request) {
               cancelled ? 'cancelled' : failureCode || 'ai_upstream_error',
               agentEvents,
               failureUsage,
+              failureReason,
             );
         } finally {
           if (!responseCancelled) controller.close();

@@ -197,6 +197,9 @@ export async function answerWithAgentHarness(
           userMessageId,
           usage: (usage || {}) as Prisma.InputJsonValue,
           historyTruncated,
+          // The harness's own words about the failure. Without it a rejected provider call is only
+          // ever recorded as `ai_upstream_error`, which names nothing an operator can act on.
+          ...(error instanceof AgentHarnessError && error.reason ? { failureReason: error.reason } : {}),
           outcome: signal?.aborted
             ? 'cancelled'
             : error instanceof AgentHarnessError

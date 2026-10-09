@@ -7,6 +7,9 @@
 
 # testing
 /coverage
+# Scratch databases the Python tests create beside the repository when the platform temp root is
+# not writable (confined sandboxes refuse it).
+/.pytest-tmp/
 
 # next.js
 /.next/

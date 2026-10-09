@@ -6,6 +6,7 @@ import faulthandler
 import inspect
 import json
 import os
+import shutil
 import socket
 import sqlite3
 import sys
@@ -24,15 +25,49 @@ from pydantic_ai.messages import ModelResponse, RetryPromptPart, TextPart, ToolC
 from pydantic_ai.models.function import DeltaToolCall, FunctionModel
 from pydantic_ai.usage import UsageLimits
 
+ROOT = Path(__file__).resolve().parents[2]
+
 with patch.dict(os.environ, {"AGENT_HARNESS_API_KEY": "unit-test-key", "AGENT_HARNESS_BASE_URL": "https://api.deepseek.com"}):
     from agent_harness import app as h
 
 
+def workspace_temp_dir(prefix: str) -> Path:
+    """A scratch directory the process can actually create a SQLite file in.
+
+    Two constraints meet here. `tempfile` puts its directory under the platform temp root, which a
+    confined sandbox denies (`sqlite3.OperationalError: unable to open database file`); and a
+    directory created by `mkdtemp` inherits a marking that is refused even inside the workspace,
+    while a plainly created one is writable. So the directory is created directly, beside the
+    repository first and under the platform temp only as a fallback.
+    """
+    for base in (ROOT / ".pytest-tmp", Path(tempfile.gettempdir())):
+        for attempt in range(8):
+            candidate = base / f"{prefix}{os.getpid()}-{attempt}"
+            try:
+                base.mkdir(parents=True, exist_ok=True)
+                candidate.mkdir()
+            except FileExistsError:
+                continue
+            except OSError:
+                break
+            probe = candidate / "probe.db"
+            try:
+                with closing(sqlite3.connect(probe)) as connection:
+                    connection.execute("CREATE TABLE probe(x)")
+                probe.unlink()
+                return candidate
+            # `sqlite3.OperationalError` is not an `OSError`, so both have to be caught.
+            except (OSError, sqlite3.Error):
+                shutil.rmtree(candidate, True)
+                break
+    raise RuntimeError("no writable directory for a test database")
+
+
 class HarnessTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory(prefix="harness-test-")
-        self.addCleanup(self.tmp.cleanup)
-        self.db = Path(self.tmp.name) / "knowledge.db"
+        self.tmp_dir = workspace_temp_dir("harness-test-")
+        self.addCleanup(shutil.rmtree, self.tmp_dir, True)
+        self.db = self.tmp_dir / "knowledge.db"
         self.row = {"id": "doc", "title": "campus scholarship", "content": "scholarship application instructions",
                     "sourceUrl": "https://news.xidian.edu.cn/info/doc.htm", "status": "published"}
         with closing(sqlite3.connect(self.db)) as connection:
@@ -182,6 +217,40 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
         # The same TypeError class of bug: both builders must accept a headers keyword.
         source = inspect.getsource(h._fetch_campus_page) + inspect.getsource(h._fetch_internet_page)
         self.assertEqual(source.count("headers={"), 2)
+
+    def test_upstream_failures_report_the_provider_status_and_words(self):
+        # A provider rejection used to surface as a bare `ai_upstream_error`, which named nothing an
+        # operator could act on: "HTTP 402 insufficient balance" has to survive the unwrapping.
+        class ProviderError(Exception):
+            def __init__(self, message, status_code=None, body=None):
+                super().__init__(message)
+                self.status_code = status_code
+                self.body = body
+
+        class Nested(Exception):
+            pass
+
+        detail = h._error_details(ProviderError("insufficient balance", status_code=402, body='{"error":"Insufficient Balance"}'))
+        self.assertEqual(detail["code"], "ai_upstream_error")
+        self.assertEqual(detail["httpStatus"], 402)
+        self.assertIn("Insufficient Balance", detail["reason"])
+        self.assertEqual(detail["exception"], "ProviderError")
+
+        inner = ProviderError("rate limited", status_code=429)
+        wrapper = Nested("model call failed")
+        wrapper.__cause__ = inner
+        wrapped = h._error_details(wrapper)
+        self.assertEqual(wrapped["httpStatus"], 429)
+        self.assertIn("rate limited", wrapped["reason"])
+
+    def test_upstream_reason_is_bounded_and_single_line(self):
+        class Noisy(Exception):
+            pass
+
+        detail = h._error_details(Noisy("line one\nline two\t" + "x" * 900))
+        self.assertNotIn("\n", detail["reason"])
+        self.assertNotIn("\t", detail["reason"])
+        self.assertLessEqual(len(detail["reason"]), 500)
 
     async def test_document_revision_is_visible_without_restart(self):
         self.update(content="updated scholarship instructions")
