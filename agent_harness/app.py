@@ -67,8 +67,12 @@ MAX_HISTORY_MESSAGE_CHARS = 24_000
 # instead: keeping part of it preserves the turn, dropping it would orphan its question.
 MAX_HISTORY_MIN_USER_CHARS = 500
 MAX_REQUEST_BYTES = 4 * 1024 * 1024
-RUN_LIMITS = UsageLimits(request_limit=12, tool_calls_limit=24, input_tokens_limit=180_000,
-                        output_tokens_limit=12_000, per_request_input_tokens_limit=50_000)
+# One turn's ceiling. `input_tokens_limit` is cumulative over every request in the turn, and each
+# request re-sends the whole accumulated context, so this is the budget a long tool chain actually
+# spends: a real turn with eleven tool calls reached 184k. Leave room above that instead of sitting
+# on the edge, and let a single request carry a whole tool payload without tripping its own cap.
+RUN_LIMITS = UsageLimits(request_limit=12, tool_calls_limit=24, input_tokens_limit=600_000,
+                        output_tokens_limit=12_000, per_request_input_tokens_limit=150_000)
 run_slots = asyncio.Semaphore(4)
 SearchQueries = Annotated[list[Annotated[str, Field(min_length=1, max_length=200)]], Field(min_length=1, max_length=8)]
 

@@ -88,6 +88,17 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(schema["properties"]["max_chars_each"]["default"], expected, tool_name)
             self.assertIn("has_more", entry.description)
 
+    def test_turn_budget_stays_above_the_measured_cost_of_a_long_tool_chain(self):
+        # A real turn with eleven tool calls spent 184_442 cumulative input tokens and died on the
+        # old 180k ceiling, so the budget must stay clear of that measured cost.
+        limits = h.RUN_LIMITS
+        self.assertEqual(limits.input_tokens_limit, 600_000)
+        self.assertEqual(limits.per_request_input_tokens_limit, 150_000)
+        self.assertGreater(limits.input_tokens_limit, 184_442 + 100_000)
+        self.assertLessEqual(limits.per_request_input_tokens_limit, limits.input_tokens_limit)
+        self.assertEqual(limits.request_limit, 12)
+        self.assertEqual(limits.tool_calls_limit, 24)
+
     async def test_read_files_clamps_a_larger_request_to_its_ceiling(self):
         # Even an explicit oversized request is bounded, and the cut is visible in has_more.
         self.row["content"] = "scholarship " * 5_000
