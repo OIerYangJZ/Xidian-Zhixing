@@ -13,7 +13,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
-from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
+from pydantic_ai.messages import ModelResponse, RetryPromptPart, TextPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import DeltaToolCall, FunctionModel
 from pydantic_ai.usage import UsageLimits
 
@@ -299,6 +299,37 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("answer_delta", kinds)
         self.assertEqual(events[-1]["type"], "complete")
         self.assertEqual(events[-1]["sources"][0]["documentId"], "doc")
+
+    async def test_rejected_tool_call_reports_failure_and_finishes(self):
+        """A tool call rejected before execution yields a RetryPromptPart result.
+
+        That part has no `outcome`, so reading it unconditionally raised AttributeError inside the
+        SSE generator and cut the stream off without an `error` or `complete` frame.
+        """
+        calls = 0
+
+        async def model(messages, info):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                yield {0: DeltaToolCall(name="read_files", json_args='{"file_ids": 12345}', tool_call_id="read-1")}
+            else:
+                yield "No verified source found."
+
+        with h.agent.override(model=FunctionModel(stream_function=model)):
+            events = await self.collect()
+        results = [event for event in events if event["type"] == "tool_result"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["tool"], "read_files")
+        self.assertEqual(results[0]["outcome"], "failed")
+        self.assertEqual(events[-1]["type"], "complete")
+        self.assertEqual(events[-1]["answer"], "No verified source found.")
+
+    async def test_tool_result_outcome_distinguishes_return_and_retry(self):
+        self.assertEqual(h._tool_result_outcome(ToolReturnPart("read_files", "{}", tool_call_id="c")), "success")
+        self.assertEqual(h._tool_result_outcome(RetryPromptPart("bad args", tool_name="read_files", tool_call_id="c")), "failed")
+        self.assertEqual(h._tool_result_outcome(SimpleNamespace(part_kind="retry-prompt")), "failed")
+        self.assertEqual(h._tool_result_outcome(SimpleNamespace(part_kind="anything-else")), "unknown")
 
     async def test_stream_retry_resets_provisional_answer(self):
         calls = 0
