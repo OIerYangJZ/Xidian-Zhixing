@@ -14,6 +14,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
+from pydantic_ai import ModelRetry
 from pydantic_ai.messages import ModelResponse, RetryPromptPart, TextPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import DeltaToolCall, FunctionModel
 from pydantic_ai.usage import UsageLimits
@@ -107,6 +108,33 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
         self.assertLessEqual(result["end"] - result["start"], 10_000)
         self.assertGreater(result["end"] - result["start"], h.READ_FILES_CHARS)
         self.assertTrue(result["has_more"])
+
+    async def test_repeated_retrieval_is_capped_and_steers_to_reading_sources(self):
+        # The turn that exhausted its budget searched seven times and never opened a source, so the
+        # sixth retrieval is refused with instructions instead of another keyword batch.
+        for _ in range(h.MAX_SEARCH_CALLS_PER_TURN):
+            await h.search_all_sources(self.ctx, ["scholarship"])
+        self.assertEqual(h._search_calls_used(self.deps), h.MAX_SEARCH_CALLS_PER_TURN)
+        with self.assertRaises(ModelRetry) as raised:
+            await h.search_all_sources(self.ctx, ["scholarship again"])
+        message = str(raised.exception)
+        self.assertIn("read_files", message)
+        self.assertIn("read_web_pages", message)
+        self.assertEqual(h._search_calls_used(self.deps), h.MAX_SEARCH_CALLS_PER_TURN)
+
+    async def test_the_prompt_states_the_same_retrieval_cap_as_the_tool(self):
+        # A prompt that names a different number than the tool enforces teaches the model to fight
+        # the limit, so the two must stay in step.
+        self.assertIn(f"（{h.MAX_SEARCH_CALLS_PER_TURN} 次）", h.SYSTEM_PROMPT)
+        self.assertIn("read_files", h.SYSTEM_PROMPT)
+
+    async def test_search_call_count_is_per_turn_not_process_wide(self):
+        await h.search_all_sources(self.ctx, ["scholarship"])
+        fresh_deps = h.AgentContext(h.CampusCorpus(self.db))
+        fresh = SimpleNamespace(deps=fresh_deps)
+        self.assertEqual(h._search_calls_used(fresh_deps), 0)
+        await h.search_all_sources(fresh, ["scholarship"])
+        self.assertEqual(h._search_calls_used(fresh_deps), 1)
 
     async def test_internet_search_returns_under_one_batch_deadline(self):
         # The per-query timeout used to be the only bound, so eight keyword groups each spent their
