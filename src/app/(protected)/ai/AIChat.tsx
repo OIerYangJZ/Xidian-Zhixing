@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -38,6 +38,9 @@ export type AIConversationData = {
   messages: AIMessageData[];
 };
 
+// Distance from the bottom that still counts as following the stream. A reader who
+// scrolls further up than this keeps their position while the answer keeps arriving.
+const FOLLOW_THRESHOLD_PX = 80;
 const markdownPlugins = [remarkGfm];
 const markdownComponents: Components = {
   h1: ({ node: _node, children, ...props }) => (
@@ -229,7 +232,11 @@ export function AIChat({
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [atBottom, setAtBottom] = useState(true);
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+  // Autoscroll follows the stream only while the reader is already at the bottom. A manual
+  // scroll up releases it, and scrolling back to the bottom re-arms it.
+  const followBottomRef = useRef(true);
   const requestAbortRef = useRef<AbortController | null>(null);
   useEffect(() => () => requestAbortRef.current?.abort(), []);
   const activeConversation = useMemo(
@@ -237,11 +244,41 @@ export function AIChat({
     [activeId, conversations],
   );
   const lastMessage = activeConversation?.messages[activeConversation.messages.length - 1];
+  const anchorKey = `${activeId}:${activeConversation?.messages.length ?? 0}:${lastMessage?.status ?? ''}`;
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior });
+    followBottomRef.current = true;
+    setAtBottom(true);
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const distance = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const next = distance <= FOLLOW_THRESHOLD_PX;
+    followBottomRef.current = next;
+    setAtBottom((current) => (current === next ? current : next));
+  }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ block: 'end' });
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    // A conversation switch always starts at the latest message.
+    followBottomRef.current = true;
+    setAtBottom(true);
+    container.scrollTo({ top: container.scrollHeight, behavior: 'auto' });
+  }, [activeId]);
+
+  useEffect(() => {
+    if (!followBottomRef.current) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior: 'auto' });
   }, [
-    activeId,
+    anchorKey,
     activeConversation?.messages.length,
     lastMessage?.content.length,
     lastMessage?.trace?.length,
@@ -292,6 +329,9 @@ export function AIChat({
       createdAt: timestamp,
     };
     setActiveId(localConversationId);
+    // A new question always resumes following, even if the reader had scrolled up.
+    followBottomRef.current = true;
+    setAtBottom(true);
     setConversations((items) => {
       const exists = items.some((conversation) => conversation.id === localConversationId);
       if (!exists) {
@@ -547,7 +587,7 @@ export function AIChat({
   }
 
   return (
-    <main className="flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom))] min-h-0 flex-col md:h-dvh">
+    <main className="relative flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom))] min-h-0 flex-col md:h-dvh">
       <PageHeader
         title={t('知行 AI', 'Zhixing AI')}
         sticky
@@ -577,7 +617,11 @@ export function AIChat({
         ))}
       </div>
 
-      <section className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
+      <section
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="relative min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6"
+        aria-live="polite">
         {activeConversation?.messages.length ? (
           <div className="mx-auto flex max-w-2xl flex-col gap-5">
             {activeConversation.messages.map((message) => (
@@ -638,7 +682,6 @@ export function AIChat({
                 )}
               </article>
             ))}
-            <div ref={messagesEndRef} />
           </div>
         ) : (
           <div className="mx-auto flex h-full min-h-64 max-w-xl flex-col items-center justify-center text-center">
@@ -660,6 +703,16 @@ export function AIChat({
           </div>
         )}
       </section>
+
+      {!atBottom && activeConversation?.messages.length ? (
+        <button
+          type="button"
+          onClick={() => scrollToBottom('smooth')}
+          className="pointer-events-auto absolute bottom-36 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground shadow-sm transition hover:border-primary/50 hover:text-foreground">
+          <span aria-hidden="true">↓</span>
+          {t('回到最新', 'Jump to latest')}
+        </button>
+      ) : null}
 
       {error && (
         <p role="alert" className="mt-3 text-sm text-destructive-foreground">
