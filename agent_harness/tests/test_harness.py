@@ -14,6 +14,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
+from pydantic_ai import ModelRetry
 from pydantic_ai.messages import ModelResponse, RetryPromptPart, TextPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import DeltaToolCall, FunctionModel
 from pydantic_ai.usage import UsageLimits
@@ -88,6 +89,17 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(schema["properties"]["max_chars_each"]["default"], expected, tool_name)
             self.assertIn("has_more", entry.description)
 
+    def test_turn_budget_stays_above_the_measured_cost_of_a_long_tool_chain(self):
+        # A real turn with eleven tool calls spent 184_442 cumulative input tokens and died on the
+        # old 180k ceiling, so the budget must stay clear of that measured cost.
+        limits = h.RUN_LIMITS
+        self.assertEqual(limits.input_tokens_limit, 600_000)
+        self.assertEqual(limits.per_request_input_tokens_limit, 150_000)
+        self.assertGreater(limits.input_tokens_limit, 184_442 + 100_000)
+        self.assertLessEqual(limits.per_request_input_tokens_limit, limits.input_tokens_limit)
+        self.assertEqual(limits.request_limit, 12)
+        self.assertEqual(limits.tool_calls_limit, 24)
+
     async def test_read_files_clamps_a_larger_request_to_its_ceiling(self):
         # Even an explicit oversized request is bounded, and the cut is visible in has_more.
         self.row["content"] = "scholarship " * 5_000
@@ -96,6 +108,33 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
         self.assertLessEqual(result["end"] - result["start"], 10_000)
         self.assertGreater(result["end"] - result["start"], h.READ_FILES_CHARS)
         self.assertTrue(result["has_more"])
+
+    async def test_repeated_retrieval_is_capped_and_steers_to_reading_sources(self):
+        # The turn that exhausted its budget searched seven times and never opened a source, so the
+        # sixth retrieval is refused with instructions instead of another keyword batch.
+        for _ in range(h.MAX_SEARCH_CALLS_PER_TURN):
+            await h.search_all_sources(self.ctx, ["scholarship"])
+        self.assertEqual(h._search_calls_used(self.deps), h.MAX_SEARCH_CALLS_PER_TURN)
+        with self.assertRaises(ModelRetry) as raised:
+            await h.search_all_sources(self.ctx, ["scholarship again"])
+        message = str(raised.exception)
+        self.assertIn("read_files", message)
+        self.assertIn("read_web_pages", message)
+        self.assertEqual(h._search_calls_used(self.deps), h.MAX_SEARCH_CALLS_PER_TURN)
+
+    async def test_the_prompt_states_the_same_retrieval_cap_as_the_tool(self):
+        # A prompt that names a different number than the tool enforces teaches the model to fight
+        # the limit, so the two must stay in step.
+        self.assertIn(f"（{h.MAX_SEARCH_CALLS_PER_TURN} 次）", h.SYSTEM_PROMPT)
+        self.assertIn("read_files", h.SYSTEM_PROMPT)
+
+    async def test_search_call_count_is_per_turn_not_process_wide(self):
+        await h.search_all_sources(self.ctx, ["scholarship"])
+        fresh_deps = h.AgentContext(h.CampusCorpus(self.db))
+        fresh = SimpleNamespace(deps=fresh_deps)
+        self.assertEqual(h._search_calls_used(fresh_deps), 0)
+        await h.search_all_sources(fresh, ["scholarship"])
+        self.assertEqual(h._search_calls_used(fresh_deps), 1)
 
     async def test_internet_search_returns_under_one_batch_deadline(self):
         # The per-query timeout used to be the only bound, so eight keyword groups each spent their
