@@ -42,6 +42,12 @@ export const sendAiMessage = (content, options = {}) => {
   }, { timeout: 165000 });
 };
 
+/** Permanently remove a server-side conversation; the local cache is dropped by the caller. */
+export const deleteAiConversation = (conversationId) => {
+  if (!conversationId) return Promise.resolve(null);
+  return request.delete(`/api/ai/conversations/${encodeURIComponent(conversationId)}`, {}, { timeout: 25000 });
+};
+
 export const askAiWithPostSelection = (payload) => {
   return request.post('/api/ai/post-selection', payload, { timeout: 165000 });
 };

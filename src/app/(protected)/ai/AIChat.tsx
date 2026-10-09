@@ -1,10 +1,11 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
+import { harnessErrorMessage, usageSummary, type HarnessUsage } from '@/lib/ai/errors';
 import { safeSourceURL, type UIEnvelope, type UIService } from '@/lib/ai/ui';
 import { UICards } from './UICards';
 
@@ -38,6 +39,12 @@ export type AIConversationData = {
   messages: AIMessageData[];
 };
 
+// Distance from the bottom that still counts as following the stream. A reader who
+// scrolls further up than this keeps their position while the answer keeps arriving.
+const FOLLOW_THRESHOLD_PX = 80;
+
+/** A failed turn: what went wrong, and what it had already spent. */
+type TurnFailure = { message: string; code?: string; usage?: HarnessUsage };
 const markdownPlugins = [remarkGfm];
 const markdownComponents: Components = {
   h1: ({ node: _node, children, ...props }) => (
@@ -228,8 +235,12 @@ export function AIChat({
   const [activeId, setActiveId] = useState(initialConversations[0]?.id || '');
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<TurnFailure | null>(null);
+  const [atBottom, setAtBottom] = useState(true);
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+  // Autoscroll follows the stream only while the reader is already at the bottom. A manual
+  // scroll up releases it, and scrolling back to the bottom re-arms it.
+  const followBottomRef = useRef(true);
   const requestAbortRef = useRef<AbortController | null>(null);
   useEffect(() => () => requestAbortRef.current?.abort(), []);
   const activeConversation = useMemo(
@@ -237,11 +248,41 @@ export function AIChat({
     [activeId, conversations],
   );
   const lastMessage = activeConversation?.messages[activeConversation.messages.length - 1];
+  const anchorKey = `${activeId}:${activeConversation?.messages.length ?? 0}:${lastMessage?.status ?? ''}`;
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior });
+    followBottomRef.current = true;
+    setAtBottom(true);
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const distance = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const next = distance <= FOLLOW_THRESHOLD_PX;
+    followBottomRef.current = next;
+    setAtBottom((current) => (current === next ? current : next));
+  }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ block: 'end' });
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    // A conversation switch always starts at the latest message.
+    followBottomRef.current = true;
+    setAtBottom(true);
+    container.scrollTo({ top: container.scrollHeight, behavior: 'auto' });
+  }, [activeId]);
+
+  useEffect(() => {
+    if (!followBottomRef.current) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior: 'auto' });
   }, [
-    activeId,
+    anchorKey,
     activeConversation?.messages.length,
     lastMessage?.content.length,
     lastMessage?.trace?.length,
@@ -251,10 +292,10 @@ export function AIChat({
   ]);
 
   async function createConversation() {
-    setError('');
+    setError(null);
     const response = await fetch('/api/ai/conversations', { method: 'POST' });
     if (!response.ok) {
-      setError(t('暂时无法创建新对话。', 'Could not start a new conversation.'));
+      setError({ message: t('暂时无法创建新对话。', 'Could not start a new conversation.') });
       return;
     }
     const conversation = (await response.json()) as Omit<AIConversationData, 'messages'>;
@@ -263,11 +304,44 @@ export function AIChat({
     setActiveId(nextConversation.id);
   }
 
+  async function deleteConversation(conversation: AIConversationData) {
+    if (
+      !window.confirm(
+        t(
+          `删除「${conversation.title}」？这段对话和它的回答会从服务器永久移除。`,
+          `Delete “${conversation.title}”? This conversation and its answers are removed from the server.`,
+        ),
+      )
+    )
+      return;
+    setError(null);
+    // A conversation created but never answered only exists in local state.
+    const persisted = !conversation.id.startsWith('pending-');
+    if (persisted) {
+      const response = await fetch(`/api/ai/conversations/${encodeURIComponent(conversation.id)}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        setError({ message: t('删除对话失败，请稍后重试。', 'Could not delete the conversation. Please retry.') });
+        return;
+      }
+    }
+    const remaining = conversations.filter((item) => item.id !== conversation.id);
+    setConversations(remaining);
+    if (activeId === conversation.id) {
+      setActiveId(remaining[0]?.id || '');
+      if (remaining.length === 0) {
+        followBottomRef.current = true;
+        setAtBottom(true);
+      }
+    }
+  }
+
   async function sendMessage(event?: FormEvent<HTMLFormElement>, prompt = draft) {
     event?.preventDefault();
     const content = prompt.trim();
     if (!content || sending) return;
-    setError('');
+    setError(null);
     setSending(true);
     setDraft('');
     const localConversationId = activeId || `pending-${Date.now()}`;
@@ -292,6 +366,9 @@ export function AIChat({
       createdAt: timestamp,
     };
     setActiveId(localConversationId);
+    // A new question always resumes following, even if the reader had scrolled up.
+    followBottomRef.current = true;
+    setAtBottom(true);
     setConversations((items) => {
       const exists = items.some((conversation) => conversation.id === localConversationId);
       if (!exists) {
@@ -352,7 +429,7 @@ export function AIChat({
 
       if (!response.ok || !response.body) {
         const result = (await response.json().catch(() => ({}))) as {
-          data?: { code?: string };
+          data?: { code?: string; usage?: HarnessUsage; reason?: string };
           message?: string;
         };
         setConversations((items) =>
@@ -371,13 +448,20 @@ export function AIChat({
           }),
         );
         setError(
-          result.data?.code === 'corpus_not_configured'
-            ? t('本地校园资料库尚未配置。', 'The local campus library is not configured.')
-            : result.data?.code === 'ai_not_configured'
-            ? t('DeepSeek API 尚未配置。', 'The DeepSeek API is not configured.')
-            : result.data?.code === 'harness_unavailable'
-            ? t('AI Agent 服务暂时无法连接。', 'The AI Agent service is unavailable.')
-            : result.message || t('回答暂时没有生成，请稍后再试。', 'No answer was generated. Please try again.'),
+          result.data?.code
+            ? {
+                code: result.data.code,
+                message: harnessErrorMessage(result.data.code, {
+                  status: response.status,
+                  reason: result.data.reason,
+                  usage: result.data.usage,
+                }),
+                usage: result.data.usage,
+              }
+            : {
+                message:
+                  result.message || t('回答暂时没有生成，请稍后再试。', 'No answer was generated. Please try again.'),
+              },
         );
         setDraft(content);
         setSending(false);
@@ -475,28 +559,20 @@ export function AIChat({
         } else if (payload.type === 'error') {
           terminalEventReceived = true;
           const httpStatus = typeof payload.httpStatus === 'number' ? payload.httpStatus : undefined;
-          setError(
-            payload.code === 'ai_busy'
-              ? t('AI 服务繁忙，请稍后重试。', 'The AI service is busy. Please retry shortly.')
-              : payload.code === 'ai_timeout'
-              ? t('本轮回答超时，请缩小问题范围后重试。', 'This turn timed out. Please narrow the question and retry.')
-              : payload.code === 'ai_budget_exceeded'
-              ? t(
-                  '本轮检索已达到上限，请缩小问题范围后重试。',
-                  'This turn reached its search budget. Please narrow the question and retry.',
-                )
-              : httpStatus === 402
-              ? t(
-                  'DeepSeek 返回 HTTP 402，请检查 API 账户额度和计费状态。',
-                  'DeepSeek returned HTTP 402. Check API balance and billing status.',
-                )
-              : httpStatus
-              ? t(`DeepSeek 返回 HTTP ${httpStatus}。`, `DeepSeek returned HTTP ${httpStatus}.`)
-              : t(
-                  'DeepSeek 暂时无法完成请求，请稍后重试。',
-                  'DeepSeek could not complete the request. Please retry later.',
-                ),
-          );
+          const code = typeof payload.code === 'string' ? payload.code : undefined;
+          const usage =
+            payload.usage && typeof payload.usage === 'object' ? (payload.usage as HarnessUsage) : undefined;
+          setError({
+            code,
+            usage,
+            message:
+              httpStatus === 402
+                ? t(
+                    'DeepSeek 返回 HTTP 402，请检查 API 账户额度和计费状态。',
+                    'DeepSeek returned HTTP 402. Check API balance and billing status.',
+                  )
+                : harnessErrorMessage(code, { status: httpStatus, usage }),
+          });
           discardFailedTurn();
           setDraft(content);
           setSending(false);
@@ -529,13 +605,13 @@ export function AIChat({
         }
       }
       if (!terminalEventReceived) {
-        setError(t('响应流意外中断，请重试。', 'The response stream ended unexpectedly. Please retry.'));
+        setError({ message: t('响应流意外中断，请重试。', 'The response stream ended unexpectedly. Please retry.') });
         discardFailedTurn();
         setDraft(content);
         setSending(false);
       }
     } catch {
-      setError(t('AI Agent 服务暂时无法连接。', 'The AI Agent service is unavailable.'));
+      setError({ message: t('AI Agent 服务暂时无法连接。', 'The AI Agent service is unavailable.') });
       discardFailedTurn();
       setDraft(content);
       setSending(false);
@@ -547,7 +623,7 @@ export function AIChat({
   }
 
   return (
-    <main className="flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom))] min-h-0 flex-col md:h-dvh">
+    <main className="relative flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom))] min-h-0 flex-col md:h-dvh">
       <PageHeader
         title={t('知行 AI', 'Zhixing AI')}
         sticky
@@ -563,21 +639,37 @@ export function AIChat({
 
       <div className="flex gap-2 overflow-x-auto border-b border-border/80 px-4 py-3 sm:px-5">
         {conversations.map((conversation) => (
-          <button
+          <span
             key={conversation.id}
-            type="button"
-            onClick={() => setActiveId(conversation.id)}
-            className={`max-w-48 shrink-0 truncate rounded-full px-3.5 py-2 text-xs transition ${
+            className={`flex shrink-0 items-center rounded-full transition ${
               activeId === conversation.id
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-secondary text-secondary-foreground'
             }`}>
-            {conversation.title}
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveId(conversation.id)}
+              className="max-w-48 truncate py-2 pl-3.5 pr-2 text-xs">
+              {conversation.title}
+            </button>
+            <button
+              type="button"
+              onClick={() => deleteConversation(conversation)}
+              disabled={sending}
+              aria-label={t(`删除对话：${conversation.title}`, `Delete conversation: ${conversation.title}`)}
+              title={t('删除这段对话', 'Delete this conversation')}
+              className="mr-1.5 rounded-full px-2 py-1 text-xs opacity-70 transition hover:bg-black/10 hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-30">
+              ×
+            </button>
+          </span>
         ))}
       </div>
 
-      <section className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
+      <section
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="relative min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6"
+        aria-live="polite">
         {activeConversation?.messages.length ? (
           <div className="mx-auto flex max-w-2xl flex-col gap-5">
             {activeConversation.messages.map((message) => (
@@ -638,7 +730,6 @@ export function AIChat({
                 )}
               </article>
             ))}
-            <div ref={messagesEndRef} />
           </div>
         ) : (
           <div className="mx-auto flex h-full min-h-64 max-w-xl flex-col items-center justify-center text-center">
@@ -661,10 +752,26 @@ export function AIChat({
         )}
       </section>
 
+      {!atBottom && activeConversation?.messages.length ? (
+        <button
+          type="button"
+          onClick={() => scrollToBottom('smooth')}
+          className="pointer-events-auto absolute bottom-36 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground shadow-sm transition hover:border-primary/50 hover:text-foreground">
+          <span aria-hidden="true">↓</span>
+          {t('回到最新', 'Jump to latest')}
+        </button>
+      ) : null}
+
       {error && (
-        <p role="alert" className="mt-3 text-sm text-destructive-foreground">
-          {error}
-        </p>
+        <div role="alert" className="mt-3 text-sm text-destructive-foreground">
+          <p>{error.message}</p>
+          {usageSummary(error.usage) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t('本轮已消耗：', 'This turn used: ')}
+              {usageSummary(error.usage)}
+            </p>
+          )}
+        </div>
       )}
       <form onSubmit={sendMessage} className="mt-4 flex items-end gap-2 rounded-lg border border-border bg-card p-2">
         <label className="sr-only" htmlFor="campus-ai-prompt">

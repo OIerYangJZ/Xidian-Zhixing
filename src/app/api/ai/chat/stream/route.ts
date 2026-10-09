@@ -1,9 +1,10 @@
 import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { apiError } from '@/lib/apiResponse';
+import { harnessErrorMessage } from '@/lib/ai/errors';
 import { getServerUser } from '@/lib/getServerUser';
 import { createAgentPrincipalToken } from '@/lib/ai/harnessPrincipal';
-import { buildHarnessHistory } from '@/lib/ai/harnessHistory';
+import { buildHarnessHistory, HISTORY_MAX_TURNS } from '@/lib/ai/harnessHistory';
 import { harnessUIContext, validateUI } from '@/lib/ai/ui';
 import prisma from '@/lib/prisma/prisma';
 
@@ -80,10 +81,10 @@ export async function POST(request: Request) {
   const historyRows = await prisma.aiMessage.findMany({
     where: { conversationId: conversation.id, id: { not: userMessage.id }, role: { in: ['USER', 'ASSISTANT'] } },
     orderBy: { createdAt: 'desc' },
-    take: 16,
+    take: HISTORY_MAX_TURNS,
     select: { role: true, content: true, sources: true },
   });
-  const history = buildHarnessHistory(historyRows);
+  const { history, truncated: historyTruncated } = buildHarnessHistory(historyRows);
 
   const harnessUrl = (process.env.AGENT_HARNESS_URL?.trim() || 'http://127.0.0.1:8002').replace(/\/+$/, '');
   const traceId = randomUUID();
@@ -151,7 +152,9 @@ export async function POST(request: Request) {
     const code = abortController.signal.aborted && !cancelled ? 'ai_timeout' : 'harness_unavailable';
     await recordFailure(cancelled ? 'cancelled' : code);
     return apiError(
-      code === 'ai_timeout' ? '本轮回答超时，请稍后重试。' : 'AI Agent 服务暂时无法连接。',
+      code === 'ai_timeout'
+        ? '本轮回答等待超过 150 秒，已中断。可以缩小问题范围，或换一轮更短的提问。'
+        : 'AI Agent 服务暂时无法连接。',
       code === 'ai_timeout' ? 504 : 503,
       { code },
     );
@@ -159,23 +162,16 @@ export async function POST(request: Request) {
 
   if (!upstream.ok || !upstream.body) {
     const detail = (await upstream.json().catch(() => null)) as {
-      detail?: { code?: string; usage?: Record<string, unknown> };
+      detail?: { code?: string; usage?: Record<string, unknown>; reason?: string };
     } | null;
     const code = detail?.detail?.code || 'ai_upstream_error';
     cleanup();
     await recordFailure(code, [], detail?.detail?.usage);
-    const message =
-      code === 'ai_busy'
-        ? 'AI 服务繁忙，请稍后重试。'
-        : code === 'ai_timeout'
-        ? '本轮回答超时，请缩小问题范围后重试。'
-        : code === 'ai_budget_exceeded'
-        ? '本轮检索已达到上限，请缩小问题范围后重试。'
-        : code === 'corpus_not_configured'
-        ? '本地校园资料库尚未配置。'
-        : code === 'ai_not_configured'
-        ? 'DeepSeek API 尚未配置。'
-        : 'AI Agent 服务暂时不可用。';
+    const message = harnessErrorMessage(code, {
+      status: upstream.status,
+      reason: detail?.detail?.reason,
+      usage: detail?.detail?.usage,
+    });
     return apiError(message, upstream.status, { code });
   }
 
@@ -204,6 +200,7 @@ export async function POST(request: Request) {
             sources: [],
             createdAt: userMessage.createdAt.toISOString(),
           },
+          historyTruncated,
         });
 
         while (!cancelled) {
@@ -267,6 +264,7 @@ export async function POST(request: Request) {
                       assistantMessageId: assistantMessage.id,
                       toolTrace: (Array.isArray(event.toolTrace) ? event.toolTrace : []) as Prisma.InputJsonValue,
                       agentEvents: agentEvents as Prisma.InputJsonValue,
+                      historyTruncated,
                       uiCards: presentation.ui?.cards.length || 0,
                       uiErrors: [
                         ...(Array.isArray(event.uiErrors)
@@ -308,11 +306,11 @@ export async function POST(request: Request) {
         }
         if (!completed && !failureCode && !cancelled) {
           failureCode = abortController.signal.aborted ? 'ai_timeout' : 'ai_upstream_error';
-          send({ type: 'error', code: failureCode });
+          send({ type: 'error', code: failureCode, usage: failureUsage });
         }
       } catch {
         failureCode = abortController.signal.aborted && !cancelled ? 'ai_timeout' : 'ai_upstream_error';
-        send({ type: 'error', code: failureCode });
+        send({ type: 'error', code: failureCode, usage: failureUsage });
       } finally {
         cleanup();
         await reader.cancel().catch(() => undefined);
