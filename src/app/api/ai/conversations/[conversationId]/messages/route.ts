@@ -1,4 +1,5 @@
 import { AgentHarnessError, answerWithAgentHarness } from '@/lib/ai/harness';
+import { harnessErrorMessage } from '@/lib/ai/errors';
 import { apiError, apiSuccess } from '@/lib/apiResponse';
 import { getServerUser } from '@/lib/getServerUser';
 import prisma from '@/lib/prisma/prisma';
@@ -62,24 +63,16 @@ export async function POST(request: Request, props: { params: Promise<{ conversa
           ? 429
           : error.code === 'ai_timeout'
           ? 504
+          : error.code === 'ai_request_invalid'
+          ? 413
           : error.code.endsWith('not_configured')
           ? 503
           : 502;
-      const message =
-        error.code === 'ai_busy'
-          ? 'AI 服务繁忙，请稍后重试。'
-          : error.code === 'ai_timeout'
-          ? '本轮回答超时，请缩小问题范围后重试。'
-          : error.code === 'ai_budget_exceeded'
-          ? '本轮检索已达到上限，请缩小问题范围后重试。'
-          : error.code === 'corpus_not_configured'
-          ? '本地校园资料库尚未配置。'
-          : error.code === 'ai_not_configured'
-          ? 'DeepSeek API 尚未配置。'
-          : error.code === 'harness_unavailable'
-          ? 'AI Agent 服务暂时无法连接。'
-          : 'DeepSeek 服务暂时不可用。';
-      return apiError(message, status, { code: error.code });
+      return apiError(harnessErrorMessage(error.code, { usage: error.usage, reason: error.reason }), status, {
+        code: error.code,
+        usage: error.usage,
+        reason: error.reason,
+      });
     }
     return apiError('AI 服务暂时不可用。', 502, { code: 'ai_upstream_error' });
   }

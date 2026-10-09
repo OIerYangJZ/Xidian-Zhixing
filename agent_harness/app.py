@@ -26,9 +26,10 @@ from urllib.request import HTTPHandler, HTTPSHandler, HTTPRedirectHandler, Proxy
 
 from dotenv import load_dotenv
 from fastapi.encoders import jsonable_encoder
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel, Field, ValidationError
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.tools import ToolDefinition
 from pydantic_ai.exceptions import UsageLimitExceeded
@@ -51,10 +52,56 @@ DEPLOYMENT_SNAPSHOT = ROOT / "deploy" / "knowledge" / "data" / "knowledge.db"
 DEFAULT_DB = SNAPSHOT if SNAPSHOT.is_file() else DEPLOYMENT_SNAPSHOT
 RUN_TIMEOUT_SECONDS = 120
 MAX_HISTORY_CHARS = 24_000
+MAX_REQUEST_BYTES = 4 * 1024 * 1024
 RUN_LIMITS = UsageLimits(request_limit=12, tool_calls_limit=24, input_tokens_limit=180_000,
                         output_tokens_limit=12_000, per_request_input_tokens_limit=50_000)
 run_slots = asyncio.Semaphore(4)
 SearchQueries = Annotated[list[Annotated[str, Field(min_length=1, max_length=200)]], Field(min_length=1, max_length=8)]
+
+
+class RequestTooLarge(Exception):
+    """The browser sent a turn the harness request schema rejects.
+
+    FastAPI turns a validation failure into an opaque 422 before the handler runs, which the
+    web client could only report as a generic upstream error. Reading the raw body first lets
+    the turn answer with a code that names the real cause instead.
+    """
+
+
+async def _read_chat_request(request: Request) -> ChatRequest:
+    raw = await request.body()
+    if len(raw) > MAX_REQUEST_BYTES:
+        raise RequestTooLarge(f"请求体 {len(raw)} 字节超过 {MAX_REQUEST_BYTES} 字节上限")
+    try:
+        payload = json.loads(raw or b"{}")
+    except ValueError as error:
+        raise RequestTooLarge("请求体不是合法 JSON") from error
+    try:
+        return ChatRequest.model_validate(payload)
+    except ValidationError as error:
+        raise RequestTooLarge(_validation_reason(error)) from error
+
+
+def _validation_reason(error: ValidationError | Exception) -> str:
+    errors = getattr(error, "errors", lambda: [])()
+    first = errors[0] if errors else {}
+    location = ".".join(str(part) for part in first.get("loc", ())) or "请求体"
+    return f"{location}: {first.get('msg', '不符合请求 schema')}"
+
+
+async def chat_request(request: Request) -> ChatRequest:
+    """Validated turn body as a dependency, so a rejected request is named, not opaque.
+
+    Handlers stay directly callable with a `ChatRequest` in tests.
+    """
+    try:
+        return await _read_chat_request(request)
+    except RequestTooLarge as error:
+        logger.warning("Rejected chat body: %s", error)
+        raise HTTPException(
+            status_code=413,
+            detail={"code": "ai_request_invalid", "httpStatus": 413, "reason": str(error)},
+        ) from error
 
 SYSTEM_PROMPT = """你叫“小电”，是西安电子科技大学的校园 Agent 助手。学校位于陕西省西安市，是以电子与信息学科为特色的全国重点大学；校训是“厚德、求真、砺学、笃行”。长安校区常称南校区，雁塔校区常称北校区。学校官网 https://www.xidian.edu.cn/，校园地图 https://gis.xidian.edu.cn/。
 
@@ -590,7 +637,7 @@ class HistoryMessage(BaseModel):
 class ChatRequest(BaseModel):
     question: str = Field(min_length=1, max_length=12_000)
     language: Literal["zh", "en"] = "zh"
-    history: list[HistoryMessage] = Field(default_factory=list, max_length=24)
+    history: list[HistoryMessage] = Field(default_factory=list, max_length=40)
     principal_token: str | None = Field(default=None, max_length=2_000)
     trace_id: str | None = Field(default=None, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     uiVersion: Literal[1] | None = None
@@ -1070,7 +1117,7 @@ def health() -> dict[str, Any]:
 
 
 @app.post("/chat")
-async def chat(request: ChatRequest) -> dict[str, Any]:
+async def chat(request: ChatRequest = Depends(chat_request)) -> dict[str, Any]:
     deps, history = await _prepare_chat(request)
 
     started = time.perf_counter()
@@ -1103,7 +1150,7 @@ async def chat(request: ChatRequest) -> dict[str, Any]:
 
 
 @app.post("/chat/stream")
-async def chat_stream(request: ChatRequest) -> StreamingResponse:
+async def chat_stream(request: ChatRequest = Depends(chat_request)) -> StreamingResponse:
     deps, history = await _prepare_chat(request)
 
     async def events():
@@ -1208,4 +1255,19 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
         events(),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def rejected_request(_request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Name the real cause of a rejected turn instead of an opaque 422 body.
+
+    The web client can only distinguish a bad request from an upstream failure when the
+    harness says which field the schema refused.
+    """
+    reason = _validation_reason(exc)
+    logger.warning("Harness request rejected: %s", reason)
+    return JSONResponse(
+        status_code=413,
+        content={"detail": {"code": "ai_request_invalid", "httpStatus": 413, "reason": reason}},
     )

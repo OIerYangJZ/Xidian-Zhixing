@@ -22,6 +22,7 @@ function load(path, dependencies = {}, globals = {}) {
 }
 
 const historyModule = load('src/lib/ai/harnessHistory.ts');
+const errorsModule = load('src/lib/ai/errors.ts');
 const uiModule = load('src/lib/ai/ui.ts', { '@/lib/campus/catalog': load('src/lib/campus/catalog.ts') });
 const source = { citation: 1, title: 'Scholarship', documentId: 'doc', source: 'https://example.com/doc' };
 
@@ -97,6 +98,7 @@ function fixture(
     '@/lib/getServerUser': { getServerUser: async () => [authorized ? { id: 'user' } : null] },
     '@/lib/ai/harnessPrincipal': { createAgentPrincipalToken: () => 'signed-test-principal' },
     '@/lib/ai/harnessHistory': historyModule,
+    '@/lib/ai/errors': errorsModule,
     '@/lib/ai/ui': uiModule,
     '@/lib/prisma/prisma': { default: prisma },
     'server-only': {},

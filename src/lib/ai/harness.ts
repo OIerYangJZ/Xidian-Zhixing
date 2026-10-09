@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { createAgentPrincipalToken } from '@/lib/ai/harnessPrincipal';
 import { buildHarnessHistory } from '@/lib/ai/harnessHistory';
+import { harnessErrorMessage } from '@/lib/ai/errors';
 import { harnessUIContext, validateUI } from '@/lib/ai/ui';
 import prisma from '@/lib/prisma/prisma';
 
@@ -43,7 +44,12 @@ export class AgentHarnessError extends Error {
       | 'ai_upstream_error'
       | 'ai_busy'
       | 'ai_timeout'
-      | 'ai_budget_exceeded',
+      | 'ai_budget_exceeded'
+      | 'ai_request_invalid',
+    /** How much of this turn's budget the harness spent before it failed. */
+    readonly usage?: HarnessReply['usage'],
+    /** The harness's own description of a rejected request, never shown raw to users. */
+    readonly reason?: string,
   ) {
     super(code);
   }
@@ -98,7 +104,7 @@ export async function answerWithAgentHarness(
     }
 
     const payload = (await response.json().catch(() => null)) as
-      | (HarnessReply & { detail?: { code?: string; usage?: HarnessReply['usage'] } })
+      | (HarnessReply & { detail?: { code?: string; usage?: HarnessReply['usage']; reason?: string } })
       | null;
     usage = payload?.usage || payload?.detail?.usage;
     if (!payload && abortController.signal.aborted && !signal?.aborted) {
@@ -111,14 +117,21 @@ export async function answerWithAgentHarness(
         code === 'corpus_not_configured' ||
         code === 'ai_busy' ||
         code === 'ai_timeout' ||
-        code === 'ai_budget_exceeded'
+        code === 'ai_budget_exceeded' ||
+        code === 'ai_request_invalid'
       ) {
-        throw new AgentHarnessError(code);
+        throw new AgentHarnessError(code, usage, payload?.detail?.reason);
       }
-      throw new AgentHarnessError('ai_upstream_error');
+      throw new AgentHarnessError(
+        'ai_upstream_error',
+        usage,
+        harnessErrorMessage('ai_upstream_error', {
+          status: response.status,
+        }),
+      );
     }
     if (!payload || typeof payload.answer !== 'string' || !payload.answer.trim()) {
-      throw new AgentHarnessError('ai_upstream_error');
+      throw new AgentHarnessError('ai_upstream_error', usage);
     }
 
     const sources = Array.isArray(payload.sources) ? payload.sources : [];

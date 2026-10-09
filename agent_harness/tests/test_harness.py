@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import faulthandler
 import json
 import os
 import socket
@@ -460,6 +461,50 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
             self.assertFalse(h._is_public_internet_url("https://example.com/"))
             with self.assertRaises(OSError):
                 h._create_public_connection(("example.com", 443))
+
+
+class ChatRequestValidationTests(unittest.TestCase):
+    """A turn the schema refuses must name its cause instead of surfacing as an upstream error."""
+
+    def setUp(self):
+        faulthandler.disable()
+        from fastapi import Depends, FastAPI
+        from fastapi.testclient import TestClient
+
+        schema = FastAPI()
+
+        @schema.post("/chat")
+        async def _chat(request: h.ChatRequest = Depends(h.chat_request)) -> dict:
+            return {"question": request.question}
+
+        self.client = TestClient(schema)
+
+    def test_oversized_history_content_is_rejected_with_a_named_reason(self):
+        response = self.client.post(
+            "/chat",
+            json={
+                "question": "奖学金怎么申请",
+                "history": [{"role": "assistant", "content": "x" * 12_001}],
+            },
+        )
+        self.assertEqual(response.status_code, 413)
+        detail = response.json()["detail"]
+        self.assertEqual(detail["code"], "ai_request_invalid")
+        self.assertIn("history.0.content", detail["reason"])
+
+    def test_valid_body_and_history_within_the_schema_still_reach_the_handler(self):
+        response = self.client.post(
+            "/chat",
+            json={
+                "question": "奖学金怎么申请",
+                "history": [
+                    {"role": "user", "content": "国家励志奖学金是什么"},
+                    {"role": "assistant", "content": "y" * 12_000},
+                ],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["question"], "奖学金怎么申请")
 
 
 if __name__ == "__main__":
