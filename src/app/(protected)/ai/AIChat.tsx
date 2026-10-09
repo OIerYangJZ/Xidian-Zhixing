@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
 import { harnessErrorMessage, usageSummary, type HarnessUsage } from '@/lib/ai/errors';
+import { createCoalescedWriter } from '@/lib/ai/streamBuffer';
 import { safeSourceURL, type UIEnvelope, type UIService } from '@/lib/ai/ui';
 import { UICards } from './UICards';
 
@@ -403,6 +404,9 @@ export function AIChat({
         ),
       );
     };
+    // Streamed text arrives one token at a time. Committing each delta re-renders the whole
+    // transcript once per token, so the writer below buffers it and writes at most once per frame.
+    const answerWriter = createCoalescedWriter((text) => updateAssistant({ content: text }));
     let persistedUserId = pendingUserId;
     const discardFailedTurn = () => {
       setConversations((items) =>
@@ -427,6 +431,9 @@ export function AIChat({
         signal: requestAbort.signal,
       });
 
+      // Drop any frame still buffered: the local turn is about to disappear, and committing text
+      // into a removed message would paint it back for one frame.
+      answerWriter.cancel();
       if (!response.ok || !response.body) {
         const result = (await response.json().catch(() => ({}))) as {
           data?: { code?: string; usage?: HarnessUsage; reason?: string };
@@ -514,22 +521,9 @@ export function AIChat({
             ),
           );
         } else if (payload.type === 'answer_reset') {
-          updateAssistant({ content: '' });
+          answerWriter.append('', { reset: true });
         } else if (payload.type === 'answer_delta' && typeof payload.text === 'string') {
-          setConversations((items) =>
-            items.map((conversation) =>
-              conversation.messages.some((message) => message.id === pendingAssistantId)
-                ? {
-                    ...conversation,
-                    messages: conversation.messages.map((message) =>
-                      message.id === pendingAssistantId
-                        ? { ...message, content: message.content + payload.text }
-                        : message,
-                    ),
-                  }
-                : conversation,
-            ),
-          );
+          answerWriter.append(payload.text);
         } else if (payload.type === 'done') {
           terminalEventReceived = true;
           const message = payload.message as AIMessageData;
@@ -603,6 +597,8 @@ export function AIChat({
           }
           boundary = pending.indexOf('\n\n');
         }
+        // One write per read instead of one per delta: the writer only holds a frame's worth.
+        answerWriter.flush();
       }
       if (!terminalEventReceived) {
         setError({ message: t('响应流意外中断，请重试。', 'The response stream ended unexpectedly. Please retry.') });
@@ -690,9 +686,15 @@ export function AIChat({
                     message.content
                   ) : (
                     <div className="break-words">
-                      <ReactMarkdown remarkPlugins={markdownPlugins} components={markdownComponents}>
-                        {message.content}
-                      </ReactMarkdown>
+                      {/* While tokens are still arriving the text is rendered as-is: parsing
+                          half-finished Markdown on every frame costs more than it shows. */}
+                      {message.streaming ? (
+                        <span className="whitespace-pre-wrap">{message.content}</span>
+                      ) : (
+                        <ReactMarkdown remarkPlugins={markdownPlugins} components={markdownComponents}>
+                          {message.content}
+                        </ReactMarkdown>
+                      )}
                       {message.streaming && (
                         <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
                           <span className="inline-block animate-spin" aria-hidden="true">
