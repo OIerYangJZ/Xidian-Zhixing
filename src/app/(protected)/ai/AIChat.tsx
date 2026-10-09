@@ -304,6 +304,39 @@ export function AIChat({
     setActiveId(nextConversation.id);
   }
 
+  async function deleteConversation(conversation: AIConversationData) {
+    if (
+      !window.confirm(
+        t(
+          `删除「${conversation.title}」？这段对话和它的回答会从服务器永久移除。`,
+          `Delete “${conversation.title}”? This conversation and its answers are removed from the server.`,
+        ),
+      )
+    )
+      return;
+    setError(null);
+    // A conversation created but never answered only exists in local state.
+    const persisted = !conversation.id.startsWith('pending-');
+    if (persisted) {
+      const response = await fetch(`/api/ai/conversations/${encodeURIComponent(conversation.id)}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        setError({ message: t('删除对话失败，请稍后重试。', 'Could not delete the conversation. Please retry.') });
+        return;
+      }
+    }
+    const remaining = conversations.filter((item) => item.id !== conversation.id);
+    setConversations(remaining);
+    if (activeId === conversation.id) {
+      setActiveId(remaining[0]?.id || '');
+      if (remaining.length === 0) {
+        followBottomRef.current = true;
+        setAtBottom(true);
+      }
+    }
+  }
+
   async function sendMessage(event?: FormEvent<HTMLFormElement>, prompt = draft) {
     event?.preventDefault();
     const content = prompt.trim();
@@ -606,17 +639,29 @@ export function AIChat({
 
       <div className="flex gap-2 overflow-x-auto border-b border-border/80 px-4 py-3 sm:px-5">
         {conversations.map((conversation) => (
-          <button
+          <span
             key={conversation.id}
-            type="button"
-            onClick={() => setActiveId(conversation.id)}
-            className={`max-w-48 shrink-0 truncate rounded-full px-3.5 py-2 text-xs transition ${
+            className={`flex shrink-0 items-center rounded-full transition ${
               activeId === conversation.id
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-secondary text-secondary-foreground'
             }`}>
-            {conversation.title}
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveId(conversation.id)}
+              className="max-w-48 truncate py-2 pl-3.5 pr-2 text-xs">
+              {conversation.title}
+            </button>
+            <button
+              type="button"
+              onClick={() => deleteConversation(conversation)}
+              disabled={sending}
+              aria-label={t(`删除对话：${conversation.title}`, `Delete conversation: ${conversation.title}`)}
+              title={t('删除这段对话', 'Delete this conversation')}
+              className="mr-1.5 rounded-full px-2 py-1 text-xs opacity-70 transition hover:bg-black/10 hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-30">
+              ×
+            </button>
+          </span>
         ))}
       </div>
 

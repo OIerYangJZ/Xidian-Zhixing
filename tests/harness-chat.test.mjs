@@ -77,6 +77,7 @@ function fixture(
         if (data.metadata.outcome !== 'complete') notifyFailure();
         return data;
       },
+      deleteMany: async () => ({ count: 0 }),
     },
     $transaction: async (fn) => {
       const result = await fn(prisma);
