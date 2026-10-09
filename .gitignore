@@ -50,6 +50,9 @@ __pycache__/
 miniprogram*/project.private.config.json
 miniprogram*/config/env.local.js
 
+# Local issue notes and materials: tracked on the developer machine only, not part of the public repo.
+/myfeature_issue/
+
 # SQLite runtime files and local recovery snapshots
 /deploy/knowledge/data/*.db-shm
 /deploy/knowledge/data/*.db-wal
