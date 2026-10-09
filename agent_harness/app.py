@@ -33,7 +33,7 @@ from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.tools import ToolDefinition
 from pydantic_ai.exceptions import UsageLimitExceeded
 from pydantic_ai.usage import RunUsage, UsageLimits
-from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, UserPromptPart
+from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, ToolReturnPart, UserPromptPart
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.providers.deepseek import DeepSeekProvider
@@ -780,6 +780,19 @@ def _tool_progress_message(tool: str, language: str, finished: bool = False) -> 
     return messages.get(tool, "我在处理这一批资料。" if language == "zh" else "I’m processing this batch.")
 
 
+def _tool_result_outcome(part: Any) -> str:
+    """Describe how a finished tool call ended.
+
+    A `function_tool_result` event carries either a `ToolReturnPart` for a tool that ran, or a
+    `RetryPromptPart` when the call was rejected before or during execution (invalid arguments,
+    a failed tool, an output-validation retry). Only `ToolReturnPart` has `outcome`, so reading
+    it unconditionally raised `AttributeError` and aborted the whole SSE stream.
+    """
+    if isinstance(part, ToolReturnPart):
+        return part.outcome
+    return "failed" if getattr(part, "part_kind", "") == "retry-prompt" else "unknown"
+
+
 corpus_path = Path(os.environ.get("AGENT_HARNESS_DB", "").strip() or DEFAULT_DB)
 
 explicit_base_url = os.environ.get("AGENT_HARNESS_BASE_URL", "").strip()
@@ -1127,7 +1140,7 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
                                 "type": "tool_result",
                                 "toolCallId": part.tool_call_id,
                                 "tool": part.tool_name,
-                                "outcome": part.outcome,
+                                "outcome": _tool_result_outcome(part),
                                 "result": part.content,
                                 "durationMs": round(
                                     (time.perf_counter() - tool_started_at.pop(part.tool_call_id, time.perf_counter()))
@@ -1180,7 +1193,9 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
                 }
             )
         except Exception as exc:
-            logger.error("Agent stream %s failed (%s)", request.trace_id, type(exc).__name__)
+            # `logger.exception` keeps the traceback: this handler sees failures raised inside the
+            # stream generator, where the type alone is not enough to locate the fault.
+            logger.exception("Agent stream %s failed (%s)", request.trace_id, type(exc).__name__)
             yield _sse(
                 {
                     "type": "error",

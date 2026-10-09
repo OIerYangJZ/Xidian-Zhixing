@@ -32,12 +32,13 @@
 
 校园问答由独立的 Pydantic AI Harness 提供。Agent 一次批量并行检索本地已发布资料、学校官网/新闻网/校内单位配置的公开网页，以及 DuckDuckGo 搜索到的互联网网页；结果按 URL 规范化去重，并可批量读取公开网页原文。校园网页列表在 `agent_harness/campus_sources.json`，可通过 `AGENT_HARNESS_CAMPUS_SOURCES` 指向另一份 JSON。网页只做公开只读 GET，Agent 会给实际打开的页面生成引用。聊天使用 SSE 展示简短进度状态和真实工具调用参数/结果，不再生成事后拼接的长推理摘要。
 
-未来接入个人课表等校园 API 时，Agent 通过 `agent_harness/campus_connectors.py` 注册操作；Next.js 后端为已登录用户签发短时 HMAC 身份声明，Harness 根据服务端授予的 scope 决定可用能力。当前没有注册个人数据 API 或用户授权范围，所以课表等能力会明确返回未接入。Next.js 与 Harness 共用 `.env.local` 中的 `AGENT_HARNESS_INTERNAL_SECRET` 后才启用身份声明。将 `AGENT_HARNESS_BASE_URL`、`AGENT_HARNESS_API_KEY`、`AGENT_HARNESS_MODEL` 和 `AGENT_HARNESS_DB` 写入本机 `.env.local`，再启动 Harness：
+未来接入个人课表等校园 API 时，Agent 通过 `agent_harness/campus_connectors.py` 注册操作；Next.js 后端为已登录用户签发短时 HMAC 身份声明，Harness 根据服务端授予的 scope 决定可用能力。当前没有注册个人数据 API 或用户授权范围，所以课表等能力会明确返回未接入。Next.js 与 Harness 共用 `.env.local` 中的 `AGENT_HARNESS_INTERNAL_SECRET` 后才启用身份声明。将 `AGENT_HARNESS_BASE_URL`、`AGENT_HARNESS_API_KEY`、`AGENT_HARNESS_MODEL` 和 `AGENT_HARNESS_DB` 写入本机 `.env.local`，再用仓库内已装好依赖的 `.venv` 启动 Harness：
 
 ```powershell
-python -m pip install -r agent_harness/requirements.txt
-python -m uvicorn agent_harness.app:app --host 127.0.0.1 --port 8002
+.\.venv\Scripts\python.exe -m uvicorn agent_harness.app:app --host 127.0.0.1 --port 8002
 ```
+
+仓库已包含 `.venv` 时可直接运行上面的命令，不必再安装依赖；使用其他 Python 环境时先执行 `.\.venv\Scripts\python.exe -m pip install -r agent_harness/requirements.txt`。直接用系统的 `python` 会因缺少 `pydantic_ai` 等依赖而报 `ModuleNotFoundError`。
 
 本机默认模型为 `deepseek-v4-flash`，密钥只放在本机环境文件中。聊天页面继续通过已登录的 Next.js API 调用本地 Harness。
 
