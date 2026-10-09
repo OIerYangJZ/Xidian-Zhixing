@@ -97,6 +97,31 @@ class HarnessTests(unittest.IsolatedAsyncioTestCase):
         self.assertGreater(result["end"] - result["start"], h.READ_FILES_CHARS)
         self.assertTrue(result["has_more"])
 
+    async def test_internet_search_returns_under_one_batch_deadline(self):
+        # The per-query timeout used to be the only bound, so eight keyword groups each spent their
+        # own; one whole-batch deadline is what keeps a slow provider from owning the turn.
+        import sys
+        import time
+        import types
+
+        slow_ddgs = types.ModuleType("ddgs")
+
+        class SlowDDGS:
+            def __init__(self, timeout=None):
+                self.timeout = timeout
+
+            def text(self, *_args, **_kwargs):
+                time.sleep(0.4)
+                return []
+
+        slow_ddgs.DDGS = SlowDDGS
+        started = time.perf_counter()
+        with patch.dict(sys.modules, {"ddgs": slow_ddgs}), patch.object(h, "INTERNET_SEARCH_DEADLINE_SECONDS", 0.05):
+            pages = await h._search_internet_pages(["a", "b", "c"], 3)
+        elapsed = time.perf_counter() - started
+        self.assertEqual(pages, [])
+        self.assertLess(elapsed, 0.35)
+
     async def test_document_revision_is_visible_without_restart(self):
         self.update(content="updated scholarship instructions")
         result = h.read_files(self.ctx, ["doc"])

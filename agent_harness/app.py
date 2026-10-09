@@ -51,6 +51,9 @@ SNAPSHOT = ROOT / "artifacts" / "knowledge-recovery" / "knowledge.db"
 DEPLOYMENT_SNAPSHOT = ROOT / "deploy" / "knowledge" / "data" / "knowledge.db"
 DEFAULT_DB = SNAPSHOT if SNAPSHOT.is_file() else DEPLOYMENT_SNAPSHOT
 RUN_TIMEOUT_SECONDS = 120
+# Open-internet search is the slowest tool in the turn: one deadline covers a whole keyword batch.
+DDGS_TIMEOUT_SECONDS = 6
+INTERNET_SEARCH_DEADLINE_SECONDS = 8.0
 # Per-tool payload caps. A single `read_files` or `read_web_pages` call is re-sent with every later
 # request in the turn, so an oversized batch inflates the whole remainder of the turn.
 READ_FILES_CHARS = 3_000
@@ -381,19 +384,33 @@ def _fetch_internet_page(url: str) -> dict[str, Any]:
 
 
 async def _search_internet_pages(queries: list[str], limit: int) -> list[dict[str, Any]]:
+    """Search the open internet under one overall deadline for the whole batch.
+
+    The per-request timeout used to be per query, so eight keyword groups could each spend their
+    own budget and a single tool call took 20 seconds. One deadline for the batch keeps the turn
+    bounded; a slow provider now costs the batch and not the whole answer.
+    """
     from ddgs import DDGS
 
     def search(query: str) -> list[dict[str, Any]]:
-        return list(DDGS(timeout=8).text(
+        return list(DDGS(timeout=DDGS_TIMEOUT_SECONDS).text(
             query,
             max_results=max(3, min(limit, 10)),
             backend="duckduckgo,yahoo,mojeek,startpage",
             region="cn-zh",
         ))
 
-    result_sets = await asyncio.gather(
-        *(asyncio.to_thread(search, query) for query in queries[:8]), return_exceptions=True
-    )
+    try:
+        result_sets = await asyncio.wait_for(
+            asyncio.gather(
+                *(asyncio.to_thread(search, query) for query in queries[:8]), return_exceptions=True
+            ),
+            timeout=INTERNET_SEARCH_DEADLINE_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        # A thread already running cannot be cancelled, but the turn must not wait for it.
+        logger.info("Internet search hit its %.1fs batch deadline", INTERNET_SEARCH_DEADLINE_SECONDS)
+        return []
     pages: OrderedDict[str, dict[str, Any]] = OrderedDict()
     for query, rows in zip(queries[:8], result_sets):
         if isinstance(rows, Exception):
